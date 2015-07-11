@@ -1,0 +1,44 @@
+Project Skill_Common is
+
+   type Mode_Type is ("clean", "debug", "release");
+   Mode : Mode_Type := external ("mode", "clean");
+
+   for Languages use ("Ada", "C");
+
+   for Library_Name use "Skill_Common";
+   for Library_Kind use "dynamic";
+
+   for Source_Dirs use ("../src/**");
+
+   case Mode is
+      when "debug" =>
+         for Library_Dir use "../lib/Debug";
+         for Object_Dir use "../obj/Debug";
+      when "release" =>
+         for Library_Dir use "../lib/Release";
+         for Object_Dir use "../obj/Release";
+   end case;
+
+   package Builder is
+      case Mode is
+         when "debug" =>
+            for Default_Switches ("Ada") use ("-j0", "-gnat2012");
+         when "release" =>
+            for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2012");
+      end case;
+   end Builder;
+
+   package Compiler is
+      case Mode is
+         when "debug" =>
+            for Switches (others) use ("-g", "-fstack-check");
+         when "release" =>
+            for Switches (others) use ("-O3", "-march=corei7");
+      end case;
+   end Compiler;
+
+   package Naming is
+      for Implementation_Suffix ("C") use ".c";
+   end Naming;
+
+end Skill_Common;
