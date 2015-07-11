@@ -1,12 +1,12 @@
 with "skill_common";
 
-Project Test is
+Project Tester is
 
    type Mode_Type is ("clean", "debug", "release");
    Mode : Mode_Type := external ("mode", "clean");
 
    for Languages use ("Ada", "C");
-   for Main use ("test.adb");
+   for Main use ("tester.adb");
 
    for Exec_Dir use "../";
    for Source_Dirs use ("../");
@@ -22,10 +22,10 @@ Project Test is
       case Mode is
          when "debug" =>
             for Default_Switches ("Ada") use ("-j0", "-gnat2012");
-            for Executable ("test.adb") use "debug";
+            for Executable ("tester.adb") use "debug";
          when "release" =>
             for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2012");
-            for Executable ("test.adb") use "release";
+            for Executable ("tester.adb") use "release";
       end case;
    end Builder;
 
@@ -42,4 +42,4 @@ Project Test is
       for Implementation_Suffix ("C") use ".c";
    end Naming;
 
-end Test;
+end Tester;
