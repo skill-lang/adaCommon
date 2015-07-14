@@ -1,12 +1,11 @@
-V "GNAT Lib v2013"
+V "GNAT Lib v4.9"
+A -fPIC
 A -fstack-check=specific
-A -mmacosx-version-min=10.9.4
 A -gnatA
 A -gnat2012
 A -g
-A -mtune=core2
-A -fPIC
-A -feliminate-unused-debug-symbols
+A -mtune=generic
+A -march=x86-64
 P ZX
 
 RN
@@ -19,41 +18,41 @@ U skill%s		skill.ads		26318ad3 EE NE OO PK
 W ada%s			ada.ads			ada.ali
 W ada.text_io%s		a-textio.adb		a-textio.ali
 
-D ada.ads		20130417131023 3ffc8e18
-D a-except.ads		20130417131019 10fcae55
-D a-finali.ads		20130417131020 52ecdc1b
-D a-ioexce.ads		20130417131020 8b9de6cd
-D a-stream.ads		20130417131021 2ca4ee37
-D a-tags.ads		20130417131022 6c0509d0
-D a-textio.ads		20130417131022 386df5d4
-D a-unccon.ads		20130417131022 f9eb8f06
-D interfac.ads		20130417131027 cb4a8015
-D i-cstrea.ads		20130417131026 8128536b
-D skill.ads		20150711141428 1e5c7f07
-D skill.adb		20150711141340 61eece86
-D system.ads		20130417131036 f2f2d889
-D s-crtl.ads		20130417131029 dfcfca61
-D s-exctab.ads		20130417131029 66e51330
-D s-ficobl.ads		20130417131029 55a71d43
-D s-finmas.ads		20130417131029 b95bb341
-D s-finroo.ads		20130417131029 4ff27390
-D s-parame.ads		20130417131032 b6e20cc0
-D s-pooglo.ads		20130417131032 542f33d0
-D s-soflin.ads		20130417131032 24c8153c
-D s-stache.ads		20130417131032 596fc1b4
-D s-stalib.ads		20130417131032 f78bcf95
-D s-stoele.ads		20130417131032 facd7d98
-D s-stoele.adb		20130417131032 afc5dc80
-D s-stopoo.ads		20130417131032 7b8fbeee
-D s-traent.ads		20130417131033 5221ee41
-D s-unstyp.ads		20130417131034 6ae15c76
-D s-wchcon.ads		20130417131034 bfeb2e3d
+D ada.ads		20070406091342 3ffc8e18
+D a-except.ads		20140129161953 f86a4103
+D a-finali.ads		20111121113555 52ecdc1b
+D a-ioexce.ads		20140225151544 e4a01f64
+D a-stream.ads		20140122164720 1a984740
+D a-tags.ads		20111212115430 6c0509d0
+D a-textio.ads		20140129155348 386df5d4
+D a-unccon.ads		20070406091342 f9eb8f06
+D interfac.ads		20140225151838 69adb1b9
+D i-cstrea.ads		20130412125801 8128536b
+D skill.ads		20150714075250 1e5c7f07
+D skill.adb		20150714075028 61eece86
+D system.ads		20141210093300 90249111
+D s-crtl.ads		20140225151544 840e6817
+D s-exctab.ads		20140225151139 54135002
+D s-ficobl.ads		20120709130952 55a71d43
+D s-finmas.ads		20140225151139 814daec4
+D s-finroo.ads		20120426095924 4ff27390
+D s-parame.ads		20140225151139 ab8cb46a
+D s-pooglo.ads		20110804083314 542f33d0
+D s-soflin.ads		20140225151139 aa763b52
+D s-stache.ads		20140225151139 a37c21ec
+D s-stalib.ads		20140225151139 a891183f
+D s-stoele.ads		20140225151139 2dc34a04
+D s-stoele.adb		20140225151139 ed88f8fb
+D s-stopoo.ads		20131010103753 b16154c2
+D s-traent.ads		20140225151139 b5116092
+D s-unstyp.ads		20140225151139 510692af
+D s-wchcon.ads		20140225151139 1b7d22d2
 X 1 ada.ads
-16K9*Ada 19e8 11|1r6 12|5r7
+16K9*Ada 19e8 11|7r6 12|5r7
 X 7 a-textio.ads
-49K13*Text_IO 471e16 11|1w10 12|5r11
+49K13*Text_IO 471e16 11|7w10 12|5r11
 263U14*Put_Line 12|5s19
 X 11 skill.ads
-3K9*Skill 7l5 7e10 12|1b14 8l5 8t10
-5U14*My_Lib_Dummy 12|3b14 6t7
+9K9*Skill 13l5 13e10 12|1b14 8l5 8t10
+11U14*My_Lib_Dummy 12|3b14 6t7
 
