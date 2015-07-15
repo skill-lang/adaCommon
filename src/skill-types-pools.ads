@@ -41,7 +41,10 @@ package Skill.Types.Pools is
 
 
    function To_String (This : Pool) return String is
-      (Name.all);
+     (Name.all);
+
+   function Skill_Name (This : Pool) return String_Access is
+     (Name);
 
 private
 
