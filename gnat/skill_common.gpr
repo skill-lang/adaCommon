@@ -6,7 +6,7 @@ Project Skill_Common is
    for Languages use ("Ada", "C");
 
    for Library_Name use "Skill_Common";
-   for Library_Kind use "dynamic";
+   for Library_Kind use "static";
 
    for Source_Dirs use ("../src");
 
