@@ -5,16 +5,28 @@
 --                                                                            --
 
 package Skill.Types is
+   -- declare skill ids type for later configuration
+   subtype Skill_ID_T is Integer;
+
    type String_Access is access String;
-   type String_Access_Array is array(Integer range <>) of not null String_Access;
+
+   type String_Access_Array is
+     array (Integer range <>) of not null String_Access;
+
+   type Field_Type_Base is abstract tagged null record;
+   type Field_Type is access Field_Type_Base'Class;
+
+   function ID (This : Field_Type_Base) return Natural is abstract;
+   function To_String (This : Field_Type_Base) return String is abstract;
 
    generic
       type T is private;
       Type_Id : Natural;
    package Field_Types is
-      type Field_Type is tagged record
-         null;
-      end record;
+      type Field_Type is abstract new Field_Type_Base with null record;
+
+      overriding function Id (This : Field_Type) return Natural is
+        (Type_ID);
    end Field_Types;
 
    type Field_Declaration is tagged record
@@ -28,11 +40,14 @@ package Skill.Types is
    end record;
    type Auto_Field_Array is array (Integer range <>) of Auto_Field;
 
+   type Skill_Object is tagged private;
 
-   -- any type that we will insert later on
-   type Any is range 0 .. -1;
-   -- any type that we will insert later on
-   type Any_Ref is access Any;
+private
 
+
+   -- we use integer IDs, because they are smaller and we would
+   type Skill_Object is tagged record
+      Skill_ID : Skill_ID_T;
+   end record;
 
 end Skill.Types;

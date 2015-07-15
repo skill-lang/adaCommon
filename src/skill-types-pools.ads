@@ -6,8 +6,11 @@
 
 with Ada.Containers.Vectors;
 
+with Skill.Internal.Parts;
 
 
+-- note: in contrast to real programming languages, we wont use sub pools,
+-- because we will rather accept inefficient implementations in base pools
 generic
    -- type of values stored in a pool
    type T is tagged private;
@@ -30,8 +33,15 @@ package Skill.Types.Pools is
 
    type Pool is tagged private;
    type Pool_Access is access Pool;
-   subtype NPool_Access is not null Pool_Access;
-   package Pool_Vector is new Ada.Containers.Vectors(Natural, NPool_Access);
+   subtype A1 is not null Pool_Access;
+   package Pool_Vector is new Ada.Containers.Vectors (Natural, A1);
+
+   type A2 is not null access T;
+   package New_Objects_T is new Ada.Containers.Vectors (Natural, A2);
+
+
+   function To_String (This : Pool) return String is
+      (Name.all);
 
 private
 
@@ -50,10 +60,10 @@ private
       Data_Fields : Field_Array_Access;
 
       -- layout of skill ids of this type
-      Blocks : Any_Ref;
+      Blocks : Skill.Internal.Parts.Blocks.Vector;
 
       -- objects that have not yet been written to disk
-      New_Objects : Any_Ref;
+      New_Objects : New_Objects_T.Vector;
 
       -- Storage pools can be fixed, i.e. no dynamic instances can be added
       -- to the pool. Fixing a pool requires that it does not contain a new

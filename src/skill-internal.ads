@@ -1,14 +1,9 @@
 --  ___ _  ___ _ _                                                            --
 -- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     top level package                                   --
--- |___/_|\_\_|_|____|    by: Timm Felden, Dennis Przytarski                  --
+-- \__ \ ' <| | | |__     top level internal package                          --
+-- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
-with Ada.Text_IO;
+package Skill.Internal is
 
-package Skill is
-   
-
-   procedure My_Lib_Dummy;
-
-end Skill;
+end Skill.Internal;

@@ -36,15 +36,15 @@ package Skill.Types.Base_Pools is
    type Base_Pool_Access is private;
 
    type T_Access is access T;
-   type T_Array is array (Natural range <>) of T_Access;
-   type T_Array_Access is not null access T_Array;
+   type A1 is array (Natural range <>) of T_Access;
+   type T_Array is not null access A1;
 
    type Owner_T is not null access Skill_State;
 
 private
 
    type Base_Pool is new Ps.Pool with record
-      Data  : T_Array_Access;
+      Data  : T_Array;
       Owner : Owner_T;
    end record;
    type Base_Pool_Access is access Base_Pool;
