@@ -1,5 +1,6 @@
 debug
 release
+testFiles
 
 *.ali
 *.dylib
