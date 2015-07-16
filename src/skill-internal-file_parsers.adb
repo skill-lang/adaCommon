@@ -28,9 +28,9 @@ package body Skill.Internal.File_Parsers is
 
       -- read an entire string block
       procedure String_Block is
-         V : Types.I8 := Input.I8;
+         V : Types.I64 := Input.I64;
       begin
-         Ada.Text_IO.Put_Line(Integer'Image(INteger(V)));
+         Ada.Text_IO.Put_Line(Long_Integer'Image(Long_Integer(V)));
       end String_Block;
 
       -- read an entire type block

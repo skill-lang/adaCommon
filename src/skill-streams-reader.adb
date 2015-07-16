@@ -12,7 +12,9 @@ with Interfaces.C.Strings;
 
 package body Skill.Streams.Reader is
 
-   function Open (Path : Skill.Types.String_Access) return Input_Stream is
+   use Skill;
+
+   function Open (Path : Types.String_Access) return Input_Stream is
       Cpath : Interfaces.C.Strings.chars_ptr :=
         Interfaces.C.Strings.New_String (Path.all);
 
@@ -33,70 +35,74 @@ package body Skill.Streams.Reader is
       return This.Position >= This.Length;
    end Eof;
 
-   function I8
-     (This : access Input_Stream_T) return Skill.Types.i8
-   is
+   function I8 (This : access Input_Stream_T) return Types.i8 is
       use C;
       use Uchar;
 
       function Convert is new Ada.Unchecked_Conversion
         (Interfaces.C.unsigned_char,
          Skill.Types.i8);
-      P : Uchar.Pointer := This.Map + C.Ptrdiff_T(This.Position);
-      R : Skill.Types.I8 := Convert (P.all);
-      begin
+      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      R : Types.i8      := Convert (P.all);
+   begin
       -- Increment (P);
 
       This.Position := This.Position + 1;
       return R;
    end I8;
 
---     function Read_i16
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i16
---     is
---        use type Interfaces.C.size_t;
---        subtype Two_Bytes is Unsigned_Char_Array (1 .. 2);
---        function Convert is new Ada.Unchecked_Conversion (Two_Bytes, i16);
---     begin
---        return Convert (Two_Bytes'(Mapped (Start + 1), Mapped (Start)));
---     end Read_i16;
---
---     function Read_i32
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i32
---     is
---        use type Interfaces.C.size_t;
---        subtype Four_Bytes is Unsigned_Char_Array (1 .. 4);
---        function Convert is new Ada.Unchecked_Conversion (Four_Bytes, i32);
---     begin
---        return Convert
---            (Four_Bytes'
---               (Mapped (Start + 3),
---                Mapped (Start + 2),
---                Mapped (Start + 1),
---                Mapped (Start)));
---     end Read_i32;
---
---     function Read_i64
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i64
---     is
---        use type Interfaces.C.size_t;
---        subtype Eight_Bytes is Unsigned_Char_Array (1 .. 8);
---        function Convert is new Ada.Unchecked_Conversion (Eight_Bytes, i64);
---     begin
---        return Convert
---            (Eight_Bytes'
---               (Mapped (Start + 7),
---                Mapped (Start + 6),
---                Mapped (Start + 5),
---                Mapped (Start + 4),
---                Mapped (Start + 3),
---                Mapped (Start + 2),
---                Mapped (Start + 1),
---                Mapped (Start)));
---     end Read_i64;
+   function I16 (This : access Input_Stream_T) return Types.i16 is
+      use C;
+      use Uchar;
+
+      subtype Bytes is Unsigned_Char_Array (1 .. 2);
+      function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i16);
+      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P1 : Uchar.Pointer := P + 1;
+      R  : Types.i16     := Convert (Bytes'(P1.all, P.all));
+   begin
+      This.Position := This.Position + 2;
+      return R;
+   end I16;
+
+   function I32 (This : access Input_Stream_T) return Types.i32 is
+      use C;
+      use Uchar;
+
+      subtype Bytes is Unsigned_Char_Array (1 .. 4);
+      function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i32);
+      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P1 : Uchar.Pointer := P + 1;
+      P2 : Uchar.Pointer := P + 2;
+      P3 : Uchar.Pointer := P + 3;
+      R  : Types.i32     := Convert (Bytes'(P3.all, P2.all, P1.all, P.all));
+   begin
+      This.Position := This.Position + 4;
+      return R;
+   end I32;
+
+   function I64 (This : access Input_Stream_T) return Types.i64 is
+      use C;
+      use Uchar;
+
+      subtype Bytes is Unsigned_Char_Array (1 .. 8);
+      function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i64);
+      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P1 : Uchar.Pointer := P + 1;
+      P2 : Uchar.Pointer := P + 2;
+      P3 : Uchar.Pointer := P + 3;
+      P4 : Uchar.Pointer := P + 4;
+      P5 : Uchar.Pointer := P + 5;
+      P6 : Uchar.Pointer := P + 6;
+      P7 : Uchar.Pointer := P + 7;
+      R  : Types.i64     :=
+        Convert
+          (Bytes'
+             (P7.all, P6.all, P5.all, P4.all, P3.all, P2.all, P1.all, P.all));
+   begin
+      This.Position := This.Position + 8;
+      return R;
+   end I64;
 --
 --     function Read_v64
 --       (Mapped : Unsigned_Char_Array;

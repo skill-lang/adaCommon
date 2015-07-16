@@ -7,7 +7,7 @@ with Skill.Files;
 
 procedure Tester is
 
-   Sf : Skill.Files.File := Skill.Files.Open("testFiles/aoeiage.sf");
+   Sf : Skill.Files.File := Skill.Files.Open("testFiles/twoTypesEmpty.sf");
 
    procedure Print is
    begin

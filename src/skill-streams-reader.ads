@@ -22,34 +22,15 @@ package Skill.Streams.Reader is
 
    function I8 (This : access Input_Stream_T) return Skill.Types.i8;
 
---     function Read_i16
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i16;
+   function I16 (This : access Input_Stream_T) return Skill.Types.i16;
+
+   function I32 (This : access Input_Stream_T) return Skill.Types.i32;
+
+   function I64 (This : access Input_Stream_T) return Skill.Types.i64;
+
+--     function V64 (This : access Input_Stream_T) return v64_Extended;
 --
---     function Read_i32
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i32;
---
---     function Read_i64
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return i64;
---
---     function Read_v64
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return v64_Extended;
---
---     function Read_String
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t;
---        Length : i32) return String;
---
---     pragma Inline
---       (Read_i8,
---        Read_i16,
---        Read_i32,
---        Read_i64,
---        Read_v64,
---        Read_String);
+--     pragma Inline (I8, I16, I32, I64, V64);
 
 private
    package C renames Interfaces.C;
