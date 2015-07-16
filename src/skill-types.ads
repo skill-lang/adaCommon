@@ -5,6 +5,8 @@
 --                                                                            --
 
 package Skill.Types is
+   pragma Preelaborate;
+
    -- declare skill ids type for later configuration
    subtype Skill_ID_T is Integer;
 

@@ -4,10 +4,8 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden, Dennis Przytarski                  --
 --                                                                            --
 
-with Ada.Text_IO;
-
 package Skill is
-   
+   pragma Pure;
 
    procedure My_Lib_Dummy;
 
