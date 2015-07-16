@@ -17,15 +17,17 @@ typedef struct {
 
 void error(char const *message)
 {
-   fprintf(stderr, "mmap C: %s\n", message);
+   fprintf(stderr, "mmap.c: %s\n", message);
    exit(EXIT_FAILURE);
 }
 
 mmap_c_array mmap_open(char const *filename)
 {
   FILE *stream = fopen(filename, "r");
-  if(NULL == stream)
+  if(NULL == stream){
+    fprintf(stderr, "could not open file at \"%s\"\n", filename);
     error("Execution of function fopen failed.");
+  }
 
   struct stat fileStat;
   if(-1 == fstat(fileno(stream), &fileStat))
