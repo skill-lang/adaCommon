@@ -5,6 +5,7 @@ testFiles
 *.ali
 *.dylib
 *.lexch
+*.o
 
 # gps temoraries
 *.ad*.npp
