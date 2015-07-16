@@ -5,5 +5,5 @@
 --                                                                            --
 
 package Skill.Internal is
-
+   pragma Pure;
 end Skill.Internal;

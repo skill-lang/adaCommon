@@ -3,6 +3,8 @@
 -- \__ \ ' <| | | |__     type handling in skill                              --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+
+with Skill.Field_Types;
 with Skill.Types.Pools;
 
 generic
@@ -23,8 +25,9 @@ generic
 
    -- auto fields are a generic parameter as well
    -- range is allways -XX to 0.
-   Auto_Fields : Auto_Field_Array;
+   Auto_Fields : Skill.Field_Types.Auto_Field_Array;
 package Skill.Types.Base_Pools is
+   pragma Preelaborate;
 
    package Ps is new Skill.Types.Pools
      (T,

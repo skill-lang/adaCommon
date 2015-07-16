@@ -9,7 +9,7 @@ with Ada.Unchecked_Conversion;
 with Interfaces;
 
 
-with Skill.Types.Api; use Skill.Types.Api;
+with Skill.Types; use Skill.Types;
 
 package body Skill.Streams.Reader is
 

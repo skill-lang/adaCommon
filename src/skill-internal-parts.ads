@@ -8,6 +8,7 @@ with Ada.Containers.Vectors;
 
 -- documentation can be found in java common
 package Skill.Internal.Parts is
+   pragma Preelaborate;
 
    type Block is record
       BPO   : Long_Integer;

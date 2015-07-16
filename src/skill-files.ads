@@ -4,9 +4,10 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
-with Ada.Text_IO;
 
 package Skill.Files is
+
+   pragma Preelaborate;
 
    type File_T is tagged private;
    type File is not null access File_T'Class;

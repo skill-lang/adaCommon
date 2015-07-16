@@ -4,7 +4,6 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
-with Ada.Text_IO;
 
 package body Skill.Files is
 

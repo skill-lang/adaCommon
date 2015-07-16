@@ -2,17 +2,17 @@
 
 with Ada.Text_IO;
 
-with Skill.Types;
-with Skill.Types.Builtin_Field_Types;
+with Skill.Field_Types;
+with Skill.Field_Types.Builtin;
 
 with Skill.Hashes; use Skill.Hashes;
 
 
 procedure Test is
 
-   package T renames Skill.Types.Builtin_Field_Types;
+   package T renames Skill.Field_Types.Builtin;
 
-   Ft : Skill.Types.Field_Type;
+   Ft : Skill.Field_Types.Field_Type;
 
    procedure Print is
    begin

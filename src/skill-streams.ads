@@ -7,13 +7,14 @@
 with Interfaces.C;
 with Interfaces.C.Pointers;
 
-with Skill.Types.Api;
+with Skill.Types;
 
 package Skill.Streams is
+   pragma Preelaborate;
 
    type v64_Extended is
       record
-         Value  : Skill.Types.Api.V64;
+         Value  : Skill.Types.V64;
          Length : Interfaces.C.size_t'Base range 1 .. 9;
       end record;
 

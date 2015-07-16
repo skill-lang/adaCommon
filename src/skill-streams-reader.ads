@@ -6,9 +6,10 @@
 
 with Interfaces.C;
 
-with Skill.Types.Api; use Skill.Types.Api;
+with Skill.Types; use Skill.Types;
 
 package Skill.Streams.Reader is
+   pragma Preelaborate;
 
    function Read_i8 (
       Mapped : Unsigned_Char_Array;

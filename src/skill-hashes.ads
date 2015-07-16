@@ -11,9 +11,10 @@ with Skill.Types;
 -- the trick of this package is to instantiate hash codes as Skill.hashes.hash
 -- independent of the type! :)
 package Skill.Hashes is
--- TODO (requires fielt types to move)   pragma Pure;
+   pragma Preelaborate;
 
-   function Hash (Element : Skill.Types.String_Access) return Ada.Containers.Hash_Type is
+   function Hash
+     (Element : Skill.Types.String_Access) return Ada.Containers.Hash_Type is
      (Ada.Strings.Hash (Element.all));
 
 end Skill.Hashes;

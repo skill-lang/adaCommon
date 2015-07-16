@@ -9,11 +9,11 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
 
-with Skill.Types.Api;
+with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 
-package Skill.Types.Builtin_Field_Types is
-
+package Skill.Field_Types.Builtin is
+   pragma Preelaborate;
 
    generic
       type T is private;
@@ -29,7 +29,7 @@ package Skill.Types.Builtin_Field_Types is
         (Image);
    end Plain_Types;
 
-   package T renames Skill.Types.Api;
+   package T renames Skill.Types;
 
    package A1 is new Plain_Types (T.I8, 0, "constant i8");
    Constant_I8 : constant Field_Type := new A1.Field_Type;
@@ -77,7 +77,7 @@ package Skill.Types.Builtin_Field_Types is
    F64 : constant Field_Type := new A42.Field_Type;
 
 
-   package String_Type_T is new Plain_Types (String_Access, 14, "string");
+   package String_Type_T is new Plain_Types (T.String_Access, 14, "string");
    String_Type : constant Field_Type := new String_Type_T.Field_Type;
 
 
@@ -168,4 +168,4 @@ package Skill.Types.Builtin_Field_Types is
         ("map<" & Key.To_String & ", "& Value.To_String & ">");
    end Map_Types;
 
-end Skill.Types.Builtin_Field_Types;
+end Skill.Field_Types.Builtin;

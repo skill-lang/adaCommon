@@ -6,6 +6,7 @@
 
 with Ada.Containers.Vectors;
 
+with Skill.Field_Types;
 with Skill.Internal.Parts;
 
 
@@ -26,10 +27,12 @@ generic
 
    -- auto fields are a generic parameter as well
    -- range is allways -XX to 0.
-   Auto_Fields : Auto_Field_Array;
+   Auto_Fields : Skill.Field_Types.Auto_Field_Array;
 package Skill.Types.Pools is
 
-   package Fts is new Field_Types (T, Type_Id);
+   pragma Preelaborate;
+
+   package Fts is new Skill.Field_Types.Field_Types (T, Type_Id);
 
    type Pool is tagged private;
    type Pool_Access is access Pool;
@@ -60,7 +63,7 @@ private
       Sub_Pools : Pool_Vector.Vector;
 
       -- the list of all data fields
-      Data_Fields : Field_Array_Access;
+      Data_Fields : Skill.Field_Types.Field_Array_Access;
 
       -- layout of skill ids of this type
       Blocks : Skill.Internal.Parts.Blocks.Vector;
