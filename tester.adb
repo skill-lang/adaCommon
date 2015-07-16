@@ -1,8 +1,20 @@
+-- some dummy scratchpad tests
+
 with Ada.Text_IO;
-with Skill;
+
+with Skill.Files;
+
 
 procedure Tester is
+
+   Sf : Skill.Files.File := Skill.Files.Open("testFiles/age.sf");
+
+   procedure Print is
+   begin
+      null;
+   end Print;
+
 begin
-   Ada.Text_IO.Put_Line ("Hello World from tester!");
-   Skill.My_Lib_Dummy;
+   Print;
 end Tester;
+

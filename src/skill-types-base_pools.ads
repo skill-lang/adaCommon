@@ -7,6 +7,9 @@
 with Skill.Field_Types;
 with Skill.Types.Pools;
 
+-- TODO laut EP könnte es funktionieren, wenn man die access typen auf pools im
+-- ads deklariert und den ganzen Rest in der Adb; eventuell ist die Lösung mit
+-- dem unchecked cast deutlich einfacher und auch effizienter
 generic
    -- type of the (generated) skill state
    type Skill_State is private;

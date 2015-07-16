@@ -74,7 +74,7 @@ package Skill.Types.Vectors is
 private
 
    type Element_Array is array (Index_Type range <>) of Element_Type;
-   type Element_Array_Access is access all Element_Array;
+   type Element_Array_Access is access Element_Array;
 
    Null_Element_Array : constant Element_Array_Access := null;
 

@@ -8,6 +8,9 @@ with Ada.Exceptions;
 
 package Skill.Errors is
 
+   -- this exception is used for skill error reporting
+   Skill_Error : exception;
+
    -- prints currents stack trace
    -- can be used for debugging purpose and is used to enhance error reporting
    -- in generated code.
