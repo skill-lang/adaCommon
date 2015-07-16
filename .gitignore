@@ -1,5 +1,5 @@
-debug
-release
+/debug
+/release
 testFiles
 
 *.ali
@@ -9,3 +9,4 @@ testFiles
 
 # gps temoraries
 *.ad*.npp
+*.cgpr
