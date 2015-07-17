@@ -4,33 +4,29 @@
 -- |___/_|\_\_|_|____|    by: Dennis Przytarski                               --
 --                                                                            --
 
-
 with Ada.Unchecked_Deallocation;
 
 package body Skill.Types.Vectors is
 
-   procedure Append (
-      Container   : in out Vector;
-      New_Element : Element_Type
-   ) is
+   procedure Append (Container : in out Vector; New_Element : Element_Type) is
    begin
       Container.Ensure_Size (1 + Container.Size_0);
       Container.Append_Unsafe (New_Element);
    end Append;
 
-   procedure Append_Unsafe (
-      Container   : in out Vector;
-      New_Element : Element_Type
-   ) is
+   procedure Append_Unsafe
+     (Container   : in out Vector;
+      New_Element :        Element_Type)
+   is
    begin
-      Container.Size_0 := 1 + Container.Size_0;
+      Container.Size_0                      := 1 + Container.Size_0;
       Container.Elements (Container.Size_0) := New_Element;
    end Append_Unsafe;
 
-   function Element (
-      Container : in out Vector;
-      Index     : Index_Type
-   ) return Element_Type is
+   function Element
+     (Container : in out Vector;
+      Index     :        Index_Type) return Element_Type
+   is
    begin
       if (Index <= Container.Size_0) then
          return Container.Elements (Index);
@@ -39,10 +35,7 @@ package body Skill.Types.Vectors is
       end if;
    end Element;
 
-   procedure Ensure_Size (
-      Container : in out Vector;
-      N         : Index_Type
-   ) is
+   procedure Ensure_Size (Container : in out Vector; N : Index_Type) is
    begin
       if (N > Container.Elements'Length) then
          declare
@@ -53,10 +46,14 @@ package body Skill.Types.Vectors is
             end loop;
 
             declare
-               New_Container : Element_Array_Access := new Element_Array (1 .. New_Size);
-               procedure Free is new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
+               New_Container : Element_Array_Access :=
+                 new Element_Array (1 .. New_Size);
+               procedure Free is new Ada.Unchecked_Deallocation
+                 (Element_Array,
+                  Element_Array_Access);
             begin
-               New_Container (1 .. Container.Size) := Container.Elements (1 .. Container.Size);
+               New_Container (1 .. Container.Size) :=
+                 Container.Elements (1 .. Container.Size);
                Free (Container.Elements);
                Container.Elements := New_Container;
             end;
@@ -66,45 +63,37 @@ package body Skill.Types.Vectors is
       end if;
    end Ensure_Size;
 
-   procedure Ensure_Allocation (
-      Container : in out Vector;
-      N         : Index_Type
-   ) is
+   procedure Ensure_Allocation (Container : in out Vector; N : Index_Type) is
    begin
       Container.Ensure_Size (Container.Size_0 + N);
       Container.Size_0 := N + Container.Size_0;
    end Ensure_Allocation;
 
-   function Length (
-      Container : in out Vector
-   ) return Index_Type is
+   function Length (Container : in Vector) return Index_Type is
    begin
       return Container.Size_0;
    end Length;
 
-   procedure Replace_Element (
-      Container : in out Vector;
-      Index     : Index_Type;
-      Element   : Element_Type
-   ) is
+   procedure Replace_Element
+     (Container : in out Vector;
+      Index     :        Index_Type;
+      Element   :        Element_Type)
+   is
    begin
       Container.Elements (Index) := Element;
    end Replace_Element;
 
-   function Check_Index (
-      Container : in out Vector;
-      Index     : Index_Type
-   ) return Boolean is
-      (Index <= Container.Size_0);
+   function Check_Index
+     (Container : in out Vector;
+      Index     :        Index_Type) return Boolean is
+     (Index <= Container.Size_0);
 
-   overriding
-   procedure Initialize (Object : in out Vector) is
+   overriding procedure Initialize (Object : in out Vector) is
    begin
       Object.Elements := new Element_Array (1 .. Object.Size);
    end Initialize;
 
-   overriding
-   procedure Finalize (Object : in out Vector) is
+   overriding procedure Finalize (Object : in out Vector) is
    begin
       null;
    end Finalize;

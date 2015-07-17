@@ -7,6 +7,7 @@
 with Skill.Errors;
 with Skill.Internal.File_Parsers;
 with Skill.Streams;
+with Skill.Types;
 
 package body Skill.Files is
 
@@ -21,7 +22,9 @@ package body Skill.Files is
       case Read_M is
 
          when Read =>
-            return FileParser.Read (Skill.Streams.Input (new String'(Path)), Write_M);
+            return FileParser.Read
+                (Skill.Streams.Input (new String'(Path)),
+                 Write_M);
 
          when Create =>
             raise Skill.Errors.Skill_Error with "TBD";
@@ -39,7 +42,24 @@ package body Skill.Files is
 --              types.add(Age);
 --              return new SkillState(strings, types, stringType, annotation, path, actualMode.close);
 --
-end case;
+      end case;
    end Open;
+
+   function Strings (This : access File_T) return Skill.String_Pools.Pool is
+   begin
+      return This.Strings;
+   end Strings;
+
+   function Finish_Allocation
+     (Path    : Skill.Types.String_Access;
+      Mode    : Write_Mode;
+      Strings : Skill.String_Pools.Pool) return File
+   is
+   begin
+      return new File_T'(Path      => Path,
+                         Mode      => Mode,
+                         Strings   => Strings,
+                         Types     => null);
+   end Finish_Allocation;
 
 end Skill.Files;

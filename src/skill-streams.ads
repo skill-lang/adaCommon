@@ -14,11 +14,6 @@ limited with Skill.Streams.Reader;
 package Skill.Streams is
    pragma Preelaborate;
 
-   type v64_Extended is record
-      Value  : Skill.Types.v64;
-      Length : Interfaces.C.size_t'Base range 1 .. 9;
-   end record;
-
    type Unsigned_Char_Array is
      array
        (Interfaces.C.size_t range <>) of aliased Interfaces.C.unsigned_char;

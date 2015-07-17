@@ -15,6 +15,8 @@ package Skill.Types is
    subtype i32 is Interfaces.Integer_32 range Interfaces.Integer_32'Range;
    subtype i64 is Interfaces.Integer_64 range Interfaces.Integer_64'Range;
    subtype v64 is Interfaces.Integer_64 range Interfaces.Integer_64'Range;
+   -- used in places, where v64 values are used as lengths or counts
+   subtype Uv64 is Interfaces.Unsigned_64 range Interfaces.Unsigned_64'Range;
 
    -- TF: we can not restrict range, because that would destroy NaNs, right?
    subtype F32 Is Interfaces.IEEE_Float_32;

@@ -13,63 +13,40 @@ package Skill.Types.Vectors is
    pragma Preelaborate;
 
    type Vector is new Ada.Finalization.Limited_Controlled with private;
---   pragma Preelaborable_Initialization (Vector);
+--  pragma Preelaborable_Initialization (Vector);
 
-   procedure Append (
-      Container   : in out Vector;
-      New_Element : Element_Type
-   );
+   procedure Append (Container : in out Vector; New_Element : Element_Type);
 
-   procedure Append_Unsafe (
-      Container   : in out Vector;
-      New_Element : Element_Type
-   );
+   procedure Append_Unsafe
+     (Container   : in out Vector;
+      New_Element :        Element_Type);
 
-   function Check_Index (
-      Container : in out Vector;
-      Index     : Index_Type
-   ) return Boolean;
+   function Check_Index
+     (Container : in out Vector;
+      Index     :        Index_Type) return Boolean;
 
-   function Element (
-      Container : in out Vector;
-      Index     : Index_Type
-   ) return Element_Type with
+   function Element
+     (Container : in out Vector;
+      Index     :        Index_Type) return Element_Type with
       Pre => Check_Index (Container, Index);
 
-   procedure Ensure_Size (
-      Container : in out Vector;
-      N         : Index_Type
-   );
+   procedure Ensure_Size (Container : in out Vector; N : Index_Type);
 
-   procedure Ensure_Allocation (
-      Container : in out Vector;
-      N         : Index_Type
-   );
+   procedure Ensure_Allocation (Container : in out Vector; N : Index_Type);
 
-   function Length (
-      Container : in out Vector
-   ) return Index_Type;
+   function Length (Container : in Vector) return Index_Type;
 
-   procedure Replace_Element (
-      Container : in out Vector;
-      Index     : Index_Type;
-      Element   : Element_Type
-   );
+   procedure Replace_Element
+     (Container : in out Vector;
+      Index     :        Index_Type;
+      Element   :        Element_Type);
 
-   overriding
-   procedure Initialize (Object : in out Vector);
+   overriding procedure Initialize (Object : in out Vector);
 
    --  Release the vector elements.
-   overriding
-   procedure Finalize (Object : in out Vector);
+   overriding procedure Finalize (Object : in out Vector);
 
-   pragma Inline (
-      Element,
-      Ensure_Size,
-      Replace_Element,
-      Initialize,
-      Finalize
-   );
+   pragma Inline (Element, Ensure_Size, Replace_Element, Initialize, Finalize);
 
 private
 
@@ -78,11 +55,10 @@ private
 
    Null_Element_Array : constant Element_Array_Access := null;
 
-   type Vector is new Ada.Finalization.Limited_Controlled with
-      record
-         Elements : Element_Array_Access;
-         Size     : Index_Type := 2;
-         Size_0   : Index_Type := 0;
-      end record;
+   type Vector is new Ada.Finalization.Limited_Controlled with record
+      Elements : Element_Array_Access;
+      Size     : Index_Type := 2;
+      Size_0   : Index_Type := 0;
+   end record;
 
 end Skill.Types.Vectors;

@@ -21,9 +21,10 @@ package body Skill.Errors is
    end Print_Stacktrace;
 
    procedure Print_Stacktrace (E : in Ada.Exceptions.Exception_Occurrence) is
-      Trace  : GNAT.Traceback.Tracebacks_Array := Ada.Exceptions.Traceback.Tracebacks(E);
+      Trace : GNAT.Traceback.Tracebacks_Array :=
+        Ada.Exceptions.Traceback.Tracebacks (E);
    begin
-      Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(E));
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       Ada.Text_IO.Put_Line
         (GNAT.Traceback.Symbolic.Symbolic_Traceback (Trace));
    end Print_Stacktrace;

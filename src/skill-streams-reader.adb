@@ -9,6 +9,7 @@ with Interfaces;
 
 with Skill.Types;
 with Interfaces.C.Strings;
+with Ada.Characters.Latin_1;
 
 package body Skill.Streams.Reader is
 
@@ -29,7 +30,22 @@ package body Skill.Streams.Reader is
            Position => 0);
    end Open;
 
-   function Eof (This : Input_Stream_T) return Boolean is
+   function Path (This : access Input_Stream_T) return Skill.Types.String_Access is
+   begin
+      return This.Path;
+   end Path;
+
+   function Position (This : access Input_Stream_T) return Skill.Types.v64 is
+   begin
+      return Types.V64 (This.Position);
+   end Position;
+
+   procedure Jump (This : access Input_Stream_T; Pos : Skill.Types.V64) is
+   begin
+       This.Position := Interfaces.C.Size_T(Pos);
+   end Jump;
+
+   function Eof (This : access Input_Stream_T) return Boolean is
       use C;
    begin
       return This.Position >= This.Length;
@@ -103,43 +119,44 @@ package body Skill.Streams.Reader is
       This.Position := This.Position + 8;
       return R;
    end I64;
---
---     function Read_v64
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t) return v64_Extended
---     is
---        subtype Count_Type is Natural'Base range 0 .. 8;
---        subtype Unsigned_64 is Interfaces.Unsigned_64;
---        use type Interfaces.C.size_t;
---        use type Interfaces.Unsigned_64;
---        function Convert is new Ada.Unchecked_Conversion (Unsigned_64, v64);
---
---        Count        : Count_Type  := 0;
---        Return_Value : Unsigned_64 := 0;
---        Bucket       : Unsigned_64 := Unsigned_64 (Mapped (Start));
---     begin
---        while (Count < 8 and then 0 /= (Bucket and 16#80#)) loop
---           Return_Value :=
---             Return_Value or
---             Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
---           Count  := Count + 1;
---           Bucket := Unsigned_64 (Mapped (Start + Interfaces.C.size_t (Count)));
---        end loop;
---
---        case Count is
---           when 8 =>
---              Return_Value :=
---                Return_Value or Interfaces.Shift_Left (Bucket, 7 * Count);
---           when others =>
---              Return_Value :=
---                Return_Value or
---                Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
---        end case;
---
---        return v64_Extended'
---            (Convert (Return_Value), 1 + Interfaces.C.size_t (Count));
---     end Read_v64;
---
+
+   -- TODO replace by fast variant
+   function V64 (This : access Input_Stream_T) return Types.v64 is
+      subtype Count_Type is Natural'Base range 0 .. 8;
+      use type Interfaces.C.size_t;
+      use type Interfaces.Unsigned_64;
+      use Skill.Types;
+      function Convert is new Ada.Unchecked_Conversion
+        (Source => Types.i8,
+         Target => Types.Uv64);
+      function Convert is new Ada.Unchecked_Conversion
+        (Source => Types.Uv64,
+         Target => Types.v64);
+
+      Count        : Count_Type := 0;
+      Return_Value : Uv64       := 0;
+      Bucket       : Uv64       := Convert (This.I8);
+   begin
+      while (Count < 8 and then 0 /= (Bucket and 16#80#)) loop
+         Return_Value :=
+           Return_Value or
+           Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
+         Count  := Count + 1;
+         Bucket := Convert (This.I8);
+      end loop;
+
+      case Count is
+         when 8 =>
+            Return_Value := Return_Value or Interfaces.Shift_Left (Bucket, 56);
+         when others =>
+            Return_Value :=
+              Return_Value or
+              Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
+      end case;
+
+      return Convert (Return_Value);
+   end V64;
+
 --     function Read_String
 --       (Mapped : Unsigned_Char_Array;
 --        Start  : Interfaces.C.size_t;
@@ -155,5 +172,25 @@ package body Skill.Streams.Reader is
 --        end loop;
 --        return Return_Value;
 --     end Read_String;
+
+   function Parse_Exception
+     (This          :    access Input_Stream_T;
+      Block_Counter :    Positive;
+      Cause         : in Ada.Exceptions.Exception_Occurrence;
+      Message       :    String) return String
+   is
+   begin
+      return "Parse exception at\n" &
+        This.Path.all & Ada.Characters.Latin_1.LF &
+        " position: " &
+        Long_Integer'Image (Long_Integer (This.Position)) & Ada.Characters.Latin_1.LF &
+        " block: " &
+        Positive'Image (Block_Counter) & Ada.Characters.Latin_1.LF &
+        " reason: " &
+        Message & Ada.Characters.Latin_1.LF &
+        " caused by: " &
+        Ada.Exceptions.Exception_Information (Cause);
+
+   end Parse_Exception;
 
 end Skill.Streams.Reader;

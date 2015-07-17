@@ -10,6 +10,7 @@ with Interfaces.C.Strings;
 with Interfaces.C_Streams;
 
 with Skill.Types;
+with Ada.Exceptions;
 
 package Skill.Streams.Reader is
    pragma Preelaborate;
@@ -18,7 +19,13 @@ package Skill.Streams.Reader is
 
    function Open (Path : Skill.Types.String_Access) return Input_Stream;
 
-   function Eof (This : Input_Stream_T) return Boolean;
+   function Path (This : access Input_Stream_T) return Skill.Types.String_Access;
+
+   function Eof (This : access Input_Stream_T) return Boolean;
+
+   function Position (This : access Input_Stream_T) return Skill.Types.v64;
+
+   procedure Jump (This : access Input_Stream_T; Pos : Skill.Types.V64);
 
    function I8 (This : access Input_Stream_T) return Skill.Types.i8;
 
@@ -28,9 +35,15 @@ package Skill.Streams.Reader is
 
    function I64 (This : access Input_Stream_T) return Skill.Types.i64;
 
---     function V64 (This : access Input_Stream_T) return v64_Extended;
---
---     pragma Inline (I8, I16, I32, I64, V64);
+   function V64 (This : access Input_Stream_T) return Skill.Types.v64;
+
+   pragma Inline (I8, I16, I32, I64, V64);
+
+   function Parse_Exception
+     (This          :    access Input_Stream_T;
+      Block_Counter :    Positive;
+      Cause         : in Ada.Exceptions.Exception_Occurrence;
+      Message       :    String) return String;
 
 private
    package C renames Interfaces.C;

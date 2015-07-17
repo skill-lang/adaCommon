@@ -7,6 +7,7 @@
 with Skill.Types;
 with Skill.Types.Pools;
 with Skill.Types.Vectors;
+with Skill.String_Pools;
 
 package Skill.Files is
 
@@ -22,10 +23,20 @@ package Skill.Files is
       Read_M  : Read_Mode  := Read;
       Write_M : Write_Mode := Write) return File;
 
+   function Strings (This : access File_T) return Skill.String_Pools.Pool;
+
+   -- internal use only
+   -- should be abstract eventually!!
+   function Finish_Allocation
+     (Path    : Skill.Types.String_Access;
+      Mode    : Write_Mode;
+      Strings : Skill.String_Pools.Pool) return File;
+
 private
-   package A2 is new Skill.Types.Vectors (Index_Type   => Natural,
-                                          Element_Type => Skill.Types.String_Access);
-   subtype Type_Vector is A2.Vector;
+   package A2 is new Skill.Types.Vectors
+     (Index_Type   => Natural,
+      Element_Type => Skill.Types.String_Access);
+   type Type_Vector is access A2.Vector;
 
    type File_T is tagged limited record
       -- path used for flush/close operations
@@ -33,6 +44,9 @@ private
 
       -- current write mode
       Mode : Write_Mode;
+
+      -- strings stored in this file
+      Strings : Skill.String_Pools.Pool;
 
       -- types stored in this file
       Types : Type_Vector;
