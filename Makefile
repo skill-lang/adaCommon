@@ -12,5 +12,8 @@ debug:
 release:
 	gprbuild gnat/tester.gpr -Xmode=release
 
-valgrind:
-	valgrind --dsymutil=yes --leak-check=full --show-leak-kinds=all ./release
+valgrind: debug
+	valgrind --dsymutil=yes --leak-check=full --show-leak-kinds=all ./debug
+
+callgrind: debug
+	valgrind --tool=callgrind ./debug
