@@ -32,7 +32,7 @@ Project Tester is
    package Compiler is
       case Mode is
          when "debug" =>
-            for Switches (others) use ("-g", "-fstack-check");
+            for Switches (others) use ("-g", "-gnata", "-fstack-check");
          when "release" =>
             for Switches (others) use ("-O3", "-march=corei7");
       end case;
