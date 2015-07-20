@@ -10,6 +10,7 @@ with Skill.Errors;
 with Skill.Types;
 with Skill.Streams.Reader;
 with Ada.Unchecked_Conversion;
+with Ada.Text_IO;
 
 package body Skill.String_Pools is
 
@@ -86,7 +87,8 @@ package body Skill.String_Pools is
       end Read_Result;
 
    begin
-      if 0 <= Index then
+
+      if Index <= 0 then
          return null;
       end if;
 

@@ -30,19 +30,21 @@ package body Skill.Streams.Reader is
            Position => 0);
    end Open;
 
-   function Path (This : access Input_Stream_T) return Skill.Types.String_Access is
+   function Path
+     (This : access Input_Stream_T) return Skill.Types.String_Access
+   is
    begin
       return This.Path;
    end Path;
 
    function Position (This : access Input_Stream_T) return Skill.Types.v64 is
    begin
-      return Types.V64 (This.Position);
+      return Types.v64 (This.Position);
    end Position;
 
-   procedure Jump (This : access Input_Stream_T; Pos : Skill.Types.V64) is
+   procedure Jump (This : access Input_Stream_T; Pos : Skill.Types.v64) is
    begin
-       This.Position := Interfaces.C.Size_T(Pos);
+      This.Position := Interfaces.C.size_t (Pos);
    end Jump;
 
    function Eof (This : access Input_Stream_T) return Boolean is
@@ -122,7 +124,7 @@ package body Skill.Streams.Reader is
 
    -- TODO replace by fast variant
    function V64 (This : access Input_Stream_T) return Types.v64 is
-      pragma Warnings(Off);
+      pragma Warnings (Off);
 
       subtype Count_Type is Natural'Base range 0 .. 8;
       use type Interfaces.C.size_t;
@@ -182,32 +184,42 @@ package body Skill.Streams.Reader is
       Message       :    String) return String
    is
    begin
-      return "Parse exception at\n" &
-        This.Path.all & Ada.Characters.Latin_1.LF &
+      return "Parse exception at" &
+        Ada.Characters.Latin_1.LF &
+        This.Path.all &
+        Ada.Characters.Latin_1.LF &
         " position: " &
-        Long_Integer'Image (Long_Integer (This.Position)) & Ada.Characters.Latin_1.LF &
+        Long_Integer'Image (Long_Integer (This.Position)) &
+        Ada.Characters.Latin_1.LF &
         " block: " &
-        Positive'Image (Block_Counter) & Ada.Characters.Latin_1.LF &
+        Positive'Image (Block_Counter) &
+        Ada.Characters.Latin_1.LF &
         " reason: " &
-        Message & Ada.Characters.Latin_1.LF &
+        Message &
+        Ada.Characters.Latin_1.LF &
         " caused by: " &
         Ada.Exceptions.Exception_Information (Cause);
 
    end Parse_Exception;
    function Parse_Exception
-     (This          :    access Input_Stream_T;
-      Block_Counter :    Positive;
-      Message       :    String) return String
+     (This          : access Input_Stream_T;
+      Block_Counter : Positive;
+      Message       : String) return String
    is
    begin
-      return "Parse exception at\n" &
-        This.Path.all & Ada.Characters.Latin_1.LF &
+      return "Parse exception at" &
+        Ada.Characters.Latin_1.LF &
+        This.Path.all &
+        Ada.Characters.Latin_1.LF &
         " position: " &
-        Long_Integer'Image (Long_Integer (This.Position)) & Ada.Characters.Latin_1.LF &
+        Long_Integer'Image (Long_Integer (This.Position)) &
+        Ada.Characters.Latin_1.LF &
         " block: " &
-        Positive'Image (Block_Counter) & Ada.Characters.Latin_1.LF &
+        Positive'Image (Block_Counter) &
+        Ada.Characters.Latin_1.LF &
         " reason: " &
-        Message & Ada.Characters.Latin_1.LF;
+        Message &
+        Ada.Characters.Latin_1.LF;
 
    end Parse_Exception;
 

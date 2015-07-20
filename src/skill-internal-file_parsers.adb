@@ -14,6 +14,7 @@ with Skill.Errors;
 with Ada.Unchecked_Conversion;
 with Skill.String_Pools;
 with Skill.Types.Pools;
+with Ada.Characters.Latin_1;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -86,6 +87,13 @@ package body Skill.Internal.File_Parsers is
          -- reads a single type declaration
          procedure Type_Definition is
             Name : constant Types.String_Access := Strings.Get (Input.V64);
+
+            procedure Type_Restriction is
+               Count : Types.v64 := Input.V64;
+            begin
+               -- TODO
+               null;
+            end Type_Restriction;
          begin
             if null = Name then
                raise Errors.Skill_Error
@@ -101,32 +109,47 @@ package body Skill.Internal.File_Parsers is
             declare
                Count      : Types.v64 := Input.V64;
                Definition : Types.Pools.Pool;
+               Super_Pool : Types.Pools.Pool;
+               Super_Id   : Integer;
             begin
-               null;
+               if Types_By_Name.Contains (Name) then
+                  Definition := Types_By_Name.Element (Name);
+               else
+                  -- type restrictions
+                  -- TODO use the result!
+                  Type_Restriction;
+
+                  -- super
+                  Super_Id := Integer (Input.V64);
+                  if 0 = Super_Id then
+                     Super_Pool := null;
+                  else
+                     if Super_Id > Type_Vector.Length then
+                        raise Errors.Skill_Error
+                          with Input.Parse_Exception
+                          (Block_Counter, "Type " &
+                           Name.all &
+                           " refers to an ill-formed super type." &
+                           Ada.Characters.Latin_1.LF &
+                           "          found: " &
+                           Integer'Image (Super_Id) &
+                           "; current number of other types " &
+                           Integer'Image (Type_Vector.Length));
+                     else
+                        Super_Pool := Type_Vector.Element (Super_Id - 1);
+                     end if;
+                  end if;
+
+                  -- allocate pool
+               end if;
+
+               -- bpo
+
+               -- store block info and prepare resize
             end;
---          try {
---              long count = in.v64();
---
---              StoragePool<T, B> definition = null;
---              if (poolByName.containsKey(name)) {
---                  definition = (StoragePool<T, B>) poolByName.get(name);
---              } else {
---                  // restrictions
---                  final HashSet<TypeRestriction> rest = typeRestrictions();
---                  // super
---                  final StoragePool<? super T, B> superDef;
---                  {
---                      final int superID = (int) in.v64();
---                      if (0 == superID)
---                          superDef = null;
---                      else if (superID > types.size())
---                          throw new ParseException(in, blockCounter, null,
---                                  "Type %s refers to an ill-formed super type.\n"
---                                          + "          found: %d; current number of other types %d", name, superID,
---                                  types.size());
---                      else
---                          superDef = (StoragePool<? super T, B>) types.get(superID - 1);
---                  }
+            --          try {
+
+--                 [[...]]
 --
 --                  // allocate pool
 --                  definition = newPool(name, superDef, rest);
