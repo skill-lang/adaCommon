@@ -34,7 +34,7 @@ package Skill.String_Pools is
 
    function Get
      (This  : access Pool_T;
-      Index : Natural) return Skill.Types.String_Access;
+      Index : Types.V64) return Skill.Types.String_Access;
 
    -- internal use only
    function InvalidPoolIndexException
@@ -69,7 +69,9 @@ private
    end record;
 
    package A2 is new Ada.Containers.Vectors (Natural, Position);
-   package A3 is new Ada.Containers.Vectors (Natural, Skill.Types.String_Access);
+   package A3 is new Ada.Containers.Vectors
+     (Natural,
+      Skill.Types.String_Access);
 
    type Pool_T is tagged limited record
       Input            : Skill.Streams.Input_Stream;

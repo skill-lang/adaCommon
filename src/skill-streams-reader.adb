@@ -122,6 +122,8 @@ package body Skill.Streams.Reader is
 
    -- TODO replace by fast variant
    function V64 (This : access Input_Stream_T) return Types.v64 is
+      pragma Warnings(Off);
+
       subtype Count_Type is Natural'Base range 0 .. 8;
       use type Interfaces.C.size_t;
       use type Interfaces.Unsigned_64;
@@ -190,6 +192,22 @@ package body Skill.Streams.Reader is
         Message & Ada.Characters.Latin_1.LF &
         " caused by: " &
         Ada.Exceptions.Exception_Information (Cause);
+
+   end Parse_Exception;
+   function Parse_Exception
+     (This          :    access Input_Stream_T;
+      Block_Counter :    Positive;
+      Message       :    String) return String
+   is
+   begin
+      return "Parse exception at\n" &
+        This.Path.all & Ada.Characters.Latin_1.LF &
+        " position: " &
+        Long_Integer'Image (Long_Integer (This.Position)) & Ada.Characters.Latin_1.LF &
+        " block: " &
+        Positive'Image (Block_Counter) & Ada.Characters.Latin_1.LF &
+        " reason: " &
+        Message & Ada.Characters.Latin_1.LF;
 
    end Parse_Exception;
 

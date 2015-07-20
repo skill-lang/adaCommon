@@ -11,7 +11,7 @@ package Skill.Field_Types is
    type Field_Type_Base is abstract tagged null record;
    type Field_Type is access Field_Type_Base'Class;
 
-   function ID (This : Field_Type_Base) return Natural is abstract;
+   function ID (This : access Field_Type_Base) return Natural is abstract;
    function To_String (This : Field_Type_Base) return String is abstract;
 
    generic
@@ -20,7 +20,7 @@ package Skill.Field_Types is
    package Field_Types is
       type Field_Type is abstract new Field_Type_Base with null record;
 
-      overriding function Id (This : Field_Type) return Natural is
+      overriding function Id (This : access Field_Type) return Natural is
         (Type_ID);
    end Field_Types;
 

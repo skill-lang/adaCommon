@@ -51,15 +51,19 @@ package body Skill.Files is
    end Strings;
 
    function Finish_Allocation
-     (Path    : Skill.Types.String_Access;
-      Mode    : Write_Mode;
-      Strings : Skill.String_Pools.Pool) return File
+     (Path          : Skill.Types.String_Access;
+      Mode          : Write_Mode;
+      Strings       : Skill.String_Pools.Pool;
+      Types         : Type_Vector;
+      Types_By_Name : Type_Map) return File
    is
    begin
-      return new File_T'(Path      => Path,
-                         Mode      => Mode,
-                         Strings   => Strings,
-                         Types     => null);
+      return new File_T'
+          (Path          => Path,
+           Mode          => Mode,
+           Strings       => Strings,
+           Types         => Types,
+           Types_By_Name => Types_By_Name);
    end Finish_Allocation;
 
 end Skill.Files;

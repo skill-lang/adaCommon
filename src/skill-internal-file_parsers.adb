@@ -13,11 +13,15 @@ with Interfaces;
 with Skill.Errors;
 with Ada.Unchecked_Conversion;
 with Skill.String_Pools;
+with Skill.Types.Pools;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
 
    use Skill;
+   use type Types.String_Access;
+   use type Interfaces.Integer_32;
+   use type Interfaces.Integer_64;
 
    procedure Print (I : Types.i8) is
    begin
@@ -33,11 +37,12 @@ package body Skill.Internal.File_Parsers is
       Block_Counter : Positive := 1;
       -- end error reporting
 
-      Strings : String_Pools.Pool := String_Pools.Create (Input);
+      Strings       : String_Pools.Pool := String_Pools.Create (Input);
+      Type_Vector   : Files.Type_Vector := new Files.P_Type_Vector.Vector;
+      Types_By_Name : Files.Type_Map    := new Files.P_Type_Map.Map;
 
       -- read an entire string block
       procedure String_Block is
-         use type Interfaces.Integer_64;
          Count : Types.v64 := Input.V64;
       begin
          if 0 = Count then
@@ -47,8 +52,7 @@ package body Skill.Internal.File_Parsers is
          -- read offsets
          declare
             Last : Types.i32 := 0;
-            Off : Types.I32;
-            use type Interfaces.Integer_32;
+            Off  : Types.i32;
             type Offset_Array is
               array (Types.v64 range 0 .. Count - 1) of Types.i32;
             Offsets : Offset_Array;
@@ -58,12 +62,13 @@ package body Skill.Internal.File_Parsers is
             end loop;
 
             for I in Offset_Array'Range loop
-               Off  := Offsets (I);
-               Strings.AddPosition (Input.Position + Types.V64(Last), Off - Last);
+               Off := Offsets (I);
+               Strings.AddPosition
+               (Input.Position + Types.v64 (Last), Off - Last);
                Last := Off;
             end loop;
 
-            Input.Jump(Input.Position + Types.V64(Last));
+            Input.Jump (Input.Position + Types.v64 (Last));
          end;
 
       exception
@@ -75,16 +80,162 @@ package body Skill.Internal.File_Parsers is
 
       -- read an entire type block
       procedure Type_Block is
+         Offset     : Types.v64 := 0;
+         Type_Count : Types.v64 := Input.V64;
+
+         -- reads a single type declaration
+         procedure Type_Definition is
+            Name : constant Types.String_Access := Strings.Get (Input.V64);
+         begin
+            if null = Name then
+               raise Errors.Skill_Error
+                 with Input.Parse_Exception
+                 (Block_Counter, "corrupted file: nullptr in typename");
+            end if;
+--          // type duplication error detection
+--          if (seenTypes.contains(name))
+--              throw new ParseException(in, blockCounter, null, "Duplicate definition of type %s", name);
+--          seenTypes.add(name);
+--
+--          // try to parse the type definition
+            declare
+               Count      : Types.v64 := Input.V64;
+               Definition : Types.Pools.Pool;
+            begin
+               null;
+            end;
+--          try {
+--              long count = in.v64();
+--
+--              StoragePool<T, B> definition = null;
+--              if (poolByName.containsKey(name)) {
+--                  definition = (StoragePool<T, B>) poolByName.get(name);
+--              } else {
+--                  // restrictions
+--                  final HashSet<TypeRestriction> rest = typeRestrictions();
+--                  // super
+--                  final StoragePool<? super T, B> superDef;
+--                  {
+--                      final int superID = (int) in.v64();
+--                      if (0 == superID)
+--                          superDef = null;
+--                      else if (superID > types.size())
+--                          throw new ParseException(in, blockCounter, null,
+--                                  "Type %s refers to an ill-formed super type.\n"
+--                                          + "          found: %d; current number of other types %d", name, superID,
+--                                  types.size());
+--                      else
+--                          superDef = (StoragePool<? super T, B>) types.get(superID - 1);
+--                  }
+--
+--                  // allocate pool
+--                  definition = newPool(name, superDef, rest);
+--              }
+--
+--              final long bpo = definition.basePool.data.length
+--                      + ((0L != count && null != definition.superPool) ? in.v64() : 0L);
+--
+--              // store block info and prepare resize
+--              definition.blocks.add(new Block(bpo, count));
+--              resizeQueue.add(definition);
+--
+--              localFields.put(definition, (int) in.v64());
+--          } catch (java.nio.BufferUnderflowException e) {
+--              throw new ParseException(in, blockCounter, e, "unexpected end of file");
+--          }
+         end Type_Definition;
       begin
-         null;
+--          // reset counters and queues
+--          seenTypes.clear();
+--          resizeQueue.clear();
+--          localFields.clear();
+--          fieldDataQueue.clear();
+
+         -- parse types
+         for I in 1 .. Type_Count loop
+            Type_Definition;
+         end loop;
+
+--
+--          // resize pools
+--          {
+--              Stack<StoragePool<?, ?>> resizeStack = new Stack<>();
+--
+--              // resize base pools and push entries to stack
+--              for (StoragePool<?, ?> p : resizeQueue) {
+--                  if (p instanceof BasePool<?>) {
+--                      final Block last = p.blocks.getLast();
+--                      ((BasePool<?>) p).resizeData((int) last.count);
+--                  }
+--                  resizeStack.push(p);
+--              }
+--
+--              // create instances from stack
+--              while (!resizeStack.isEmpty()) {
+--                  StoragePool<?, ?> p = resizeStack.pop();
+--                  final Block last = p.blocks.getLast();
+--                  int i = (int) last.bpo;
+--                  int high = (int) (last.bpo + last.count);
+--                  while (i < high && p.insertInstance(i + 1))
+--                      i += 1;
+--              }
+--          }
+--
+--          // parse fields
+--          for (StoragePool<?, ?> p : localFields.keySet()) {
+--
+--              // read field part
+--              int legalFieldIDBarrier = 1 + p.dataFields.size();
+--
+--              final Block lastBlock = p.blocks.get(p.blocks.size() - 1);
+--
+--              for (int fieldCounter = localFields.get(p); fieldCounter != 0; fieldCounter--) {
+--                  final int ID = (int) in.v64();
+--                  if (ID > legalFieldIDBarrier || ID <= 0)
+--                      throw new ParseException(in, blockCounter, null, "Found an illegal field ID: %d", ID);
+--
+--                  final long end;
+--                  if (ID == legalFieldIDBarrier) {
+--                      // new field
+--                      final String fieldName = Strings.get(in.v64());
+--                      if (null == fieldName)
+--                          throw new ParseException(in, blockCounter, null, "corrupted file: nullptr in fieldname");
+--
+--                      FieldType<?> t = fieldType();
+--                      HashSet<FieldRestriction<?>> rest = fieldRestrictions(t);
+--                      end = in.v64();
+--
+--                      try {
+--                          p.addField(ID, t, fieldName, rest).addChunk(new BulkChunk(offset, end, p.size()));
+--                      } catch (SkillException e) {
+--                          // transform to parse exception with propper values
+--                          throw new ParseException(in, blockCounter, null, e.getMessage());
+--                      }
+--                      legalFieldIDBarrier += 1;
+--
+--                  } else {
+--                      // field already seen
+--                      end = in.v64();
+--                      p.dataFields.get(ID - 1).addChunk(new SimpleChunk(offset, end, lastBlock.bpo, lastBlock.count));
+--
+--                  }
+--                  offset = end;
+--                  fieldDataQueue.add(new DataEntry(p, ID));
+--              }
+--          }
+--
+--          processFieldData();
       end Type_Block;
 
       -- build a state from intermediate information
       function Make_State return Files.File is
       begin
-         return Skill.Files.Finish_Allocation (Path    => Input.Path,
-                                               Mode    => Mode,
-                                               Strings => Strings);
+         return Skill.Files.Finish_Allocation
+             (Path          => Input.Path,
+              Mode          => Mode,
+              Strings       => Strings,
+              Types         => Type_Vector,
+              Types_By_Name => Types_By_Name);
       end Make_State;
 
    begin

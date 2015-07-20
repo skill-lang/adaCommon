@@ -7,9 +7,8 @@
 with Skill.Field_Types;
 with Skill.Types.Pools;
 
--- TODO laut EP könnte es funktionieren, wenn man die access typen auf pools im
--- ads deklariert und den ganzen Rest in der Adb; eventuell ist die Lösung mit
--- dem unchecked cast deutlich einfacher und auch effizienter
+-- we finally found that the only viable solution is to take the unchecked
+-- conversion from pool to base/sub pool whenever applicable
 generic
    -- type of the (generated) skill state
    type Skill_State is private;
@@ -32,12 +31,12 @@ generic
 package Skill.Types.Base_Pools is
    pragma Preelaborate;
 
-   package Ps is new Skill.Types.Pools
-     (T,
-      Type_Id,
-      Name,
-      Known_Fields,
-      Auto_Fields);
+--     package Ps is new Skill.Types.Pools
+--       (T,
+--        Type_Id,
+--        Name,
+--        Known_Fields,
+--        Auto_Fields);
 
    type Base_Pool_Access is private;
 
@@ -49,7 +48,7 @@ package Skill.Types.Base_Pools is
 
 private
 
-   type Base_Pool is new Ps.Pool with record
+   type Base_Pool is new Types.Pools.Pool_T with record
       Data  : T_Array;
       Owner : Owner_T;
    end record;

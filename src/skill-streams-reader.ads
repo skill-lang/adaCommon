@@ -19,6 +19,10 @@ package Skill.Streams.Reader is
 
    function Open (Path : Skill.Types.String_Access) return Input_Stream;
 
+--     function Map
+--     Eventuell Will Man Die Map Funktion Dadurch Realisieren, Dass Man Einen
+--       Submap record Anlegt, Der Angpasste Map / Size / Lengths Enthält.
+
    function Path (This : access Input_Stream_T) return Skill.Types.String_Access;
 
    function Eof (This : access Input_Stream_T) return Boolean;
@@ -43,6 +47,11 @@ package Skill.Streams.Reader is
      (This          :    access Input_Stream_T;
       Block_Counter :    Positive;
       Cause         : in Ada.Exceptions.Exception_Occurrence;
+      Message       :    String) return String;
+
+   function Parse_Exception
+     (This          :    access Input_Stream_T;
+      Block_Counter :    Positive;
       Message       :    String) return String;
 
 private
