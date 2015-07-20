@@ -1,5 +1,5 @@
-debug
-release
+/debug
+/release
 
 *.ali
 *.dylib
@@ -8,3 +8,4 @@ release
 
 # gps temoraries
 *.ad*.npp
+*.cgpr
