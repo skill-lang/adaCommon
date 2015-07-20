@@ -14,13 +14,9 @@ procedure Tester is
    procedure Print is
       Sf : Skill.Files.File := Skill.Files.Open ("testFiles/aircraft.sf");
 
-      S : Types.String_Access := Sf.Strings.Get(2);
+      S : Types.String_Access := Sf.Strings.Get(0);
    begin
-      if null = S then
-         Ada.Text_IO.Put_Line ("<<null>>");
-      else
          Ada.Text_IO.Put_Line (S.all);
-      end if;
    end Print;
 
 begin
