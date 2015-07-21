@@ -33,9 +33,25 @@ package body Skill.Types.Pools is
      (This.Name);
 
    function ID (This : access Pool_T) return Natural is
-      (This.Type_ID);
+     (This.Type_ID);
+
+
+
+   function Base (This : access Pool_T) return Base_Pool is
+      (This.Base);
+
+   function Super (This : access Pool_T) return Pool is
+      (This.Super);
+
+
+
+
 
    -- base pool properties
+
+   -- internal use only
+   function Data (This : access Base_Pool_T) return Skill.Types.Annotation_Array is
+      (This.Data);
 
       -- sub pool properties
 

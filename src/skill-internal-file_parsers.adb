@@ -19,20 +19,21 @@ with Ada.Characters.Latin_1;
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
 
-   use Skill;
-   use type Types.String_Access;
    use type Interfaces.Integer_32;
    use type Interfaces.Integer_64;
+
+   use Skill;
+   use type Types.String_Access;
+   use type Types.Pools.Pool;
 
    procedure Print (I : Types.i8) is
    begin
       Ada.Text_IO.Put_Line (Integer'Image (Integer (I)));
    end Print;
 
-   -- TODO parametrization
    function Read
-     (Input : Streams.Input_Stream;
-      Mode  : Files.Write_Mode) return Skill.Files.File
+     (Input : Skill.Streams.Input_Stream;
+      Mode  : Skill.Files.Write_Mode) return Result
    is
       -- begin error reporting
       Block_Counter : Positive := 1;
@@ -111,6 +112,7 @@ package body Skill.Internal.File_Parsers is
                Definition : Types.Pools.Pool;
                Super_Pool : Types.Pools.Pool;
                Super_Id   : Integer;
+               BPO : Types.V64;
             begin
                if Types_By_Name.Contains (Name) then
                   Definition := Types_By_Name.Element (Name);
@@ -141,31 +143,29 @@ package body Skill.Internal.File_Parsers is
                   end if;
 
                   -- allocate pool
+                  -- TODO add restrictions as parameter
+                  --     definition = newPool(name, superDef, rest);
+                  Definition := New_Pool(Name, Super_Pool);
                end if;
 
                -- bpo
+               if 0 /= Count and then null /= Definition.Super then
+                  Bpo := Definition.Base.Data'Length + Input.V64;
+               else
+                  Bpo := Definition.Base.Data'Length;
+               end if;
 
                -- store block info and prepare resize
+               --              definition.blocks.add(new Block(bpo, count));
+               --              resizeQueue.add(definition);
+               --
+               --              localFields.put(definition, (int) in.v64());
             end;
-            --          try {
-
---                 [[...]]
---
---                  // allocate pool
---                  definition = newPool(name, superDef, rest);
---              }
---
---              final long bpo = definition.basePool.data.length
---                      + ((0L != count && null != definition.superPool) ? in.v64() : 0L);
---
---              // store block info and prepare resize
---              definition.blocks.add(new Block(bpo, count));
---              resizeQueue.add(definition);
---
---              localFields.put(definition, (int) in.v64());
---          } catch (java.nio.BufferUnderflowException e) {
---              throw new ParseException(in, blockCounter, e, "unexpected end of file");
---          }
+         exception
+            when E : Storage_Error =>
+               raise Errors.Skill_Error
+                 with Input.Parse_Exception
+                 (Block_Counter, E, "unexpected end of file");
          end Type_Definition;
       begin
 --          // reset counters and queues
@@ -250,17 +250,6 @@ package body Skill.Internal.File_Parsers is
 --          processFieldData();
       end Type_Block;
 
-      -- build a state from intermediate information
-      function Make_State return Files.File is
-      begin
-         return Skill.Files.Finish_Allocation
-             (Path          => Input.Path,
-              Mode          => Mode,
-              Strings       => Strings,
-              Types         => Type_Vector,
-              Types_By_Name => Types_By_Name);
-      end Make_State;
-
    begin
 
       while not Input.Eof loop
@@ -269,6 +258,6 @@ package body Skill.Internal.File_Parsers is
          Block_Counter := Block_Counter + 1;
       end loop;
 
-      return Make_State;
+      return Make_State (Input.Path, Mode, Strings, Type_Vector, Types_By_Name);
    end Read;
 end Skill.Internal.File_Parsers;

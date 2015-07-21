@@ -15,11 +15,10 @@ with Skill.Equals;
 
 package Skill.Files is
 
-   type File_T is tagged limited private;
-   type File is not null access File_T'Class;
 
    type Read_Mode is (Create, Read);
    type Write_Mode is (Write, Append);
+
 
    package P_Type_Vector is new Skill.Types.Vectors
      (Index_Type   => Natural,
@@ -34,27 +33,9 @@ package Skill.Files is
       Equivalent_Keys => Skill.Equals.Equals);
    type Type_Map is not null access P_Type_Map.Map;
 
-   -- create a new file using the argument path for I/O
-   function Open
-     (Path    : String;
-      Read_M  : Read_Mode  := Read;
-      Write_M : Write_Mode := Write) return File;
 
-   function Strings (This : access File_T) return Skill.String_Pools.Pool;
-
-   -- internal use only
-   -- should be abstract eventually!!
-   function Finish_Allocation
-     (Path          : Skill.Types.String_Access;
-      Mode          : Write_Mode;
-      Strings       : Skill.String_Pools.Pool;
-      Types         : Type_Vector;
-      Types_By_Name : Type_Map) return File;
-
-private
-
-   type File_T is tagged limited record
-      -- path used for flush/close operations
+   type File_T is abstract tagged limited record
+   -- path used for flush/close operations
       Path : Skill.Types.String_Access;
 
       -- current write mode
@@ -69,5 +50,21 @@ private
       -- types by skill name
       Types_By_Name : Type_Map;
    end record;
+   type File is not null access File_T'Class;
+
+
+   function Strings (This : access File_T'Class) return Skill.String_Pools.Pool;
+
+   -- internal use only
+   -- should be abstract eventually!!
+   function Finish_Allocation
+     (Path          : Skill.Types.String_Access;
+      Mode          : Write_Mode;
+      Strings       : Skill.String_Pools.Pool;
+      Types         : Type_Vector;
+      Types_By_Name : Type_Map) return File;
+
+
+
 
 end Skill.Files;

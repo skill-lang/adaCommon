@@ -5,13 +5,13 @@
 --                                                                            --
 
 with Skill.Field_Types;
-with Skill.Types.Pools;
+limited with Skill.Types.Pools;
 
 -- we finally found that the only viable solution is to take the unchecked
 -- conversion from pool to base/sub pool whenever applicable
 generic
    -- type of the (generated) skill state
-   type Skill_State is private;
+   type Super is tagged private;
 
    -- type of values stored in a pool
    type T is tagged private;
@@ -38,20 +38,19 @@ package Skill.Types.Base_Pools is
 --        Known_Fields,
 --        Auto_Fields);
 
-   type Base_Pool_Access is private;
+   type Pool_T is tagged private;
+   type Pool is access Pool_T;
+
 
    type T_Access is access T;
    type A1 is array (Natural range <>) of T_Access;
    type T_Array is not null access A1;
 
-   type Owner_T is not null access Skill_State;
 
 private
 
-   type Base_Pool is new Types.Pools.Pool_T with record
-      Data  : T_Array;
-      Owner : Owner_T;
+   type Pool_T is new Super with record
+null;
    end record;
-   type Base_Pool_Access is access Base_Pool;
 
 end Skill.Types.Base_Pools;

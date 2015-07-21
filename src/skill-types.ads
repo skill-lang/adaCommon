@@ -29,6 +29,8 @@ package Skill.Types is
 
    type Skill_Object is tagged private;
    type Annotation is access Skill_Object;
+   type Annotation_Array_T is array (Natural range <>) of Annotation;
+   type Annotation_Array is access Annotation_Array_T;
 
    -- declare skill ids type for later configuration
    subtype Skill_ID_T is Integer;

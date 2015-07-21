@@ -2,9 +2,11 @@
 
 with Ada.Text_IO;
 
-with Skill.Files;
 with Skill.Errors;
 with Skill.Types;
+
+with Age;
+with Age.Api;
 
 procedure Tester is
 
@@ -12,9 +14,9 @@ procedure Tester is
    use type Skill.Types.String_Access;
 
    procedure Print is
-      Sf : Skill.Files.File := Skill.Files.Open ("testFiles/aircraft.sf");
+      Sf : Age.Api.File := Age.Api.Open ("testFiles/ageUnrestricted.sf");
 
-      S : Types.String_Access := Sf.Strings.Get(0);
+      S : Types.String_Access := Sf.Strings.Get(1);
    begin
          Ada.Text_IO.Put_Line (S.all);
    end Print;
