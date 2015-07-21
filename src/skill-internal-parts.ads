@@ -6,16 +6,19 @@
 
 with Ada.Containers.Vectors;
 
+with Skill.Types;
+
 -- documentation can be found in java common
 package Skill.Internal.Parts is
    pragma Preelaborate;
 
    type Block is record
-      BPO   : Long_Integer;
-      Count : Long_Integer;
+      BPO   : Skill.Types.v64;
+      Count : Skill.Types.V64;
    end record;
 
-   package Blocks is new Ada.Containers.Vectors (Natural, Block);
+   package A3 is new Ada.Containers.Vectors (Natural, Block);
+   type Blocks is access A3.Vector;
 
    type Chunk is abstract tagged record
       First : Long_Integer;

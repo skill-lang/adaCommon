@@ -44,6 +44,8 @@ package body Skill.Types.Pools is
       (This.Super);
 
 
+   function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks is
+      (This.Blocks);
 
 
 

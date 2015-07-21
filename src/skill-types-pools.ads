@@ -46,9 +46,9 @@ package Skill.Types.Pools is
    -- abstract pool types
    type Pool_T is abstract tagged private;
    type Pool is access Pool_T;
-   type Sub_Pool_T is abstract tagged private;
+   type Sub_Pool_T is abstract new Pool_T with private;
    type Sub_Pool is access Sub_Pool_T;
-   type Base_Pool_T is abstract tagged private;
+   type Base_Pool_T is abstract new Pool_T with private;
    type Base_Pool is access Base_Pool_T;
 
    -- data structures using pools
@@ -69,6 +69,8 @@ package Skill.Types.Pools is
 
 
 
+   -- internal use only
+   function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
 
    -- internal use only
    function Data (This : access Base_Pool_T) return Skill.Types.Annotation_Array;
@@ -77,7 +79,7 @@ package Skill.Types.Pools is
 
 private
 
-      type Pool_T is abstract new Field_Types.Field_Type_Base with record
+   type Pool_T is abstract new Field_Types.Field_Type_Base with record
 
       -- the pools name
       Name : not null String_Access;
@@ -98,7 +100,7 @@ private
       Data_Fields : Skill.Field_Types.Field_Array_Access;
 
       -- layout of skill ids of this type
-      Blocks : Skill.Internal.Parts.Blocks.Vector;
+      Blocks : Skill.Internal.Parts.Blocks;
 
 
       -- Storage pools can be fixed, i.e. no dynamic instances can be added

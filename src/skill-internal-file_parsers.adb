@@ -15,6 +15,8 @@ with Ada.Unchecked_Conversion;
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Ada.Characters.Latin_1;
+with Skill.Internal.Parts;
+with Ada.Containers.Doubly_Linked_Lists;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -39,9 +41,15 @@ package body Skill.Internal.File_Parsers is
       Block_Counter : Positive := 1;
       -- end error reporting
 
+      -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
       Type_Vector   : Files.Type_Vector := new Files.P_Type_Vector.Vector;
       Types_By_Name : Files.Type_Map    := new Files.P_Type_Map.Map;
+
+      -- parser state
+      package A1 is new Ada.Containers.Doubly_Linked_Lists(Types.Pools.Pool);
+      Resize_Queue : A1.List;
+
 
       -- read an entire string block
       procedure String_Block is
@@ -108,12 +116,13 @@ package body Skill.Internal.File_Parsers is
 --
 --          // try to parse the type definition
             declare
-               Count      : Types.v64 := Input.V64;
+               Block      : Skill.Internal.Parts.Block;
                Definition : Types.Pools.Pool;
                Super_Pool : Types.Pools.Pool;
                Super_Id   : Integer;
-               BPO : Types.V64;
             begin
+               Block.Count := Input.V64;
+
                if Types_By_Name.Contains (Name) then
                   Definition := Types_By_Name.Element (Name);
                else
@@ -149,15 +158,15 @@ package body Skill.Internal.File_Parsers is
                end if;
 
                -- bpo
-               if 0 /= Count and then null /= Definition.Super then
-                  Bpo := Definition.Base.Data'Length + Input.V64;
+               if 0 /= Block.Count and then null /= Definition.Super then
+                  Block.Bpo := Definition.Base.Data'Length + Input.V64;
                else
-                  Bpo := Definition.Base.Data'Length;
+                  Block.Bpo := Definition.Base.Data'Length;
                end if;
 
                -- store block info and prepare resize
-               --              definition.blocks.add(new Block(bpo, count));
-               --              resizeQueue.add(definition);
+               Definition.Blocks.Append (Block);
+               Resize_Queue.Append(Definition);
                --
                --              localFields.put(definition, (int) in.v64());
             end;
@@ -170,7 +179,10 @@ package body Skill.Internal.File_Parsers is
       begin
 --          // reset counters and queues
 --          seenTypes.clear();
---          resizeQueue.clear();
+
+-- resizeQueue.clear();
+         Resize_Queue := A1.Empty_List;
+
 --          localFields.clear();
 --          fieldDataQueue.clear();
 
