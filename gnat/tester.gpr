@@ -5,7 +5,6 @@ Project Tester is
    type Mode_Type is ("clean", "debug", "release");
    Mode : Mode_Type := external ("mode", "clean");
 
-   for Languages use ("Ada", "C");
    for Main use ("tester.adb");
 
    for Exec_Dir use "../";
@@ -37,9 +36,5 @@ Project Tester is
             for Switches (others) use ("-O3", "-march=corei7");
       end case;
    end Compiler;
-
-   package Naming is
-      for Implementation_Suffix ("C") use ".c";
-   end Naming;
 
 end Tester;
