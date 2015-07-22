@@ -29,6 +29,7 @@ package Skill.Field_Types is
    end record;
    type Field_Array is array (Integer range <>) of Field_Declaration;
    type Field_Array_Access is not null access Field_Array;
+   Empty_Field_Array : Field_Array_Access := new Field_Array(1..0);
 
    type Auto_Field is new Field_Declaration with record
       null;

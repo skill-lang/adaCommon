@@ -10,17 +10,33 @@ with Skill.Streams;
 with Skill.Errors;
 with Skill.Internal.File_Parsers;
 with Skill.String_Pools;
+with Skill.Equals;
+with Skill.Field_Types;
+with Skill.Internal.Parts;
+with Ada.Unchecked_Conversion;
+with Skill.Types;
 
 -- parametrization of file, read/write and pool code
 package body Age.Api is
 
    use Skill;
+   use type Skill.Types.Pools.Pool;
 
    function New_Pool
-     (N : Skill.Types.String_Access;
-      P : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool
+     (Type_ID : Natural;
+      Name    : Skill.Types.String_Access;
+      Super   : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool
    is
    begin
+      if Equals.Equals (Name, Age_Pool_Skill_Name) then
+         return Age_Pool_P.Make (Type_ID);
+      end if;
+
+--        If null = Super then
+--              return Unknown_Base (Type_ID, Name);
+--        end if;
+--
+--              return Super.Make_Sub_Pool (Type_ID, Name);
       return null;
    end New_Pool;
 
@@ -33,12 +49,12 @@ package body Age.Api is
       Types_By_Name : Skill.Files.Type_Map) return File
    is
    begin
-      return new File_T'(
-                         Path          => Path,
-         Mode          => Mode,
-         Strings       => Strings,
-         Types         => Types,
-         Types_By_Name => Types_By_Name);
+      return new File_T'
+          (Path          => Path,
+           Mode          => Mode,
+           Strings       => Strings,
+           Types         => Types,
+           Types_By_Name => Types_By_Name);
    end Make_State;
 
    function Read is new Skill.Internal.File_Parsers.Read

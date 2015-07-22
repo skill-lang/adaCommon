@@ -6,6 +6,7 @@
 
 with Ada.Finalization;
 
+-- vector, can also be used as a stack
 generic
    type Index_Type is range <>;
    type Element_Type is private;
@@ -21,6 +22,9 @@ package Skill.Types.Vectors is
      (Container   : in out Vector;
       New_Element :        Element_Type);
 
+   -- remove the last element
+   function Pop(Container : in out Vector) return Element_Type;
+
    function Check_Index
      (Container : in out Vector;
       Index     :        Index_Type) return Boolean;
@@ -35,6 +39,8 @@ package Skill.Types.Vectors is
    procedure Ensure_Allocation (Container : in out Vector; N : Index_Type);
 
    function Length (Container : in Vector) return Index_Type;
+
+   function Is_Empty (Container : in Vector) return Boolean;
 
    procedure Replace_Element
      (Container : in out Vector;

@@ -17,6 +17,11 @@ with Skill.Types.Pools;
 with Ada.Characters.Latin_1;
 with Skill.Internal.Parts;
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Hashed_Maps;
+with Skill.Hashes;
+with Skill.Equals;
+with Ada.Containers.Hashed_Sets;
+with Skill.Types.Vectors;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -39,6 +44,10 @@ package body Skill.Internal.File_Parsers is
    is
       -- begin error reporting
       Block_Counter : Positive := 1;
+
+      package A3 is new Ada.Containers.Hashed_Sets
+        (Types.String_Access, Hashes.Hash, Equals.Equals);
+      Seen_Types : A3.Set;
       -- end error reporting
 
       -- preliminary file
@@ -48,7 +57,17 @@ package body Skill.Internal.File_Parsers is
 
       -- parser state
       package A1 is new Ada.Containers.Doubly_Linked_Lists(Types.Pools.Pool);
+    -- deferred pool resize requests
       Resize_Queue : A1.List;
+
+      package A2 is new Ada.Containers.Hashed_Maps
+        (Key_Type        => Types.Pools.Pool,
+         Element_Type    => Types.V64,
+         Hash            => SKill.Hashes.Hash,
+         Equivalent_Keys => Skill.Equals.Equals,
+         "="             => "=");
+      -- pool ⇒ local field count
+      Local_Fields : A2.Map;
 
 
       -- read an entire string block
@@ -109,10 +128,13 @@ package body Skill.Internal.File_Parsers is
                  with Input.Parse_Exception
                  (Block_Counter, "corrupted file: nullptr in typename");
             end if;
---          // type duplication error detection
---          if (seenTypes.contains(name))
---              throw new ParseException(in, blockCounter, null, "Duplicate definition of type %s", name);
---          seenTypes.add(name);
+            --  type duplication error detection
+            if Seen_Types.Contains (Name) then
+               raise Errors.Skill_Error
+               with Input.Parse_Exception
+                 (Block_Counter, "Duplicate definition of type "& Name.all);
+            end if;
+            Seen_Types.Include (Name);
 --
 --          // try to parse the type definition
             declare
@@ -154,7 +176,9 @@ package body Skill.Internal.File_Parsers is
                   -- allocate pool
                   -- TODO add restrictions as parameter
                   --     definition = newPool(name, superDef, rest);
-                  Definition := New_Pool(Name, Super_Pool);
+                  Definition := New_Pool (Type_Vector.Length + 32, Name, Super_Pool);
+                  Type_Vector.Append (Definition);
+                  Types_By_Name.Include(Name, Definition);
                end if;
 
                -- bpo
@@ -166,24 +190,30 @@ package body Skill.Internal.File_Parsers is
 
                -- store block info and prepare resize
                Definition.Blocks.Append (Block);
-               Resize_Queue.Append(Definition);
-               --
-               --              localFields.put(definition, (int) in.v64());
+               Resize_Queue.Append (Definition);
+               Local_Fields.Include(Definition, Input.V64);
             end;
          exception
+            when E : Constraint_Error =>
+               Skill.Errors.Print_Stacktrace(E);
+               raise Errors.Skill_Error
+               with Input.Parse_Exception
+                 (Block_Counter, E, "unexpected corruption of parse state");
             when E : Storage_Error =>
                raise Errors.Skill_Error
-                 with Input.Parse_Exception
+               with Input.Parse_Exception
                  (Block_Counter, E, "unexpected end of file");
          end Type_Definition;
       begin
---          // reset counters and queues
---          seenTypes.clear();
+         -- reset counters and queues
 
--- resizeQueue.clear();
+         -- seenTypes.clear();
+         Seen_Types := A3.Empty_Set;
+         -- resizeQueue.clear();
          Resize_Queue := A1.Empty_List;
+         -- localFields.clear();
+         Local_Fields := A2.Empty_Map;
 
---          localFields.clear();
 --          fieldDataQueue.clear();
 
          -- parse types
@@ -191,30 +221,55 @@ package body Skill.Internal.File_Parsers is
             Type_Definition;
          end loop;
 
---
---          // resize pools
---          {
---              Stack<StoragePool<?, ?>> resizeStack = new Stack<>();
---
---              // resize base pools and push entries to stack
---              for (StoragePool<?, ?> p : resizeQueue) {
---                  if (p instanceof BasePool<?>) {
---                      final Block last = p.blocks.getLast();
---                      ((BasePool<?>) p).resizeData((int) last.count);
---                  }
---                  resizeStack.push(p);
---              }
---
---              // create instances from stack
---              while (!resizeStack.isEmpty()) {
---                  StoragePool<?, ?> p = resizeStack.pop();
---                  final Block last = p.blocks.getLast();
---                  int i = (int) last.bpo;
---                  int high = (int) (last.bpo + last.count);
---                  while (i < high && p.insertInstance(i + 1))
---                      i += 1;
---              }
---          }
+
+         -- resize pools
+         declare
+            package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
+            Resize_Stack : A4.Vector;
+
+            use type A1.Cursor;
+            I : A1.Cursor := Resize_Queue.First;
+         begin
+            -- resize base pools and push entries to stack
+            while I /= Resize_Queue.Last loop
+               declare
+                  function Convert is new Ada.Unchecked_Conversion
+                    (Source => Types.Pools.Pool,
+                     Target => Types.Pools.Pool_Dyn);
+                  function Convert is new Ada.Unchecked_Conversion
+                    (Source => Types.Pools.Pool_Dyn,
+                     Target => Types.Pools.Base_Pool);
+                  P : Skill.Types.Pools.Pool_Dyn := Convert(A1.Element(I));
+               begin
+                  if P.all in Skill.Types.Pools.Base_Pool_T'Class then
+                     Convert(P).Resize_Data;
+                  end if;
+                  Resize_Stack.Append(A1.Element(I));
+               end;
+            end loop;
+
+            -- create instances from stack
+            while not Resize_Stack.Is_Empty loop
+               declare
+                  function Convert is new Ada.Unchecked_Conversion
+                    (Source => Types.Pools.Pool,
+                     Target => Types.Pools.Pool_Dyn);
+                  function Convert is new Ada.Unchecked_Conversion
+                    (Source => Types.v64,
+                     Target => Types.Skill_ID_T);
+                  P : Types.Pools.Pool_Dyn := Convert(Resize_Stack.Pop);
+                  Last : Parts.Block := P.Blocks.Last_Element;
+               begin
+                  Insert_Loop :
+                  for I in (Last.Bpo + 1) .. (Last.Bpo + Last.Count) loop
+                     exit Insert_Loop when not P.Insert_Instance (Convert (I));
+                  end loop Insert_Loop;
+               end;
+            end loop;
+         end;
+
+
+
 --
 --          // parse fields
 --          for (StoragePool<?, ?> p : localFields.keySet()) {
@@ -271,5 +326,11 @@ package body Skill.Internal.File_Parsers is
       end loop;
 
       return Make_State (Input.Path, Mode, Strings, Type_Vector, Types_By_Name);
+
+   exception
+      when E : Storage_Error =>
+         raise Errors.Skill_Error
+         with Input.Parse_Exception
+           (Block_Counter, E, "unexpected end of file");
    end Read;
 end Skill.Internal.File_Parsers;

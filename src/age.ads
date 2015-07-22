@@ -10,10 +10,10 @@ with Skill.Types;
 package Age is
    pragma Preelaborate;
 
-
-      type Age is new Skill.Types.Skill_Object with record
-            Age : Skill.Types.V64;
-            end record;
+   type Age_T is new Skill.Types.Skill_Object with record
+      Age : Skill.Types.v64;
+   end record;
+   type Age is access Age_T;
 
    procedure My_Lib_Dummy;
 end Age;

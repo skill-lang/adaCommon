@@ -23,6 +23,12 @@ package body Skill.Types.Vectors is
       Container.Elements (Container.Size_0) := New_Element;
    end Append_Unsafe;
 
+   function Pop (Container : in out Vector) return Element_Type is
+   begin
+      Container.Size_0                      := Container.Size_0 - 1;
+      return Container.Elements (Container.Size_0 + 1);
+   end;
+
    function Element
      (Container : in out Vector;
       Index     :        Index_Type) return Element_Type
@@ -73,6 +79,9 @@ package body Skill.Types.Vectors is
    begin
       return Container.Size_0;
    end Length;
+
+   function Is_Empty (Container : in Vector) return Boolean is
+      (0 = Container.Size_0);
 
    procedure Replace_Element
      (Container : in out Vector;

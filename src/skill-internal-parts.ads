@@ -17,8 +17,8 @@ package Skill.Internal.Parts is
       Count : Skill.Types.V64;
    end record;
 
-   package A3 is new Ada.Containers.Vectors (Natural, Block);
-   type Blocks is access A3.Vector;
+   package Blocks_P is new Ada.Containers.Vectors (Natural, Block);
+   type Blocks is access Blocks_P.Vector;
 
    type Chunk is abstract tagged record
       First : Long_Integer;

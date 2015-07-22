@@ -27,18 +27,19 @@ package Skill.Types is
      array (Integer range <>) of not null String_Access;
 
 
-   type Skill_Object is tagged private;
+   -- declare skill ids type for later configuration
+   subtype Skill_ID_T is Integer;
+
+   -- we use integer IDs, because they are smaller and we would
+   -- internal use only!
+   type Skill_Object is tagged record
+      Skill_ID : Skill_ID_T;
+   end record;
    type Annotation is access Skill_Object;
    type Annotation_Array_T is array (Natural range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;
 
-   -- declare skill ids type for later configuration
-   subtype Skill_ID_T is Integer;
-private
 
-   -- we use integer IDs, because they are smaller and we would
-   type Skill_Object is tagged record
-      Skill_ID : Skill_ID_T;
-   end record;
+
 
 end Skill.Types;

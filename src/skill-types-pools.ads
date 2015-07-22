@@ -10,7 +10,6 @@ with Skill.Field_Types;
 with Skill.Internal.Parts;
 limited with Skill.Files;
 
-
 -- TODO push down:
 --  type A2 is not null access T;
 --  package New_Objects_T is new Ada.Containers.Vectors (Natural, A2);
@@ -34,7 +33,6 @@ limited with Skill.Files;
 --        type Pool_T is new T with null record;
 --        end Sub_Pool;
 
-
 -- in contrast to a solution in c++ or java, we will represent data and most of
 -- the internal implementation in a type erasure version of the java
 -- implementation. The Facade will use the generic type system to create methods
@@ -44,8 +42,9 @@ package Skill.Types.Pools is
    pragma Preelaborate;
 
    -- abstract pool types
-   type Pool_T is abstract tagged private;
+   type Pool_T is abstract new Field_Types.Field_Type_Base with private;
    type Pool is access Pool_T;
+   type Pool_Dyn is access Pool_T'Class;
    type Sub_Pool_T is abstract new Pool_T with private;
    type Sub_Pool is access Sub_Pool_T;
    type Base_Pool_T is abstract new Pool_T with private;
@@ -53,7 +52,6 @@ package Skill.Types.Pools is
 
    -- data structures using pools
    package Sub_Pool_Vector is new Ada.Containers.Vectors (Natural, Sub_Pool);
-
 
    -- pool properties
 
@@ -67,15 +65,20 @@ package Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool;
 
-
-
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
 
    -- internal use only
-   function Data (This : access Base_Pool_T) return Skill.Types.Annotation_Array;
+   function Insert_Instance (This : access Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
+   function Insert_Instance (This : access Sub_Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
+   function Insert_Instance (This : access Base_Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
 
 
+   -- internal use only
+   function Data
+     (This : access Base_Pool_T) return Skill.Types.Annotation_Array;
+   -- internal use only
+   procedure Resize_Data (This : access Base_Pool_T);
 
 private
 
@@ -102,7 +105,6 @@ private
       -- layout of skill ids of this type
       Blocks : Skill.Internal.Parts.Blocks;
 
-
       -- Storage pools can be fixed, i.e. no dynamic instances can be added
       -- to the pool. Fixing a pool requires that it does not contain a new
       -- object. Fixing a pool will fix subpools as well. Un-fixing a pool
@@ -115,6 +117,7 @@ private
 
    type Owner_T is access Skill.Files.File_T;
 
+   Empty_Data : Skill.Types.Annotation_Array := new Skill.Types.Annotation_Array_T(1..0);
    type Base_Pool_T is abstract new Pool_T with record
       Data  : Skill.Types.Annotation_Array;
       Owner : Owner_T;
@@ -123,6 +126,5 @@ private
    type Sub_Pool_T is abstract new Pool_T with record
       null;
    end record;
-
 
 end Skill.Types.Pools;

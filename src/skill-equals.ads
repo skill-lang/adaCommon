@@ -7,6 +7,7 @@
 with Ada.Containers;
 with Ada.Strings.Hash;
 with Skill.Types;
+with Skill.Types.Pools;
 
 -- the trick of this package is to instantiate equals codes as Skill.Equals.equals
 -- independent of the type! :)
@@ -20,5 +21,10 @@ package Skill.Equals is
      (A = B
       or else ((null /= A and null /= B) and then A.all = B.all)
      );
+
+   use type Skill.Types.Pools.Pool;
+   function Equals
+     (A, B : Skill.Types.Pools.Pool) return Boolean is
+     (A = B);
 
 end Skill.Equals;

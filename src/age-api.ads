@@ -6,11 +6,11 @@
 
 with Skill.Files;
 with Skill.Internal.File_Parsers;
+with Skill.Types.Pools;
+with Skill.Types.Pools.Age_Pools;
 
 -- parametrization of file, read/write and pool code
 package Age.Api is
-
-   use Skill;
 
    type File_T is new Skill.Files.File_T with private;
    type File is access File_T;
@@ -18,8 +18,15 @@ package Age.Api is
    -- create a new file using the argument path for I/O
    function Open
      (Path    : String;
-      Read_M  : Files.Read_Mode  := Skill.Files.Read;
-      Write_M : Files.Write_Mode := Skill.Files.Write) return File;
+      Read_M  : Skill.Files.Read_Mode  := Skill.Files.Read;
+      Write_M : Skill.Files.Write_Mode := Skill.Files.Write) return File;
+
+   -- user type pools
+   Age_Pool_Skill_Name : not null Skill.Types.String_Access :=
+                           new String'("age");
+   -- work aroun GNAT bug
+   package Age_Pool_P renames Skill.Types.Pools.Age_Pools.Age_P;
+   subtype Age_Pool is Age_Pool_P.Pool;
 
 private
 

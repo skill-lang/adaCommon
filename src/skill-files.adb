@@ -13,8 +13,9 @@ package body Skill.Files is
 
    package FileParser renames Skill.Internal.File_Parsers;
 
-
-   function Strings (This : access File_T'Class) return Skill.String_Pools.Pool is
+   function Strings
+     (This : access File_T'Class) return Skill.String_Pools.Pool
+   is
    begin
       return This.Strings;
    end Strings;

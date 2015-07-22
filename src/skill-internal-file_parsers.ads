@@ -17,7 +17,8 @@ package Skill.Internal.File_Parsers is
       type Result_T is new Skill.Files.File_T with private;
       type Result is access Result_T;
 
-      with function New_Pool (Name :Skill.Types.String_Access;
+      with function New_Pool (Type_ID : Natural;
+                              Name : Skill.Types.String_Access;
                               Super : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool;
         with function Make_State (Path : Types.String_Access;
                                     Mode : Files.Write_Mode;
