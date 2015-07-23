@@ -14,8 +14,8 @@ with Ada.Text_IO;
 
 package body Skill.String_Pools is
 
-   function Create (Input : Skill.Streams.Input_Stream) return Pool is
-      use type Skill.Streams.Input_Stream;
+   function Create (Input : Skill.Streams.Reader.Input_Stream) return Pool is
+      use type Skill.Streams.Reader.Input_Stream;
       This          : Pool := new Pool_T'(Input            => Input,
                                           New_Strings      => A1.Empty_Set,
                                           String_Positions => A2.Empty_Vector,
@@ -62,12 +62,12 @@ package body Skill.String_Pools is
    is
       Result : Skill.Types.String_Access;
 
-      use type Skill.Streams.Input_Stream;
+      use type Skill.Streams.Reader.Input_Stream;
 
       -- TODO synchronized!!!
       procedure Read_Result is
          Off   : Position := This.String_Positions.Element (Natural(Index));
-         Input : Skill.Streams.Input_Stream := This.Input;
+         Input : Skill.Streams.Reader.Input_Stream := This.Input;
          Last  : Types.v64                           := Input.Position;
 
          function Convert is new Ada.Unchecked_Conversion

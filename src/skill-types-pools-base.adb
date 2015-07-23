@@ -20,7 +20,7 @@ package body Skill.Types.Pools.Base is
            Super       => null,
            Base        => null,
            Sub_Pools   => Sub_Pool_Vector.Empty_Vector,
-           Data_Fields => Field_Types.Empty_Field_Array,
+           Data_Fields => Field_Declarations.Empty_Field_Array,
            Blocks      => new Skill.Internal.Parts.Blocks_P.Vector,
            Fixed       => False,
            Cached_Size => 0,

@@ -14,24 +14,24 @@ package Skill.Internal.Parts is
 
    type Block is record
       BPO   : Skill.Types.v64;
-      Count : Skill.Types.V64;
+      Count : Skill.Types.v64;
    end record;
 
    package Blocks_P is new Ada.Containers.Vectors (Natural, Block);
    type Blocks is access Blocks_P.Vector;
 
-   type Chunk is abstract tagged record
-      First : Long_Integer;
-      Last  : Long_Integer;
-      Count : Long_Integer;
+   type Chunk_T is abstract tagged record
+      First : Skill.Types.v64;
+      Last  : Skill.Types.v64;
+      Count : Natural;
+   end record;
+   type Chunk is access Chunk_T'Class;
+
+   type Simple_Chunk is new Chunk_T with record
+      BPO : Skill.Types.v64;
    end record;
 
-   type Simple_Chunk is new Chunk with record
-      BPO : Long_Integer;
-   end record;
+   type Bulck_Chunk is new Chunk_T with null record;
 
-   type Bulck_Chunk is new Chunk with null record;
-
-   type A1 is access Chunk'Class;
-   package Chunks is new Ada.Containers.Vectors(Natural, A1);
+   package Chunks is new Ada.Containers.Vectors (Natural, Chunk);
 end Skill.Internal.Parts;

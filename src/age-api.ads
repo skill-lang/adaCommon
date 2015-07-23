@@ -22,8 +22,6 @@ package Age.Api is
       Write_M : Skill.Files.Write_Mode := Skill.Files.Write) return File;
 
    -- user type pools
-   Age_Pool_Skill_Name : not null Skill.Types.String_Access :=
-                           new String'("age");
    -- work aroun GNAT bug
    package Age_Pool_P renames Skill.Types.Pools.Age_Pools.Age_P;
    subtype Age_Pool is Age_Pool_P.Pool;

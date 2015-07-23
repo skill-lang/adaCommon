@@ -29,22 +29,33 @@ package Skill.Field_Types.Builtin is
         (Image);
    end Plain_Types;
 
+   generic
+      type T is private;
+      Type_Id : Natural;
+      Image : String;
+   package Constant_Types is
+
+      package A1 is new Field_Types (T, Type_Id);
+
+      type Field_Type is new A1.Field_Type with record
+         Value : T;
+      end record;
+
+      overriding function To_String (This : Field_Type) return String is
+        (Image);
+   end Constant_Types;
+
    package T renames Skill.Types;
 
-   package A1 is new Plain_Types (T.I8, 0, "constant i8");
-   Constant_I8 : constant Field_Type := new A1.Field_Type;
+   package Constant_I8 is new Constant_Types (T.I8, 0, "constant i8");
 
-   package A2 is new Plain_Types (T.I16, 1, "constant i16");
-   Constant_I16 : constant Field_Type := new A2.Field_Type;
+   package Constant_I16 is new Constant_Types (T.I16, 1, "constant i16");
 
-   package A3 is new Plain_Types (T.I32, 2, "constant i32");
-   Constant_I32 : constant Field_Type := new A3.Field_Type;
+   package Constant_I32 is new Constant_Types (T.I32, 2, "constant i32");
 
-   package A4 is new Plain_Types (T.I64, 3, "constant i64");
-   Constant_I64 : constant Field_Type := new A4.Field_Type;
+   package Constant_I64 is new Constant_Types (T.I64, 3, "constant i64");
 
-   package A5 is new Plain_Types (T.V64, 4, "constant v64");
-   Constant_V64 : constant Field_Type := new A5.Field_Type;
+   package Constant_V64 is new Constant_Types (T.V64, 4, "constant v64");
 
 
    package A8 is new Plain_Types (T.Annotation, 5, "annotation");

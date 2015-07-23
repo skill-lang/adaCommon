@@ -9,7 +9,7 @@ with Interfaces;
 
 with Skill.Equals;
 with Skill.Hashes;
-with Skill.Streams;
+with Skill.Streams.Reader;
 with Skill.Types;
 with Skill.Types.Vectors;
 with Ada.Exceptions;
@@ -22,7 +22,7 @@ package Skill.String_Pools is
    type Pool is not null access Pool_T;
 
    -- internal use only
-   function Create (Input : Skill.Streams.Input_Stream) return Pool;
+   function Create (Input : Skill.Streams.Reader.Input_Stream) return Pool;
 
    function Size (This : access Pool_T) return Integer;
 
@@ -74,7 +74,7 @@ private
       Skill.Types.String_Access);
 
    type Pool_T is tagged limited record
-      Input            : Skill.Streams.Input_Stream;
+      Input            : Skill.Streams.Reader.Input_Stream;
       New_Strings      : A1.Set;
       String_Positions : A2.Vector;
       Id_Map           : A3.Vector;

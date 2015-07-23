@@ -24,17 +24,4 @@ package Skill.Field_Types is
         (Type_ID);
    end Field_Types;
 
-   type Field_Declaration is tagged record
-      null;
-   end record;
-   type Field_Array is array (Integer range <>) of Field_Declaration;
-   type Field_Array_Access is not null access Field_Array;
-   Empty_Field_Array : Field_Array_Access := new Field_Array(1..0);
-
-   type Auto_Field is new Field_Declaration with record
-      null;
-   end record;
-   type Auto_Field_Array is array (Integer range <>) of Auto_Field;
-
-
 end Skill.Field_Types;

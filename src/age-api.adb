@@ -15,6 +15,7 @@ with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Ada.Unchecked_Conversion;
 with Skill.Types;
+with Age.Internal_Skill_Names;
 
 -- parametrization of file, read/write and pool code
 package body Age.Api is
@@ -28,7 +29,7 @@ package body Age.Api is
       Super   : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool
    is
    begin
-      if Equals.Equals (Name, Age_Pool_Skill_Name) then
+      if Equals.Equals (Name, Internal_Skill_Names.Age_Skill_Name) then
          return Age_Pool_P.Make (Type_ID);
       end if;
 
@@ -57,11 +58,46 @@ package body Age.Api is
            Types_By_Name => Types_By_Name);
    end Make_State;
 
-   function Read is new Skill.Internal.File_Parsers.Read
-     (Result_T   => File_T,
-      Result     => File,
-      New_Pool   => New_Pool,
-      Make_State => Make_State);
+   -- type instantiation functions
+   function Constant_Length_Array
+     (Length : Types.v64;
+      Base_T : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type
+   is
+   begin
+      return null;
+   end Constant_Length_Array;
+   function Variable_Length_Array
+     (Base_T : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type
+   is
+   begin
+      return null;
+   end Variable_Length_Array;
+   function List_Type
+     (Base_T : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type
+   is
+   begin
+      return null;
+   end List_Type;
+   function Set_Type
+     (Base_T : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type
+   is
+   begin
+      return null;
+   end Set_Type;
+   function Map_Type
+     (Key_T   : Skill.Field_Types.Field_Type;
+      Value_T : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type
+   is
+   begin
+      return null;
+   end Map_Type;
+
+   function Read is new Skill.Internal.File_Parsers.Read (File_T, File);
 
    function Open
      (Path    : String;

@@ -22,6 +22,8 @@ with Skill.Hashes;
 with Skill.Equals;
 with Ada.Containers.Hashed_Sets;
 with Skill.Types.Vectors;
+with Skill.Field_Types;
+with Skill.Field_Types.Builtin;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -39,7 +41,7 @@ package body Skill.Internal.File_Parsers is
    end Print;
 
    function Read
-     (Input : Skill.Streams.Input_Stream;
+     (Input : Skill.Streams.Reader.Input_Stream;
       Mode  : Skill.Files.Write_Mode) return Result
    is
       -- begin error reporting
@@ -60,14 +62,14 @@ package body Skill.Internal.File_Parsers is
     -- deferred pool resize requests
       Resize_Queue : A1.List;
 
-      package A2 is new Ada.Containers.Hashed_Maps
-        (Key_Type        => Types.Pools.Pool,
-         Element_Type    => Types.V64,
-         Hash            => SKill.Hashes.Hash,
-         Equivalent_Keys => Skill.Equals.Equals,
-         "="             => "=");
+      -- entries of local fields
+      type LF_Entry is record
+         Pool : Types.Pools.Pool;
+         Count : Types.V64;
+      end record;
+      package A2 is new Types.Vectors(Natural, LF_Entry);
       -- pool ⇒ local field count
-      Local_Fields : A2.Map;
+      Local_Fields : A2.Vector;
 
 
       -- read an entire string block
@@ -122,6 +124,7 @@ package body Skill.Internal.File_Parsers is
                -- TODO
                null;
             end Type_Restriction;
+
          begin
             if null = Name then
                raise Errors.Skill_Error
@@ -176,7 +179,9 @@ package body Skill.Internal.File_Parsers is
                   -- allocate pool
                   -- TODO add restrictions as parameter
                   --     definition = newPool(name, superDef, rest);
-                  Definition := New_Pool (Type_Vector.Length + 32, Name, Super_Pool);
+                  Definition := New_Pool
+                    (Type_Vector.Length + 32, Name, Super_Pool);
+
                   Type_Vector.Append (Definition);
                   Types_By_Name.Include(Name, Definition);
                end if;
@@ -191,7 +196,7 @@ package body Skill.Internal.File_Parsers is
                -- store block info and prepare resize
                Definition.Blocks.Append (Block);
                Resize_Queue.Append (Definition);
-               Local_Fields.Include(Definition, Input.V64);
+               Local_Fields.Append(LF_Entry'(Definition, Input.V64));
             end;
          exception
             when E : Constraint_Error =>
@@ -204,6 +209,72 @@ package body Skill.Internal.File_Parsers is
                with Input.Parse_Exception
                  (Block_Counter, E, "unexpected end of file");
          end Type_Definition;
+
+         function Parse_Field_Type return Skill.Field_Types.Field_Type is
+            ID : Natural := Natural (Input.V64);
+
+            function Convert is new Ada.Unchecked_Conversion
+              (Source => Types.Pools.Pool,
+               Target => Field_Types.Field_Type);
+         begin
+            case Id is
+            when 0 =>
+               return new Field_Types.Builtin.Constant_I8.Field_Type'
+                 (Value => Input.I8);
+            when 1 =>
+               return new Field_Types.Builtin.Constant_I16.Field_Type'
+                 (Value => Input.I16);
+            when 2 =>
+               return new Field_Types.Builtin.Constant_I32.Field_Type'
+                 (Value => Input.I32);
+            when 3 =>
+               return new Field_Types.Builtin.Constant_I64.Field_Type'
+                 (Value => Input.I64);
+            when 4 =>
+               return new Field_Types.Builtin.Constant_V64.Field_Type'
+                 (Value => Input.V64);
+            when 5 =>
+               return Field_Types.Builtin.Annotation;
+            when 6 =>
+               return Field_Types.Builtin.Bool;
+            when 7 =>
+               return Field_Types.Builtin.I8;
+            when 8 =>
+               return Field_Types.Builtin.I16;
+            when 9 =>
+               return Field_Types.Builtin.I32;
+            when 10 =>
+               return Field_Types.Builtin.I64;
+            when 11 =>
+               return Field_Types.Builtin.V64;
+            when 12 =>
+               return Field_Types.Builtin.F32;
+            when 13 =>
+               return Field_Types.Builtin.F64;
+            when 14 =>
+               return Field_Types.Builtin.String_Type;
+            when 15 =>
+               return Constant_Length_Array(Input.V64, Parse_Field_Type);
+            when 17 =>
+               return Variable_Length_Array(Parse_Field_Type);
+            when 18 =>
+               return List_Type(Parse_Field_Type);
+            when 19 =>
+               return Set_Type(Parse_Field_Type);
+            when 20 =>
+               return Map_Type(Parse_Field_Type, Parse_Field_Type);
+            when others =>
+               if ID >= 32 and Id < Type_Vector.Length - 32 then
+                  return Convert(Type_Vector.Element (ID - 32));
+               end if;
+
+               raise Errors.Skill_Error
+               with Input.Parse_Exception
+                 (Block_Counter,
+                  "Invalid type ID: " & Natural'Image (ID));
+            end case;
+         end Parse_Field_Type;
+
       begin
          -- reset counters and queues
 
@@ -211,8 +282,8 @@ package body Skill.Internal.File_Parsers is
          Seen_Types := A3.Empty_Set;
          -- resizeQueue.clear();
          Resize_Queue := A1.Empty_List;
-         -- localFields.clear();
-         Local_Fields := A2.Empty_Map;
+
+         Local_Fields.Clear;
 
 --          fieldDataQueue.clear();
 
@@ -269,51 +340,82 @@ package body Skill.Internal.File_Parsers is
          end;
 
 
+         -- parse fields
+         while not Local_Fields.Is_Empty loop
+            declare
+               E : LF_Entry := Local_Fields.Pop;
+               Legal_Field_ID_Barrier : Integer :=
+                                          1 + E.Pool.Data_Fields'Length;
+               Last_Block             : Skill.Internal.Parts.Block :=
+                                          E.Pool.Blocks.Last_Element;
+               End_Offset             : Types.V64;
+            begin
+               for Field_Counter in 1 .. E.Count loop
+                  declare
+                     Id : Integer := Integer(Input.V64);
+                  begin
+                     if Id <= 0 or else Id > Legal_Field_ID_Barrier then
+                        raise Errors.Skill_Error
+                        with Input.Parse_Exception
+                          (Block_Counter,
+                           "Found an illegal field ID: " & Integer'Image (ID));
+                     end if;
 
---
---          // parse fields
---          for (StoragePool<?, ?> p : localFields.keySet()) {
---
---              // read field part
---              int legalFieldIDBarrier = 1 + p.dataFields.size();
---
---              final Block lastBlock = p.blocks.get(p.blocks.size() - 1);
---
---              for (int fieldCounter = localFields.get(p); fieldCounter != 0; fieldCounter--) {
---                  final int ID = (int) in.v64();
---                  if (ID > legalFieldIDBarrier || ID <= 0)
---                      throw new ParseException(in, blockCounter, null, "Found an illegal field ID: %d", ID);
---
---                  final long end;
---                  if (ID == legalFieldIDBarrier) {
---                      // new field
---                      final String fieldName = Strings.get(in.v64());
---                      if (null == fieldName)
---                          throw new ParseException(in, blockCounter, null, "corrupted file: nullptr in fieldname");
---
---                      FieldType<?> t = fieldType();
---                      HashSet<FieldRestriction<?>> rest = fieldRestrictions(t);
---                      end = in.v64();
---
---                      try {
---                          p.addField(ID, t, fieldName, rest).addChunk(new BulkChunk(offset, end, p.size()));
---                      } catch (SkillException e) {
---                          // transform to parse exception with propper values
---                          throw new ParseException(in, blockCounter, null, e.getMessage());
---                      }
---                      legalFieldIDBarrier += 1;
---
---                  } else {
---                      // field already seen
---                      end = in.v64();
---                      p.dataFields.get(ID - 1).addChunk(new SimpleChunk(offset, end, lastBlock.bpo, lastBlock.count));
---
---                  }
---                  offset = end;
---                  fieldDataQueue.add(new DataEntry(p, ID));
---              }
---          }
---
+                     if Id = Legal_Field_ID_Barrier then
+                        -- new field
+                        declare
+                           Field_Name : Types.String_Access := Strings.Get
+                             (Input.V64);
+                           T          : Field_Types.Field_Type;
+
+                           procedure Field_Restriction is
+                              Count : Types.v64 := Input.V64;
+                           begin
+                              -- TODO
+                              null;
+                           end Field_Restriction;
+                        begin
+                           if null = Field_Name then
+                              raise Errors.Skill_Error
+                              with Input.Parse_Exception
+                                (Block_Counter,
+                                 "corrupted file: nullptr in fieldname");
+                              end if;
+
+                           T := Parse_Field_Type;
+                           Field_Restriction;
+                           End_Offset := Input.V64;
+
+                           declare begin
+                              -- TODO restrictions
+                              E.Pool.Add_Field (ID, T, Field_Name).Add_Chunk
+                                (new Internal.Parts.Bulck_Chunk
+                                   '(Offset, End_Offset, E.Pool.Size));
+
+                           exception
+                              when E : Errors.Skill_Error =>
+                                 raise Errors.Skill_Error
+                                   with Input.Parse_Exception
+                                     (Block_Counter, E,
+                                      "failed to add field");
+                           end;
+
+                           Legal_Field_ID_Barrier := Legal_Field_ID_Barrier + 1;
+                        end;
+                     else
+                        -- field already seen
+                        End_Offset := Input.V64;
+                        --                      p.dataFields.get(ID - 1).addChunk(new SimpleChunk(offset, end, lastBlock.bpo, lastBlock.count));
+                     end if;
+                     Offset := End_Offset;
+
+                     --                  fieldDataQueue.add(new DataEntry(p, ID));
+
+               end;
+               end loop;
+            end;
+         end loop;
+
 --          processFieldData();
       end Type_Block;
 

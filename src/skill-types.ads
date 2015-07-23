@@ -39,7 +39,4 @@ package Skill.Types is
    type Annotation_Array_T is array (Natural range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;
 
-
-
-
 end Skill.Types;

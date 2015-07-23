@@ -34,9 +34,32 @@ package body Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool is (This.Super);
 
+   function Size (This : access Pool_T) return Natural is
+   begin
+      raise Constraint_Error with "TODO";
+      return 0;
+   end Size;
+
    function Blocks
      (This : access Pool_T) return Skill.Internal.Parts.Blocks is
      (This.Blocks);
+
+   function Data_Fields
+     (This : access Pool_T)
+      return Skill.Field_Declarations.Field_Array_Access is
+     (This.Data_Fields);
+
+   -- internal use only
+   function Add_Field
+     (This : access Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+   is
+   begin
+      raise Constraint_Error with "TODO";
+      return null;
+   end Add_Field;
 
    -- base pool properties
 

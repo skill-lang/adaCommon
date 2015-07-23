@@ -25,9 +25,9 @@ package body Skill.Types.Vectors is
 
    function Pop (Container : in out Vector) return Element_Type is
    begin
-      Container.Size_0                      := Container.Size_0 - 1;
+      Container.Size_0 := Container.Size_0 - 1;
       return Container.Elements (Container.Size_0 + 1);
-   end;
+   end Pop;
 
    function Element
      (Container : in out Vector;
@@ -80,8 +80,14 @@ package body Skill.Types.Vectors is
       return Container.Size_0;
    end Length;
 
-   function Is_Empty (Container : in Vector) return Boolean is
-      (0 = Container.Size_0);
+   function Is_Empty
+     (Container : in Vector) return Boolean is
+     (0 = Container.Size_0);
+
+   procedure Clear (Container : in out Vector) is
+   begin
+      Container.Size_0 := 0;
+   end Clear;
 
    procedure Replace_Element
      (Container : in out Vector;

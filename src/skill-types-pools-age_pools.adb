@@ -16,6 +16,7 @@ with Skill.Internal.Parts;
 with Ada.Unchecked_Conversion;
 with Skill.Types;
 with Age.Api;
+with Age.Internal_Skill_Names;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
@@ -29,12 +30,12 @@ package body Skill.Types.Pools.Age_Pools is
       function Make (Type_Id : Natural) return Skill.Types.Pools.Pool is
          This : Pool :=
                   new Pool_T'
-                    (Name        => Age.Api.Age_Pool_Skill_Name,
+                    (Name        => Age.Internal_Skill_Names.Age_Skill_Name,
                      Type_Id     => Type_Id,
                      Super       => null,
                      Base        => null,
                      Sub_Pools   => Skill.Types.Pools.Sub_Pool_Vector.Empty_Vector,
-                     Data_Fields => Skill.Field_Types.Empty_Field_Array,
+                     Data_Fields => Skill.Field_Declarations.Empty_Field_Array,
                      Blocks      => new Skill.Internal.Parts.Blocks_P.Vector,
                      Fixed       => False,
                      Cached_Size => 0,

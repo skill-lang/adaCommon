@@ -23,7 +23,7 @@ package Skill.Types.Vectors is
       New_Element :        Element_Type);
 
    -- remove the last element
-   function Pop(Container : in out Vector) return Element_Type;
+   function Pop (Container : in out Vector) return Element_Type;
 
    function Check_Index
      (Container : in out Vector;
@@ -41,6 +41,9 @@ package Skill.Types.Vectors is
    function Length (Container : in Vector) return Index_Type;
 
    function Is_Empty (Container : in Vector) return Boolean;
+
+   -- remove all elements
+   procedure Clear (Container : in out Vector);
 
    procedure Replace_Element
      (Container : in out Vector;

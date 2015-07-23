@@ -30,6 +30,18 @@ package body Skill.Streams.Reader is
            Position => 0);
    end Open;
 
+   function Map
+     (This : access Input_Stream_T;
+      Size : Types.v64) return Sub_Stream
+   is
+      use type Uchar.Pointer;
+   begin
+      return new Sub_Stream_T'
+          (Length   => Interfaces.C.size_t (Size),
+           Position => 0,
+           Map      => This.Map + Interfaces.C.ptrdiff_t (This.Position));
+   end Map;
+
    function Path
      (This : access Input_Stream_T) return Skill.Types.String_Access
    is
@@ -37,23 +49,28 @@ package body Skill.Streams.Reader is
       return This.Path;
    end Path;
 
-   function Position (This : access Input_Stream_T) return Skill.Types.v64 is
+   function Position
+     (This : access Abstract_Stream'Class) return Skill.Types.v64
+   is
    begin
       return Types.v64 (This.Position);
    end Position;
 
-   procedure Jump (This : access Input_Stream_T; Pos : Skill.Types.v64) is
+   procedure Jump
+     (This : access Abstract_Stream'Class;
+      Pos  : Skill.Types.v64)
+   is
    begin
       This.Position := Interfaces.C.size_t (Pos);
    end Jump;
 
-   function Eof (This : access Input_Stream_T) return Boolean is
+   function Eof (This : access Abstract_Stream'Class) return Boolean is
       use C;
    begin
       return This.Position >= This.Length;
    end Eof;
 
-   function I8 (This : access Input_Stream_T) return Types.i8 is
+   function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
       use C;
       use Uchar;
 
@@ -69,7 +86,7 @@ package body Skill.Streams.Reader is
       return R;
    end I8;
 
-   function I16 (This : access Input_Stream_T) return Types.i16 is
+   function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16 is
       use C;
       use Uchar;
 
@@ -83,7 +100,7 @@ package body Skill.Streams.Reader is
       return R;
    end I16;
 
-   function I32 (This : access Input_Stream_T) return Types.i32 is
+   function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32 is
       use C;
       use Uchar;
 
@@ -99,7 +116,7 @@ package body Skill.Streams.Reader is
       return R;
    end I32;
 
-   function I64 (This : access Input_Stream_T) return Types.i64 is
+   function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64 is
       use C;
       use Uchar;
 
@@ -123,7 +140,7 @@ package body Skill.Streams.Reader is
    end I64;
 
    -- TODO replace by fast variant
-   function V64 (This : access Input_Stream_T) return Types.v64 is
+   function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
       pragma Warnings (Off);
 
       subtype Count_Type is Natural'Base range 0 .. 8;

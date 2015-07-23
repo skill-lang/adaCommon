@@ -7,6 +7,7 @@
 with Ada.Containers.Vectors;
 
 with Skill.Field_Types;
+with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
 
@@ -65,14 +66,32 @@ package Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool;
 
+   function Size (This : access Pool_T) return Natural;
+
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
 
    -- internal use only
-   function Insert_Instance (This : access Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
-   function Insert_Instance (This : access Sub_Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
-   function Insert_Instance (This : access Base_Pool_T; ID :  Skill_ID_T)return Boolean is abstract;
+   function Data_Fields
+     (This : access Pool_T) return Skill.Field_Declarations.Field_Array_Access;
 
+   -- internal use only
+   function Add_Field
+     (This : access Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+
+   -- internal use only
+   function Insert_Instance
+     (This : access Pool_T;
+      ID   : Skill_ID_T) return Boolean is abstract;
+   function Insert_Instance
+     (This : access Sub_Pool_T;
+      ID   : Skill_ID_T) return Boolean is abstract;
+   function Insert_Instance
+     (This : access Base_Pool_T;
+      ID   : Skill_ID_T) return Boolean is abstract;
 
    -- internal use only
    function Data
@@ -100,7 +119,7 @@ private
       Sub_Pools : Sub_Pool_Vector.Vector;
 
       -- the list of all data fields
-      Data_Fields : Skill.Field_Types.Field_Array_Access;
+      Data_Fields : Skill.Field_Declarations.Field_Array_Access;
 
       -- layout of skill ids of this type
       Blocks : Skill.Internal.Parts.Blocks;
@@ -117,7 +136,8 @@ private
 
    type Owner_T is access Skill.Files.File_T;
 
-   Empty_Data : Skill.Types.Annotation_Array := new Skill.Types.Annotation_Array_T(1..0);
+   Empty_Data : Skill.Types.Annotation_Array :=
+     new Skill.Types.Annotation_Array_T (1 .. 0);
    type Base_Pool_T is abstract new Pool_T with record
       Data  : Skill.Types.Annotation_Array;
       Owner : Owner_T;

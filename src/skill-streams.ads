@@ -20,8 +20,6 @@ package Skill.Streams is
    pragma Convention (C, Unsigned_Char_Array);
    for Unsigned_Char_Array'Component_Size use Interfaces.C.unsigned_char'Size;
 
-   type Input_Stream is not null access Skill.Streams.Reader.Input_Stream_T;
-
-   function Input (Path : Skill.Types.String_Access) return Input_Stream;
+   function Input (Path : Skill.Types.String_Access) return Skill.Streams.Reader.Input_Stream;
 
 end Skill.Streams;
