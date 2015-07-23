@@ -24,6 +24,7 @@ with Ada.Containers.Hashed_Sets;
 with Skill.Types.Vectors;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
+with Skill.Field_Declarations;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -59,7 +60,7 @@ package body Skill.Internal.File_Parsers is
 
       -- parser state
       package A1 is new Ada.Containers.Doubly_Linked_Lists(Types.Pools.Pool);
-    -- deferred pool resize requests
+      -- deferred pool resize requests
       Resize_Queue : A1.List;
 
       -- entries of local fields
@@ -68,8 +69,18 @@ package body Skill.Internal.File_Parsers is
          Count : Types.V64;
       end record;
       package A2 is new Types.Vectors(Natural, LF_Entry);
-      -- pool ⇒ local field count
+      -- pool -> local field count
       Local_Fields : A2.Vector;
+
+
+      -- field data updates: pool x fieldID
+      type FD_Entry is record
+         Pool : Types.Pools.Pool;
+         ID   : Integer;
+      end record;
+      package A4 is new Types.Vectors (Natural, FD_Entry);
+      -- field data updates: pool x fieldID
+      Field_Data_Queue : A4.Vector;
 
 
       -- read an entire string block
@@ -114,6 +125,32 @@ package body Skill.Internal.File_Parsers is
          Offset     : Types.v64 := 0;
          Type_Count : Types.v64 := Input.V64;
 
+         -- update field data information, so that it can be read in parallel or
+         -- even lazy
+         procedure Process_Field_Data is
+         -- We Have To Add The File Offset To all Begins and Ends We Encounter
+            File_Offset : constant Types.V64 := Input.Position;
+            Data_End    : Types.V64 := File_Offset;
+         begin
+
+            -- process field data declarations in order of appearance and update
+            -- offsets to absolute positions
+            While not Field_Data_Queue.Is_Empty loop
+               declare
+                  E          : FD_Entry := Field_Data_Queue.Pop;
+                  F          : Skill.Field_Declarations.Field_Declaration := E.Pool.Data_Fields.Element (E.ID - 1);
+                  -- make begin/end absolute
+                  End_Offset : Types.V64 := F.Add_Offset_To_Last_Chunk (Input, File_Offset);
+               begin
+                  if Data_End < End_Offset then
+                     Data_End := End_Offset;
+                  end if;
+               end;
+            end loop;
+            Input.jump (Data_End);
+         end Process_Field_Data;
+
+
          -- reads a single type declaration
          procedure Type_Definition is
             Name : constant Types.String_Access := Strings.Get (Input.V64);
@@ -138,8 +175,8 @@ package body Skill.Internal.File_Parsers is
                  (Block_Counter, "Duplicate definition of type "& Name.all);
             end if;
             Seen_Types.Include (Name);
---
---          // try to parse the type definition
+
+            -- try to parse the type definition
             declare
                Block      : Skill.Internal.Parts.Block;
                Definition : Types.Pools.Pool;
@@ -285,7 +322,7 @@ package body Skill.Internal.File_Parsers is
 
          Local_Fields.Clear;
 
---          fieldDataQueue.clear();
+         Field_Data_Queue.Clear;
 
          -- parse types
          for I in 1 .. Type_Count loop
@@ -345,7 +382,7 @@ package body Skill.Internal.File_Parsers is
             declare
                E : LF_Entry := Local_Fields.Pop;
                Legal_Field_ID_Barrier : Integer :=
-                                          1 + E.Pool.Data_Fields'Length;
+                                          1 + E.Pool.Data_Fields.Length;
                Last_Block             : Skill.Internal.Parts.Block :=
                                           E.Pool.Blocks.Last_Element;
                End_Offset             : Types.V64;
@@ -390,14 +427,14 @@ package body Skill.Internal.File_Parsers is
                               -- TODO restrictions
                               E.Pool.Add_Field (ID, T, Field_Name).Add_Chunk
                                 (new Internal.Parts.Bulck_Chunk
-                                   '(Offset, End_Offset, E.Pool.Size));
+                                   '(Offset, End_Offset, Types.V64 (E.Pool.Size)));
 
                            exception
                               when E : Errors.Skill_Error =>
                                  raise Errors.Skill_Error
-                                   with Input.Parse_Exception
-                                     (Block_Counter, E,
-                                      "failed to add field");
+                                 with Input.Parse_Exception
+                                   (Block_Counter, E,
+                                    "failed to add field");
                            end;
 
                            Legal_Field_ID_Barrier := Legal_Field_ID_Barrier + 1;
@@ -405,19 +442,21 @@ package body Skill.Internal.File_Parsers is
                      else
                         -- field already seen
                         End_Offset := Input.V64;
-                        --                      p.dataFields.get(ID - 1).addChunk(new SimpleChunk(offset, end, lastBlock.bpo, lastBlock.count));
+                        E.Pool.Data_Fields.Element (ID - 1).Add_Chunk
+                          (new Internal.Parts.Simple_Chunk'
+                             (Offset, End_Offset, Last_Block.Count, Last_Block.Bpo));
                      end if;
                      Offset := End_Offset;
 
-                     --                  fieldDataQueue.add(new DataEntry(p, ID));
-
-               end;
+                     Field_Data_Queue.Append (FD_Entry'(E.Pool, ID));
+                  end;
                end loop;
             end;
          end loop;
 
---          processFieldData();
+         Process_Field_Data;
       end Type_Block;
+
 
    begin
 

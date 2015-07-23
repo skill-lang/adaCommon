@@ -31,15 +31,18 @@ package body Skill.Streams.Reader is
    end Open;
 
    function Map
-     (This : access Input_Stream_T;
-      Size : Types.v64) return Sub_Stream
+     (This  : access Input_Stream_T;
+      Base  : Types.v64;
+      First : Types.v64;
+      Last  : Types.v64) return Sub_Stream
    is
       use type Uchar.Pointer;
+      use type Interfaces.Integer_64;
    begin
       return new Sub_Stream_T'
-          (Length   => Interfaces.C.size_t (Size),
+          (Length   => Interfaces.C.size_t (Last - First),
            Position => 0,
-           Map      => This.Map + Interfaces.C.ptrdiff_t (This.Position));
+           Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
    end Map;
 
    function Path

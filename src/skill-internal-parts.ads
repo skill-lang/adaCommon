@@ -23,7 +23,7 @@ package Skill.Internal.Parts is
    type Chunk_T is abstract tagged record
       First : Skill.Types.v64;
       Last  : Skill.Types.v64;
-      Count : Natural;
+      Count : Skill.Types.v64;
    end record;
    type Chunk is access Chunk_T'Class;
 
