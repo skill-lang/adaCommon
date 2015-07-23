@@ -8,10 +8,11 @@ with Ada.Finalization;
 
 -- vector, can also be used as a stack
 generic
-   type Index_Type is range <>;
    type Element_Type is private;
 package Skill.Types.Vectors is
    pragma Preelaborate;
+
+   subtype Index_Type is Natural;
 
    type Vector is new Ada.Finalization.Limited_Controlled with private;
 --  pragma Preelaborable_Initialization (Vector);
@@ -66,8 +67,8 @@ private
 
    type Vector is new Ada.Finalization.Limited_Controlled with record
       Elements : Element_Array_Access;
-      Size     : Index_Type := 2;
-      Size_0   : Index_Type := 0;
+      Size     : Index_Type := Index_Type'First + 2;
+      Size_0   : Index_Type := Index_Type'First;
    end record;
 
 end Skill.Types.Vectors;

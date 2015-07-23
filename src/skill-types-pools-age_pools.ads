@@ -32,9 +32,7 @@ package Skill.Types.Pools.Age_Pools is
 
    private
 
-      package A1 is new Vectors
-        (Index_Type   => Natural,
-         Element_Type => Age.Age);
+      package A1 is new Vectors(Age.Age);
       type Instance_Vector is not null access A1.Vector;
 
       type Pool_T is new Base_Pool_T with record

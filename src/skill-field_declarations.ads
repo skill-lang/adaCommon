@@ -18,9 +18,7 @@ package Skill.Field_Declarations is
    type Field_Declaration_T is abstract tagged private;
    type Field_Declaration is access Field_Declaration_T'Class;
 
-   package Field_Array_P is new Skill.Types.Vectors
-     (Natural,
-      Field_Declaration);
+   package Field_Array_P is new Skill.Types.Vectors (Field_Declaration);
    subtype Field_Array is Field_Array_P.Vector;
    type Field_Array_Access is not null access Field_Array;
    Empty_Field_Array : Field_Array_Access := new Field_Array;

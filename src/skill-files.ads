@@ -15,14 +15,10 @@ with Skill.Equals;
 
 package Skill.Files is
 
-
    type Read_Mode is (Create, Read);
    type Write_Mode is (Write, Append);
 
-
-   package P_Type_Vector is new Skill.Types.Vectors
-     (Index_Type   => Natural,
-      Element_Type => Skill.Types.Pools.Pool);
+   package P_Type_Vector is new Skill.Types.Vectors (Skill.Types.Pools.Pool);
    type Type_Vector is not null access P_Type_Vector.Vector;
 
    use type Skill.Types.Pools.Pool;
@@ -33,9 +29,8 @@ package Skill.Files is
       Equivalent_Keys => Skill.Equals.Equals);
    type Type_Map is not null access P_Type_Map.Map;
 
-
    type File_T is abstract tagged limited record
-   -- path used for flush/close operations
+      -- path used for flush/close operations
       Path : Skill.Types.String_Access;
 
       -- current write mode
@@ -52,8 +47,8 @@ package Skill.Files is
    end record;
    type File is not null access File_T'Class;
 
-
-   function Strings (This : access File_T'Class) return Skill.String_Pools.Pool;
+   function Strings
+     (This : access File_T'Class) return Skill.String_Pools.Pool;
 
    -- internal use only
    -- should be abstract eventually!!
@@ -63,8 +58,5 @@ package Skill.Files is
       Strings       : Skill.String_Pools.Pool;
       Types         : Type_Vector;
       Types_By_Name : Type_Map) return File;
-
-
-
 
 end Skill.Files;

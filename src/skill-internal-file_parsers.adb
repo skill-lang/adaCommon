@@ -68,7 +68,7 @@ package body Skill.Internal.File_Parsers is
          Pool : Types.Pools.Pool;
          Count : Types.V64;
       end record;
-      package A2 is new Types.Vectors(Natural, LF_Entry);
+      package A2 is new Types.Vectors(LF_Entry);
       -- pool -> local field count
       Local_Fields : A2.Vector;
 
@@ -78,7 +78,7 @@ package body Skill.Internal.File_Parsers is
          Pool : Types.Pools.Pool;
          ID   : Integer;
       end record;
-      package A4 is new Types.Vectors (Natural, FD_Entry);
+      package A4 is new Types.Vectors (FD_Entry);
       -- field data updates: pool x fieldID
       Field_Data_Queue : A4.Vector;
 
@@ -332,7 +332,7 @@ package body Skill.Internal.File_Parsers is
 
          -- resize pools
          declare
-            package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
+            package A4 is new Types.Vectors(Skill.Types.Pools.Pool);
             Resize_Stack : A4.Vector;
 
             use type A1.Cursor;

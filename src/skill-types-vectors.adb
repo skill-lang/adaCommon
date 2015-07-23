@@ -57,13 +57,13 @@ package body Skill.Types.Vectors is
 
             declare
                New_Container : Element_Array_Access :=
-                 new Element_Array (1 .. New_Size);
+                 new Element_Array (0 .. New_Size);
                procedure Free is new Ada.Unchecked_Deallocation
                  (Element_Array,
                   Element_Array_Access);
             begin
-               New_Container (1 .. Container.Size) :=
-                 Container.Elements (1 .. Container.Size);
+               New_Container (0 .. Container.Size) :=
+                 Container.Elements (0 .. Container.Size);
                Free (Container.Elements);
                Container.Elements := New_Container;
             end;
@@ -109,7 +109,7 @@ package body Skill.Types.Vectors is
 
    overriding procedure Initialize (Object : in out Vector) is
    begin
-      Object.Elements := new Element_Array (1 .. Object.Size);
+      Object.Elements := new Element_Array (0 .. Object.Size);
    end Initialize;
 
    overriding procedure Finalize (Object : in out Vector) is
