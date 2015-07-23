@@ -29,19 +29,20 @@ package body Skill.Types.Pools.Age_Pools is
       -- constructor invoked by new_pool
       function Make (Type_Id : Natural) return Skill.Types.Pools.Pool is
          This : Pool :=
-                  new Pool_T'
-                    (Name        => Age.Internal_Skill_Names.Age_Skill_Name,
-                     Type_Id     => Type_Id,
-                     Super       => null,
-                     Base        => null,
-                     Sub_Pools   => Skill.Types.Pools.Sub_Pool_Vector.Empty_Vector,
-                     Data_Fields => Skill.Field_Declarations.Empty_Field_Array,
-                     Blocks      => new Skill.Internal.Parts.Blocks_P.Vector,
-                     Fixed       => False,
-                     Cached_Size => 0,
-                     Data        => Skill.Types.Pools.Empty_Data,
-                     Owner       => null,
-                     Static_Data => new A1.Vector);
+           new Pool_T'
+             (Name        => Age.Internal_Skill_Names.Age_Skill_Name,
+              Type_Id     => Type_Id,
+              Super       => null,
+              Base        => null,
+              Sub_Pools   => Skill.Types.Pools.Sub_Pool_Vector.Empty_Vector,
+              Data_Fields => Skill.Field_Declarations.Empty_Field_Array,
+              Blocks      => new Skill.Internal.Parts.Blocks_P.Vector,
+              Fixed       => False,
+              Cached_Size => 0,
+              Data        => Skill.Types.Pools.Empty_Data,
+              Owner       => null,
+              Static_Data => new A1.Vector,
+              New_Objects => new A1.Vector);
          function Convert is new Ada.Unchecked_Conversion
            (Source => Pool,
             Target => Skill.Types.Pools.Base_Pool);
@@ -55,25 +56,30 @@ package body Skill.Types.Pools.Age_Pools is
 
       overriding function Insert_Instance
         (This : access Pool_T;
-         ID   : Skill.Types.Skill_ID_T)
-      return Boolean
+         ID   : Skill.Types.Skill_ID_T) return Boolean
       is
-         function Convert is new Ada.Unchecked_Conversion (Source => Age.Age,
-                                                           Target => Skill.Types.Annotation);
+         function Convert is new Ada.Unchecked_Conversion
+           (Source => Age.Age,
+            Target => Skill.Types.Annotation);
 
-         I : Natural := Natural (Id) - 1;
+         I : Natural := Natural (ID) - 1;
          R : Age.Age;
       begin
          if null /= This.Data (I) then
-            return false;
+            return False;
          end if;
 
-         R := new Age.Age_T;
-         R.Skill_ID := Id;
+         R             := new Age.Age_T;
+         R.Skill_ID    := ID;
          This.Data (I) := Convert (R);
          This.Static_Data.Append (R);
-         return true;
+         return True;
       end Insert_Instance;
+
+      overriding function Static_Size (This : access Pool_T) return Natural is
+      begin
+         return This.Static_Data.Length + This.New_Objects.Length;
+      end Static_Size;
 
    end Age_P;
 

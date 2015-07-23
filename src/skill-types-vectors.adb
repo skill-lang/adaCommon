@@ -37,7 +37,11 @@ package body Skill.Types.Vectors is
       if (Index <= Container.Size_0) then
          return Container.Elements (Index);
       else
-         raise Constraint_Error with "index check failed";
+         raise Constraint_Error
+           with "index check failed: " &
+           Integer'Image (Integer (Index)) &
+           " >= " &
+           Integer'Image (Integer (Container.Size_0));
       end if;
    end Element;
 

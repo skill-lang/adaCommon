@@ -7,7 +7,6 @@
 with Skill.Files;
 with Skill.Internal.File_Parsers;
 with Skill.Types.Pools;
-with Skill.Types.Pools.Base;
 with Skill.Types;
 with Skill.Types.Vectors;
 
@@ -15,7 +14,7 @@ with Age;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
-package  Skill.Types.Pools.Age_Pools is
+package Skill.Types.Pools.Age_Pools is
 
    package Age_P is
 
@@ -29,13 +28,18 @@ package  Skill.Types.Pools.Age_Pools is
         (This : access Pool_T;
          ID   : Skill_ID_T) return Boolean;
 
+      overriding function Static_Size (This : access Pool_T) return Natural;
+
    private
 
-      package A1 is new Vectors (Index_Type   => Natural,
-                                 Element_Type => Age.Age);
-      type Static_Data_T is not null access A1.Vector;
+      package A1 is new Vectors
+        (Index_Type   => Natural,
+         Element_Type => Age.Age);
+      type Instance_Vector is not null access A1.Vector;
+
       type Pool_T is new Base_Pool_T with record
-         Static_Data : Static_data_t;
+         Static_Data : Instance_Vector;
+         New_Objects : Instance_Vector;
       end record;
    end Age_P;
 

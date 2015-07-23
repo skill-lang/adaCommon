@@ -68,6 +68,12 @@ package Skill.Types.Pools is
 
    function Size (This : access Pool_T) return Natural;
 
+   -- the number of instances of exactly this type, excluding sub-types
+   -- @return size excluding subtypes
+   function Static_Size (This : access Pool_T) return Natural is abstract;
+   function Static_Size (This : access Base_Pool_T) return Natural is abstract;
+   function Static_Size (This : access Sub_Pool_T) return Natural is abstract;
+
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
 

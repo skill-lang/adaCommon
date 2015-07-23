@@ -8,6 +8,7 @@ with Ada.Containers.Vectors;
 
 with Skill.Field_Types;
 with Skill.Internal.Parts;
+with Ada.Unchecked_Conversion;
 
 -- TODO push down:
 --  type A2 is not null access T;
@@ -35,9 +36,22 @@ package body Skill.Types.Pools is
    function Super (This : access Pool_T) return Pool is (This.Super);
 
    function Size (This : access Pool_T) return Natural is
+      Size : Natural;
+
+      type P is access all Pool_T;
+      type D is access Pool_T'Class;
+      function Convert is new Ada.Unchecked_Conversion (P, D);
    begin
-      raise Constraint_Error with "TODO";
-      return 0;
+      if This.Fixed then
+         return This.Cached_Size;
+      end if;
+
+      Size := Convert (P (This)).Static_Size;
+      for I in This.Sub_Pools.First_Index .. This.Sub_Pools.Last_Index loop
+         Size := Size + This.Sub_Pools.Element (I).Size;
+      end loop;
+
+      return Size;
    end Size;
 
    function Blocks
@@ -55,10 +69,29 @@ package body Skill.Types.Pools is
       ID   : Natural;
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+
    is
+      function Convert is new Ada.Unchecked_Conversion
+        (Field_Declarations.Lazy_Field,
+         Field_Declarations.Field_Declaration);
+      type P is access all Pool_T;
+      function Convert is new Ada.Unchecked_Conversion
+        (P,
+         Field_Declarations.Owner_T);
+
+      F : Field_Declarations.Field_Declaration :=
+        Convert
+          (Skill.Field_Declarations.Make_Lazy_Field
+             (Convert (P (This)),
+              ID,
+              T,
+              Name));
    begin
-      raise Constraint_Error with "TODO";
-      return null;
+      -- TODO restrictions
+      --          for (FieldRestriction<?> r : restrictions)
+      --              f.addRestriction(r);
+      This.Data_Fields.Append (F);
+      return F;
    end Add_Field;
 
    -- base pool properties

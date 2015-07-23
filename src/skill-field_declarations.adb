@@ -35,4 +35,19 @@ package body Skill.Field_Declarations is
       return C.Last;
    end Add_Offset_To_Last_Chunk;
 
+   function Make_Lazy_Field
+     (Owner : Owner_T;
+      ID    : Natural;
+      T     : Field_Types.Field_Type;
+      Name  : Skill.Types.String_Access) return Lazy_Field
+   is
+   begin
+      return new Lazy_Field_T'
+          (Data_Chunks => Chunk_List_P.Empty_List,
+           T           => T,
+           Name        => Name,
+           Index       => ID,
+           Owner       => Owner);
+   end Make_Lazy_Field;
+
 end Skill.Field_Declarations;
