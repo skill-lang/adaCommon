@@ -1,4 +1,4 @@
-.PHONY:clean debug release main valgrind
+.PHONY:clean debug release main valgrind leackcheck callgrind
 
 main: debug
 
@@ -18,6 +18,9 @@ release:
 
 valgrind: debug
 	valgrind --dsymutil=yes --leak-check=full --show-leak-kinds=all ./debug
+
+leackcheck: debug
+	valgrind --dsymutil=yes --leak-check=full --show-leak-kinds=definite --errors-for-leak-kinds=definite ./debug
 
 callgrind: debug
 	valgrind --tool=callgrind ./debug
