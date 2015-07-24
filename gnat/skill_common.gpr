@@ -11,6 +11,9 @@ Project Skill_Common is
    for Source_Dirs use ("../src");
 
    case Mode is
+      when "clean" =>
+         for Library_Dir use "../lib/Debug";
+         for Object_Dir use "../obj/Debug";
       when "debug" =>
          for Library_Dir use "../lib/Debug";
          for Object_Dir use "../obj/Debug";
@@ -21,15 +24,24 @@ Project Skill_Common is
 
    package Builder is
       case Mode is
+         when "clean" =>
+            for Default_Switches ("Ada") use ("-g", "-j0", "-gnat2012");
          when "debug" =>
-            for Default_Switches ("Ada") use ("-j0", "-gnat2012");
+            for Default_Switches ("Ada") use ("-g", "-j0", "-gnat2012");
          when "release" =>
             for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2012");
       end case;
    end Builder;
 
+   package Binder is
+      for Switches ("Ada") use ("-E");
+   end Binder;
+
    package Compiler is
       case Mode is
+         when "clean" =>
+            for Switches ("Ada") use ("-g", "-gnata", "-gnatf", "-fstack-check");
+            for Switches (others) use ("-g", "-fstack-check");
          when "debug" =>
             for Switches ("Ada") use ("-g", "-gnata", "-gnatf", "-fstack-check");
             for Switches (others) use ("-g", "-fstack-check");
