@@ -142,7 +142,6 @@ package body Skill.Streams.Reader is
       return R;
    end I64;
 
-   -- TODO replace by fast variant
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
       pragma Warnings (Off);
 
@@ -180,22 +179,6 @@ package body Skill.Streams.Reader is
 
       return Convert (Return_Value);
    end V64;
-
---     function Read_String
---       (Mapped : Unsigned_Char_Array;
---        Start  : Interfaces.C.size_t;
---        Length : i32) return String
---     is
---        use type Interfaces.C.size_t;
---
---        Return_Value : String (1 .. Integer (Length));
---     begin
---        for I in Return_Value'Range loop
---           Return_Value (I) :=
---             Character'Val (Mapped (-1 + Start + Interfaces.C.size_t (I)));
---        end loop;
---        return Return_Value;
---     end Read_String;
 
    function Parse_Exception
      (This          :    access Input_Stream_T;
