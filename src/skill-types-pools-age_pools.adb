@@ -28,30 +28,37 @@ package body Skill.Types.Pools.Age_Pools is
 
       -- constructor invoked by new_pool
       function Make (Type_Id : Natural) return Skill.Types.Pools.Pool is
-         This : Pool :=
-           new Pool_T'
-             (Name        => Age.Internal_Skill_Names.Age_Skill_Name,
-              Type_Id     => Type_Id,
-              Super       => null,
-              Base        => null,
-              Sub_Pools   => Skill.Types.Pools.Sub_Pool_Vector.Empty_Vector,
-              Data_Fields => Skill.Field_Declarations.Empty_Field_Array,
-              Blocks      => new Skill.Internal.Parts.Blocks_P.Vector,
-              Fixed       => False,
-              Cached_Size => 0,
-              Data        => Skill.Types.Pools.Empty_Data,
-              Owner       => null,
-              Static_Data => new A1.Vector,
-              New_Objects => new A1.Vector);
          function Convert is new Ada.Unchecked_Conversion
            (Source => Pool,
             Target => Skill.Types.Pools.Base_Pool);
          function Convert is new Ada.Unchecked_Conversion
            (Source => Pool,
             Target => Skill.Types.Pools.Pool);
+
+         This : Pool;
       begin
+         This := new Pool_T'
+           (Name          => Age.Internal_Skill_Names.Age_Skill_Name,
+            Type_Id       => Type_Id,
+            Super         => null,
+            Base          => null,
+            Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
+            Data_Fields_F => Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
+            Blocks        => Skill.Internal.Parts.Blocks_P.Empty_Vector,
+            Fixed         => False,
+            Cached_Size   => 0,
+            Data          => Skill.Types.Pools.Empty_Data,
+            Owner         => null,
+            Static_Data   => A1.Empty_Vector,
+            New_Objects   => A1.Empty_Vector);
+
          This.Base := Convert (This);
          return Convert (This);
+      exception
+         when E : others =>
+            Skill.Errors.Print_Stacktrace(E);
+            Skill.Errors.Print_Stacktrace;
+            raise Skill.Errors.Skill_Error with "Age pool allocation failed";
       end Make;
 
       overriding function Insert_Instance

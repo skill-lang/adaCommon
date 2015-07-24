@@ -1,74 +1,99 @@
 --  ___ _  ___ _ _                                                            --
 -- / __| |/ (_) | |       Common SKilL implementation                         --
 -- \__ \ ' <| | | |__     skills vector container implementation              --
--- |___/_|\_\_|_|____|    by: Dennis Przytarski                               --
+-- |___/_|\_\_|_|____|    by: Dennis Przytarski, Timm Felden                  --
 --                                                                            --
 
 with Ada.Finalization;
 
 -- vector, can also be used as a stack
 generic
+   type Index_Type is range <>;
    type Element_Type is private;
 package Skill.Types.Vectors is
    pragma Preelaborate;
 
-   subtype Index_Type is Natural;
+   type Vector_T is tagged limited private;
+   type Vector is not null access Vector_T;
 
-   type Vector is new Ada.Finalization.Limited_Controlled with private;
---  pragma Preelaborable_Initialization (Vector);
+   function Empty_Vector return Vector;
 
-   procedure Append (Container : in out Vector; New_Element : Element_Type);
+   procedure Free (This : access Vector_T);
 
+   -- applies F for each element in this
+   procedure Foreach
+     (This : access Vector_T;
+      F    : access procedure (I : Element_Type));
+
+   -- appends element to the vector
+   procedure Append (This : access Vector_T; New_Element : Element_Type);
+
+-- appends element to the vector and assumes that the vector has a spare slot
    procedure Append_Unsafe
-     (Container   : in out Vector;
-      New_Element :        Element_Type);
+     (This        : access Vector_T;
+      New_Element : Element_Type);
 
    -- remove the last element
-   function Pop (Container : in out Vector) return Element_Type;
+   function Pop (This : access Vector_T) return Element_Type;
 
-   function Check_Index
-     (Container : in out Vector;
-      Index     :        Index_Type) return Boolean;
-
+   -- get element at argument index
    function Element
-     (Container : in out Vector;
-      Index     :        Index_Type) return Element_Type with
-      Pre => Check_Index (Container, Index);
+     (This  : access Vector_T;
+      Index : Index_Type) return Element_Type with
+      Pre => Check_Index (This, Index);
 
-   procedure Ensure_Size (Container : in out Vector; N : Index_Type);
+-- returns the last element in the vector or raises constraint error if empty
+   function Last_Element (This : access Vector_T) return Element_Type;
 
-   procedure Ensure_Allocation (Container : in out Vector; N : Index_Type);
+   -- ensures that an index can be allocated
+   procedure Ensure_Index (This : access Vector_T; New_Index : Index_Type);
 
-   function Length (Container : in Vector) return Index_Type;
+   -- allocates an index, filling previous elements with random garbage!
+   procedure Ensure_Allocation
+     (This      : access Vector_T;
+      New_Index : Index_Type);
 
-   function Is_Empty (Container : in Vector) return Boolean;
+   -- length of the container
+   function Length (This : access Vector_T) return Natural;
+
+   -- true iff empty
+   function Is_Empty (This : access Vector_T) return Boolean;
 
    -- remove all elements
-   procedure Clear (Container : in out Vector);
+   procedure Clear (This : access Vector_T);
 
+   -- checks if an index is used
+   function Check_Index
+     (This  : access Vector_T;
+      Index : Index_Type) return Boolean;
+
+   -- replace element at given index
    procedure Replace_Element
-     (Container : in out Vector;
-      Index     :        Index_Type;
-      Element   :        Element_Type);
+     (This    : access Vector_T;
+      Index   : Index_Type;
+      Element : Element_Type);
 
-   overriding procedure Initialize (Object : in out Vector);
-
-   --  Release the vector elements.
-   overriding procedure Finalize (Object : in out Vector);
-
-   pragma Inline (Element, Ensure_Size, Replace_Element, Initialize, Finalize);
+   pragma Inline
+     (Foreach,
+      Append,
+      Append_Unsafe,
+      Pop,
+      Element,
+      Ensure_Index,
+      Replace_Element);
 
 private
+   subtype Index_Base is Index_Type'Base;
 
-   type Element_Array is array (Index_Type range <>) of Element_Type;
-   type Element_Array_Access is access Element_Array;
+   type Element_Array_T is array (Index_Type range <>) of Element_Type;
+   type Element_Array is not null access Element_Array_T;
+   type Element_Array_Access is access all Element_Array_T;
 
-   Null_Element_Array : constant Element_Array_Access := null;
-
-   type Vector is new Ada.Finalization.Limited_Controlled with record
-      Elements : Element_Array_Access;
-      Size     : Index_Type := Index_Type'First + 2;
-      Size_0   : Index_Type := Index_Type'First;
+   type Vector_T is tagged limited record
+      -- access to the actual data stored in the vector
+      Data : Element_Array;
+      -- the next index to be used, i.e. an exclusive border
+      Next_Index : Index_Base;
    end record;
 
 end Skill.Types.Vectors;

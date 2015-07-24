@@ -16,12 +16,11 @@ package Skill.Field_Declarations is
    pragma Preelaborate;
 
    type Field_Declaration_T is abstract tagged private;
+   -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
 
-   package Field_Array_P is new Skill.Types.Vectors (Field_Declaration);
-   subtype Field_Array is Field_Array_P.Vector;
-   type Field_Array_Access is not null access Field_Array;
-   Empty_Field_Array : Field_Array_Access := new Field_Array;
+   package Field_Vector_P is new Skill.Types.Vectors (Positive, Field_Declaration);
+   subtype Field_Vector is Field_Vector_P.Vector;
 
    type Lazy_Field_T is new Field_Declaration_T with private;
    type Lazy_Field is access Lazy_Field_T'Class;
@@ -32,6 +31,15 @@ package Skill.Field_Declarations is
    type Chunk_Entry is private;
 
    type Owner_T is not null access Skill.Types.Pools.Pool_T;
+
+   function Name
+     (This : access Field_Declaration_T'Class) return Types.String_Access;
+
+   function Owner
+     (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
+
+   -- internal use only
+   function Field_ID (This : access Field_Declaration_T'Class) return Natural;
 
    -- internal use only
    procedure Add_Chunk
@@ -51,6 +59,12 @@ package Skill.Field_Declarations is
       ID    : Natural;
       T     : Field_Types.Field_Type;
       Name  : Skill.Types.String_Access) return Lazy_Field;
+
+
+    -- internal use only
+    -- Read data from a mapped input stream and set it accordingly. This is invoked at the very end of state
+    -- construction and done massively in parallel.
+--      procedure Read (This : access Field_Declaration_T; Input : Sub_Stream; Last : Chunk) is abstract;
 
 private
 

@@ -55,7 +55,7 @@ package body Skill.Internal.File_Parsers is
 
       -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
-      Type_Vector   : Files.Type_Vector := new Files.P_Type_Vector.Vector;
+      Type_Vector   : Files.Type_Vector := Files.P_Type_Vector.Empty_Vector;
       Types_By_Name : Files.Type_Map    := new Files.P_Type_Map.Map;
 
       -- parser state
@@ -68,19 +68,19 @@ package body Skill.Internal.File_Parsers is
          Pool : Types.Pools.Pool;
          Count : Types.V64;
       end record;
-      package A2 is new Types.Vectors(LF_Entry);
+      package A2 is new Types.Vectors(Natural, LF_Entry);
       -- pool -> local field count
-      Local_Fields : A2.Vector;
+      Local_Fields : A2.Vector := A2.Empty_Vector;
 
 
       -- field data updates: pool x fieldID
       type FD_Entry is record
          Pool : Types.Pools.Pool;
-         ID   : Integer;
+         ID   : Positive;
       end record;
-      package A4 is new Types.Vectors (FD_Entry);
+      package A4 is new Types.Vectors (Natural, FD_Entry);
       -- field data updates: pool x fieldID
-      Field_Data_Queue : A4.Vector;
+      Field_Data_Queue : A4.Vector := A4.Empty_Vector;
 
 
       -- read an entire string block
@@ -124,31 +124,6 @@ package body Skill.Internal.File_Parsers is
       procedure Type_Block is
          Offset     : Types.v64 := 0;
          Type_Count : Types.v64 := Input.V64;
-
-         -- update field data information, so that it can be read in parallel or
-         -- even lazy
-         procedure Process_Field_Data is
-         -- We Have To Add The File Offset To all Begins and Ends We Encounter
-            File_Offset : constant Types.V64 := Input.Position;
-            Data_End    : Types.V64 := File_Offset;
-         begin
-
-            -- process field data declarations in order of appearance and update
-            -- offsets to absolute positions
-            While not Field_Data_Queue.Is_Empty loop
-               declare
-                  E          : FD_Entry := Field_Data_Queue.Pop;
-                  F          : Skill.Field_Declarations.Field_Declaration := E.Pool.Data_Fields.Element (E.ID - 1);
-                  -- make begin/end absolute
-                  End_Offset : Types.V64 := F.Add_Offset_To_Last_Chunk (Input, File_Offset);
-               begin
-                  if Data_End < End_Offset then
-                     Data_End := End_Offset;
-                  end if;
-               end;
-            end loop;
-            Input.jump (Data_End);
-         end Process_Field_Data;
 
 
          -- reads a single type declaration
@@ -229,6 +204,8 @@ package body Skill.Internal.File_Parsers is
                else
                   Block.Bpo := Definition.Base.Data'Length;
                end if;
+
+               pragma Assert(Definition /= null);
 
                -- store block info and prepare resize
                Definition.Blocks.Append (Block);
@@ -332,8 +309,8 @@ package body Skill.Internal.File_Parsers is
 
          -- resize pools
          declare
-            package A4 is new Types.Vectors(Skill.Types.Pools.Pool);
-            Resize_Stack : A4.Vector;
+            package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
+            Resize_Stack : A4.Vector := A4.Empty_Vector;
 
             use type A1.Cursor;
             I : A1.Cursor := Resize_Queue.First;
@@ -359,6 +336,7 @@ package body Skill.Internal.File_Parsers is
             -- create instances from stack
             while not Resize_Stack.Is_Empty loop
                declare
+                  pragma Warnings(Off);
                   function Convert is new Ada.Unchecked_Conversion
                     (Source => Types.Pools.Pool,
                      Target => Types.Pools.Pool_Dyn);
@@ -381,12 +359,13 @@ package body Skill.Internal.File_Parsers is
          while not Local_Fields.Is_Empty loop
             declare
                E : LF_Entry := Local_Fields.Pop;
-               Legal_Field_ID_Barrier : Integer :=
+               Legal_Field_ID_Barrier : Positive :=
                                           1 + E.Pool.Data_Fields.Length;
                Last_Block             : Skill.Internal.Parts.Block :=
                                           E.Pool.Blocks.Last_Element;
                End_Offset             : Types.V64;
             begin
+
                for Field_Counter in 1 .. E.Count loop
                   declare
                      Id : Integer := Integer(Input.V64);
@@ -417,17 +396,24 @@ package body Skill.Internal.File_Parsers is
                               with Input.Parse_Exception
                                 (Block_Counter,
                                  "corrupted file: nullptr in fieldname");
-                              end if;
+                           end if;
 
                            T := Parse_Field_Type;
                            Field_Restriction;
                            End_Offset := Input.V64;
 
-                           declare begin
+                           declare
                               -- TODO restrictions
-                              E.Pool.Add_Field (ID, T, Field_Name).Add_Chunk
-                                (new Internal.Parts.Bulck_Chunk
-                                   '(Offset, End_Offset, Types.V64 (E.Pool.Size)));
+                              F : Field_Declarations.Field_Declaration :=
+                                    E.Pool.Add_Field (ID, T, Field_Name);
+
+                              P : Types.Pools.Pool;
+                           begin
+                              F.Add_Chunk
+                                (new Internal.Parts.Bulck_Chunk'
+                                   (Offset,
+                                    End_Offset,
+                                    Types.V64 (E.Pool.Size)));
 
                            exception
                               when E : Errors.Skill_Error =>
@@ -444,7 +430,10 @@ package body Skill.Internal.File_Parsers is
                         End_Offset := Input.V64;
                         E.Pool.Data_Fields.Element (ID - 1).Add_Chunk
                           (new Internal.Parts.Simple_Chunk'
-                             (Offset, End_Offset, Last_Block.Count, Last_Block.Bpo));
+                             (Offset,
+                              End_Offset,
+                              Last_Block.Count,
+                              Last_Block.Bpo));
                      end if;
                      Offset := End_Offset;
 
@@ -454,9 +443,37 @@ package body Skill.Internal.File_Parsers is
             end;
          end loop;
 
-         Process_Field_Data;
-      end Type_Block;
+         -- update field data information, so that it can be read in parallel or
+         -- even lazy
+         -- Process Field Data
+         declare
+            -- We Have To Add The File Offset To all Begins and Ends We Encounter
+            File_Offset : constant Types.V64 := Input.Position;
+            Data_End    : Types.V64 := File_Offset;
+         begin
 
+            -- process field data declarations in order of appearance and update
+            -- offsets to absolute positions
+            while not Field_Data_Queue.Is_Empty loop
+               declare
+                  use type Skill.Field_Declarations.Field_Declaration;
+
+                  E : FD_Entry := Field_Data_Queue.Pop;
+                  F : Skill.Field_Declarations.Field_Declaration :=
+                        E.Pool.Data_Fields.Element (E.ID);
+                  pragma Assert (F /= null);
+
+                  -- make begin/end absolute
+                  End_Offset : Types.V64 := F.Add_Offset_To_Last_Chunk (Input, File_Offset);
+               begin
+                  if Data_End < End_Offset then
+                     Data_End := End_Offset;
+                  end if;
+               end;
+            end loop;
+            Input.Jump (Data_End);
+         end;
+      end Type_Block;
 
    begin
 

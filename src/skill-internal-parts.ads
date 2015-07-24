@@ -7,6 +7,7 @@
 with Ada.Containers.Vectors;
 
 with Skill.Types;
+with Skill.Types.Vectors;
 
 -- documentation can be found in java common
 package Skill.Internal.Parts is
@@ -17,8 +18,8 @@ package Skill.Internal.Parts is
       Count : Skill.Types.v64;
    end record;
 
-   package Blocks_P is new Ada.Containers.Vectors (Natural, Block);
-   type Blocks is access Blocks_P.Vector;
+   package Blocks_P is new Skill.Types.Vectors (Natural, Block);
+   subtype Blocks is Blocks_P.Vector;
 
    type Chunk_T is abstract tagged record
       First : Skill.Types.v64;

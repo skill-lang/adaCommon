@@ -32,8 +32,8 @@ package Skill.Types.Pools.Age_Pools is
 
    private
 
-      package A1 is new Vectors(Age.Age);
-      type Instance_Vector is not null access A1.Vector;
+      package A1 is new Vectors(Natural, Age.Age);
+      subtype Instance_Vector is A1.Vector;
 
       type Pool_T is new Base_Pool_T with record
          Static_Data : Instance_Vector;

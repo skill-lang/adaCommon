@@ -18,8 +18,8 @@ package Skill.Files is
    type Read_Mode is (Create, Read);
    type Write_Mode is (Write, Append);
 
-   package P_Type_Vector is new Skill.Types.Vectors (Skill.Types.Pools.Pool);
-   type Type_Vector is not null access P_Type_Vector.Vector;
+   package P_Type_Vector is new Skill.Types.Vectors (Natural, Skill.Types.Pools.Pool);
+   subtype Type_Vector is P_Type_Vector.Vector;
 
    use type Skill.Types.Pools.Pool;
    package P_Type_Map is new Ada.Containers.Hashed_Maps

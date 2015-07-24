@@ -7,8 +7,28 @@
 with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Interfaces;
+with Skill.Types.Pools;
+with Ada.Unchecked_Conversion;
 
 package body Skill.Field_Declarations is
+
+   function Name
+     (This : access Field_Declaration_T'Class) return Types.String_Access is
+     (This.Name);
+
+   function Owner
+     (This : access Field_Declaration_T'Class) return Skill.Types.Pools.Pool
+   is
+      function Convert is new Ada.Unchecked_Conversion
+        (Owner_T,
+         Skill.Types.Pools.Pool);
+   begin
+      return Convert (This.Owner);
+   end Owner;
+
+   function Field_ID
+     (This : access Field_Declaration_T'Class) return Natural is
+     (This.Index);
 
    procedure Add_Chunk
      (This : access Field_Declaration_T'Class;

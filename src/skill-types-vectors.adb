@@ -1,120 +1,157 @@
 --  ___ _  ___ _ _                                                            --
 -- / __| |/ (_) | |       Common SKilL implementation                         --
 -- \__ \ ' <| | | |__     skills vector container implementation              --
--- |___/_|\_\_|_|____|    by: Dennis Przytarski                               --
+-- |___/_|\_\_|_|____|    by: Dennis Przytarski, Timm Felden                  --
 --                                                                            --
 
 with Ada.Unchecked_Deallocation;
 
 package body Skill.Types.Vectors is
 
-   procedure Append (Container : in out Vector; New_Element : Element_Type) is
+   function Empty_Vector return Vector is
    begin
-      Container.Ensure_Size (1 + Container.Size_0);
-      Container.Append_Unsafe (New_Element);
+      return new Vector_T'
+        (Data => new Element_Array_T (Index_Type'First .. Index_Type'First + 4),
+         Next_Index => Index_Type'First);
+   end Empty_Vector;
+
+   procedure Free (This : access Vector_T) is
+
+      type V is access all Vector_T;
+
+      procedure Delete is new Ada.Unchecked_Deallocation
+        (Element_Array_T,
+         Element_Array_Access);
+      procedure Delete is new Ada.Unchecked_Deallocation (Vector_T, V);
+      D : Element_Array_Access := Element_Array_Access (This.Data);
+      T : V                    := V (This);
+   begin
+      Delete (D);
+      Delete (T);
+   end Free;
+
+   procedure Foreach
+     (This : access Vector_T;
+      F    : access procedure (I : Element_Type))
+   is
+   begin
+      for I in Index_Type'First .. Index_Type (This.Next_Index) - 1 loop
+         F (This.Data (I));
+      end loop;
+   end Foreach;
+
+   procedure Append (This : access Vector_T; New_Element : Element_Type) is
+   begin
+      This.Ensure_Index (Index_Type (This.Next_Index));
+      This.Append_Unsafe (New_Element);
    end Append;
 
    procedure Append_Unsafe
-     (Container   : in out Vector;
-      New_Element :        Element_Type)
+     (This        : access Vector_T;
+      New_Element : Element_Type)
    is
    begin
-      Container.Size_0                      := 1 + Container.Size_0;
-      Container.Elements (Container.Size_0) := New_Element;
+      This.Data (Index_Type (This.Next_Index)) := New_Element;
+      This.Next_Index                          := This.Next_Index + 1;
    end Append_Unsafe;
 
-   function Pop (Container : in out Vector) return Element_Type is
+   function Pop (This : access Vector_T) return Element_Type is
    begin
-      Container.Size_0 := Container.Size_0 - 1;
-      return Container.Elements (Container.Size_0 + 1);
+      This.Next_Index := This.Next_Index - 1;
+      return This.Data (Index_Type (This.Next_Index));
    end Pop;
 
    function Element
-     (Container : in out Vector;
-      Index     :        Index_Type) return Element_Type
+     (This  : access Vector_T;
+      Index : Index_Type) return Element_Type
    is
    begin
-      if (Index <= Container.Size_0) then
-         return Container.Elements (Index);
+      if (Index < Index_Type (This.Next_Index)) then
+         return This.Data (Index);
       else
          raise Constraint_Error
            with "index check failed: " &
            Integer'Image (Integer (Index)) &
            " >= " &
-           Integer'Image (Integer (Container.Size_0));
+           Integer'Image (Integer (Index_Type (This.Next_Index)));
       end if;
    end Element;
 
-   procedure Ensure_Size (Container : in out Vector; N : Index_Type) is
+   function Last_Element (This : access Vector_T) return Element_Type is
    begin
-      if (N > Container.Elements'Length) then
+      if Index_Type'First /= This.Next_Index then
+         return This.Data (This.Next_Index - 1);
+      else
+         raise Constraint_Error with "empty vector has no last element";
+      end if;
+   end Last_Element;
+
+   procedure Ensure_Index (This : access Vector_T; New_Index : Index_Type) is
+   begin
+      if
+        (Index_Type (This.Next_Index) - Index_Type'First > This.Data'Length)
+      then
          declare
-            New_Size : Index_Type := 2 * Container.Size;
+            New_Size : Index_Type'Base := 2 * This.Data'Length;
          begin
-            while (N > New_Size) loop
+            while (New_Index - Index_Type'First > New_Size) loop
                New_Size := 2 * New_Size;
             end loop;
+            New_Size := New_Size + Index_Type'First;
 
             declare
-               New_Container : Element_Array_Access :=
-                 new Element_Array (0 .. New_Size);
-               procedure Free is new Ada.Unchecked_Deallocation
-                 (Element_Array,
-                  Element_Array_Access);
-            begin
-               New_Container (0 .. Container.Size) :=
-                 Container.Elements (0 .. Container.Size);
-               Free (Container.Elements);
-               Container.Elements := New_Container;
-            end;
+               New_Container : Element_Array :=
+                 new Element_Array_T (Index_Type'First .. New_Size);
 
-            Container.Size := New_Size;
+               procedure Free is new Ada.Unchecked_Deallocation
+                 (Element_Array_T,
+                  Element_Array_Access);
+               D : Element_Array_Access := Element_Array_Access (This.Data);
+            begin
+               New_Container (Index_Type'First .. This.Data'Last) :=
+                 This.Data (Index_Type'First .. This.Data'Last);
+               This.Data := New_Container;
+               Free (D);
+            end;
          end;
       end if;
-   end Ensure_Size;
+   end Ensure_Index;
 
-   procedure Ensure_Allocation (Container : in out Vector; N : Index_Type) is
+   procedure Ensure_Allocation
+     (This      : access Vector_T;
+      New_Index : Index_Type)
+   is
    begin
-      Container.Ensure_Size (Container.Size_0 + N);
-      Container.Size_0 := N + Container.Size_0;
+      This.Ensure_Index (New_Index);
+      This.Next_Index := Index_Base (New_Index + 1);
    end Ensure_Allocation;
 
-   function Length (Container : in Vector) return Index_Type is
+   function Length (This : access Vector_T) return Natural is
    begin
-      return Container.Size_0;
+      return Natural (Index_Type (This.Next_Index) - Index_Type'First);
    end Length;
 
    function Is_Empty
-     (Container : in Vector) return Boolean is
-     (0 = Container.Size_0);
+     (This : access Vector_T) return Boolean is
+     (Index_Type'First = Index_Type (This.Next_Index));
 
-   procedure Clear (Container : in out Vector) is
+   procedure Clear (This : access Vector_T) is
    begin
-      Container.Size_0 := 0;
+      This.Next_Index := Index_Type'First;
    end Clear;
 
    procedure Replace_Element
-     (Container : in out Vector;
-      Index     :        Index_Type;
-      Element   :        Element_Type)
+     (This    : access Vector_T;
+      Index   : Index_Type;
+      Element : Element_Type)
    is
    begin
-      Container.Elements (Index) := Element;
+      This.Data (Index) := Element;
    end Replace_Element;
 
    function Check_Index
-     (Container : in out Vector;
-      Index     :        Index_Type) return Boolean is
-     (Index <= Container.Size_0);
-
-   overriding procedure Initialize (Object : in out Vector) is
-   begin
-      Object.Elements := new Element_Array (0 .. Object.Size);
-   end Initialize;
-
-   overriding procedure Finalize (Object : in out Vector) is
-   begin
-      null;
-   end Finalize;
+     (This  : access Vector_T;
+      Index : Index_Type) return Boolean is
+     (Index < Index_Type (This.Next_Index));
 
 end Skill.Types.Vectors;

@@ -41,15 +41,19 @@ package body Skill.Types.Pools is
       type P is access all Pool_T;
       type D is access Pool_T'Class;
       function Convert is new Ada.Unchecked_Conversion (P, D);
+
+      procedure F (I : Sub_Pool) is
+      begin
+         Size := Size + I.Size;
+      end F;
+
    begin
       if This.Fixed then
          return This.Cached_Size;
       end if;
 
       Size := Convert (P (This)).Static_Size;
-      for I in This.Sub_Pools.First_Index .. This.Sub_Pools.Last_Index loop
-         Size := Size + This.Sub_Pools.Element (I).Size;
-      end loop;
+      This.Sub_Pools.Foreach (F'Access);
 
       return Size;
    end Size;
@@ -60,8 +64,8 @@ package body Skill.Types.Pools is
 
    function Data_Fields
      (This : access Pool_T)
-      return Skill.Field_Declarations.Field_Array_Access is
-     (This.Data_Fields);
+      return Skill.Field_Declarations.Field_Vector is
+     (This.Data_Fields_F);
 
    -- internal use only
    function Add_Field
@@ -91,6 +95,7 @@ package body Skill.Types.Pools is
       --          for (FieldRestriction<?> r : restrictions)
       --              f.addRestriction(r);
       This.Data_Fields.Append (F);
+
       return F;
    end Add_Field;
 

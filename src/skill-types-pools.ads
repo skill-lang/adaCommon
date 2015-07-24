@@ -10,6 +10,7 @@ with Skill.Field_Types;
 with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
+with Skill.Types.Vectors;
 
 -- TODO push down:
 --  type A2 is not null access T;
@@ -52,7 +53,8 @@ package Skill.Types.Pools is
    type Base_Pool is access Base_Pool_T;
 
    -- data structures using pools
-   package Sub_Pool_Vector is new Ada.Containers.Vectors (Natural, Sub_Pool);
+   package Sub_Pool_Vector_P is new Types.Vectors (Natural, Sub_Pool);
+   subtype Sub_Pool_Vector is Sub_Pool_Vector_P.Vector;
 
    -- pool properties
 
@@ -79,7 +81,7 @@ package Skill.Types.Pools is
 
    -- internal use only
    function Data_Fields
-     (This : access Pool_T) return Skill.Field_Declarations.Field_Array_Access;
+     (This : access Pool_T) return Skill.Field_Declarations.Field_Vector;
 
    -- internal use only
    function Add_Field
@@ -122,10 +124,10 @@ private
       Base : Base_Pool;
 
       -- a list of sub-pools, mostly used to simplify some algorithms
-      Sub_Pools : Sub_Pool_Vector.Vector;
+      Sub_Pools : Sub_Pool_Vector;
 
       -- the list of all data fields
-      Data_Fields : Skill.Field_Declarations.Field_Array_Access;
+      Data_Fields_F : Skill.Field_Declarations.Field_Vector;
 
       -- layout of skill ids of this type
       Blocks : Skill.Internal.Parts.Blocks;
