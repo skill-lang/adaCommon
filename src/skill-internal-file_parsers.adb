@@ -475,6 +475,12 @@ package body Skill.Internal.File_Parsers is
          end;
       end Type_Block;
 
+      procedure Free_State is
+      begin
+         Local_Fields.Free;
+         Field_Data_Queue.Free;
+      end;
+
    begin
 
       while not Input.Eof loop
@@ -482,6 +488,8 @@ package body Skill.Internal.File_Parsers is
          Type_Block;
          Block_Counter := Block_Counter + 1;
       end loop;
+
+      Free_State;
 
       return Make_State (Input.Path, Mode, Strings, Type_Vector, Types_By_Name);
 

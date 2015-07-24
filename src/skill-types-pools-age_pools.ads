@@ -23,6 +23,8 @@ package Skill.Types.Pools.Age_Pools is
 
       -- constructor invoked by new_pool
       function Make (Type_Id : Natural) return Pools.Pool;
+      -- destructor invoked by close
+      procedure Free (This : access Pool_T);
 
       overriding function Insert_Instance
         (This : access Pool_T;

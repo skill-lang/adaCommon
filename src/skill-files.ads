@@ -50,13 +50,4 @@ package Skill.Files is
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool;
 
-   -- internal use only
-   -- should be abstract eventually!!
-   function Finish_Allocation
-     (Path          : Skill.Types.String_Access;
-      Mode          : Write_Mode;
-      Strings       : Skill.String_Pools.Pool;
-      Types         : Type_Vector;
-      Types_By_Name : Type_Map) return File;
-
 end Skill.Files;

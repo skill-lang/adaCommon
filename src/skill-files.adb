@@ -20,15 +20,4 @@ package body Skill.Files is
       return This.Strings;
    end Strings;
 
-   function Finish_Allocation
-     (Path          : Skill.Types.String_Access;
-      Mode          : Write_Mode;
-      Strings       : Skill.String_Pools.Pool;
-      Types         : Type_Vector;
-      Types_By_Name : Type_Map) return File
-   is
-   begin
-      return null; -- TODO
-   end Finish_Allocation;
-
 end Skill.Files;

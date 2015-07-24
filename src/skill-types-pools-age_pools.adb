@@ -61,6 +61,15 @@ package body Skill.Types.Pools.Age_Pools is
             raise Skill.Errors.Skill_Error with "Age pool allocation failed";
       end Make;
 
+      procedure Free (This : access Pool_T) is
+      begin
+         This.Sub_Pools.Free;
+         This.Data_Fields_F.Free;
+         This.Blocks.Free;
+         This.Static_Data.Free;
+         This.New_Objects.Free;
+      end;
+
       overriding function Insert_Instance
         (This : access Pool_T;
          ID   : Skill.Types.Skill_ID_T) return Boolean

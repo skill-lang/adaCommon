@@ -56,6 +56,9 @@ package Skill.Types.Pools is
    package Sub_Pool_Vector_P is new Types.Vectors (Natural, Sub_Pool);
    subtype Sub_Pool_Vector is Sub_Pool_Vector_P.Vector;
 
+   -- pointer conversions
+   function Dynamic (This : access Pool_T) return Pool_Dyn;
+
    -- pool properties
 
    function To_String (This : Pool_T) return String;
@@ -100,6 +103,11 @@ package Skill.Types.Pools is
    function Insert_Instance
      (This : access Base_Pool_T;
       ID   : Skill_ID_T) return Boolean is abstract;
+
+   -- internal use only
+   procedure Free (This : access Pool_T) is abstract;
+   procedure Free (This : access Sub_Pool_T) is abstract;
+   procedure Free (This : access Base_Pool_T) is abstract;
 
    -- internal use only
    function Data

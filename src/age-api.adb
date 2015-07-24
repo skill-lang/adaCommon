@@ -16,6 +16,7 @@ with Skill.Internal.Parts;
 with Ada.Unchecked_Conversion;
 with Skill.Types;
 with Age.Internal_Skill_Names;
+with Ada.Unchecked_Deallocation;
 
 -- parametrization of file, read/write and pool code
 package body Age.Api is
@@ -128,5 +129,29 @@ package body Age.Api is
             --
       end case;
    end Open;
+
+   procedure Flush (This : access File_T) is
+   begin
+      null;
+      -- TODO
+   end Flush;
+
+   procedure Close (This : access File_T) is
+      procedure Delete is new Ada.Unchecked_Deallocation
+        (String,
+         Types.String_Access);
+
+      procedure Delete (This : Types.Pools.Pool) is
+      begin
+         This.Dynamic.Free;
+      end Delete;
+   begin
+      This.Flush;
+
+      Delete (This.Path);
+      --        This.Strings.Free;
+      This.Types.Foreach (Delete'Access);
+      null;
+   end Close;
 
 end Age.Api;

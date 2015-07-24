@@ -21,6 +21,12 @@ package Age.Api is
       Read_M  : Skill.Files.Read_Mode  := Skill.Files.Read;
       Write_M : Skill.Files.Write_Mode := Skill.Files.Write) return File;
 
+   -- write changes to disk
+   procedure Flush (This : access File_T);
+
+   -- write changes to disk, free all memory
+   procedure Close (This : access File_T);
+
    -- user type pools
    -- work aroun GNAT bug
    package Age_Pool_P renames Skill.Types.Pools.Age_Pools.Age_P;

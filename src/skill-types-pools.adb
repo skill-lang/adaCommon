@@ -21,6 +21,14 @@ with Ada.Unchecked_Conversion;
 -- around several restrictions of the (generic) ada type system.
 package body Skill.Types.Pools is
 
+
+   function Dynamic (This : access Pool_T) return Pool_Dyn is
+      type P is access all Pool_T;
+      function Convert is new Ada.Unchecked_Conversion (P, Pool_Dyn);
+   begin
+      return Convert (P(This));
+   end;
+
    -- pool properties
 
    function To_String (This : Pool_T) return String is (This.Name.all);
