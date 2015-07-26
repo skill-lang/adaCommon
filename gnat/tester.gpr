@@ -11,6 +11,8 @@ Project Tester is
    for Source_Dirs use ("../");
 
    case Mode is
+      when "clean" =>
+         null;
       when "debug" =>
          for Object_Dir use "../obj/Debug";
       when "release" =>
@@ -19,6 +21,8 @@ Project Tester is
 
    package Builder is
       case Mode is
+         when "clean" =>
+            null;
          when "debug" =>
             for Default_Switches ("Ada") use ("-j0", "-gnat2012");
             for Executable ("tester.adb") use "debug";
@@ -30,6 +34,8 @@ Project Tester is
 
    package Compiler is
       case Mode is
+         when "clean" =>
+            null;
          when "debug" =>
             for Switches (others) use ("-g", "-gnata", "-gnatf", "-fstack-check");
          when "release" =>
