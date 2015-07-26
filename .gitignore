@@ -1,6 +1,9 @@
 /debug
 /release
 
+lib
+obj
+
 *.ali
 *.dylib
 *.lexch
