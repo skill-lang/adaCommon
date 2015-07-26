@@ -11,6 +11,7 @@ with Skill.Types;
 with Skill.Streams.Reader;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
+with Skill.Synchronization;
 
 package body Skill.String_Pools is
 
@@ -64,7 +65,7 @@ package body Skill.String_Pools is
 
       use type Skill.Streams.Reader.Input_Stream;
 
-      -- TODO synchronized!!!
+      -- should be synchronized now
       procedure Read_Result is
          Off   : Position := This.String_Positions.Element (Natural(Index));
          Input : Skill.Streams.Reader.Input_Stream := This.Input;
@@ -86,6 +87,7 @@ package body Skill.String_Pools is
          This.Id_Map.Replace_Element (Natural(Index), Result);
       end Read_Result;
 
+      Mutex : Skill.Synchronization.Mutex;
    begin
 
       if Index <= 0 then
@@ -102,7 +104,10 @@ package body Skill.String_Pools is
       -- decoding of field data
       -- @note this is correct, because string pool is the only one who can do
       -- parallel operations on input!
+      Mutex.Lock;
       Read_Result;
+      Mutex.Unlock;
+
       return Result;
 
    exception
