@@ -324,12 +324,12 @@ package body Skill.Internal.File_Parsers is
                if P.all in Skill.Types.Pools.Base_Pool_T'Class then
                   Convert (P).Resize_Data;
                end if;
-               Resize_Stack.Append (E);
+               Resize_Stack.Append_Unsafe (E);
             end Resize;
          begin
 
             -- resize base pools and push entries to stack
-            -- TODO Resize_Stack.Hint_Size (Resize_Queue.Length);
+            Resize_Stack.Ensure_Index (Resize_Queue.Length);
             Resize_Queue.Foreach(Resize'Access);
 
             -- create instances from stack

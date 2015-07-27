@@ -47,14 +47,13 @@ package body Skill.Streams.Reader is
            Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
    end Map;
 
-   procedure Free (This : access Sub_Stream_T)
-   is
+   procedure Free (This : access Sub_Stream_T) is
       type S is access all Sub_Stream_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
-      D : S := S(This);
+      D : S := S (This);
    begin
-      Delete(D);
-      end;
+      Delete (D);
+   end Free;
 
    function Path
      (This : access Input_Stream_T) return Skill.Types.String_Access
@@ -157,9 +156,7 @@ package body Skill.Streams.Reader is
       pragma Warnings (Off);
 
       subtype Count_Type is Natural'Base range 0 .. 8;
-      use type Interfaces.C.size_t;
       use type Interfaces.Unsigned_64;
-      use Skill.Types;
       function Convert is new Ada.Unchecked_Conversion
         (Source => Types.i8,
          Target => Types.Uv64);
@@ -168,8 +165,8 @@ package body Skill.Streams.Reader is
          Target => Types.v64);
 
       Count        : Count_Type := 0;
-      Return_Value : Uv64       := 0;
-      Bucket       : Uv64       := Convert (This.I8);
+      Return_Value : Types.Uv64 := 0;
+      Bucket       : Types.Uv64 := Convert (This.I8);
    begin
       while (Count < 8 and then 0 /= (Bucket and 16#80#)) loop
          Return_Value :=
