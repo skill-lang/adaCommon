@@ -12,6 +12,7 @@ with Skill.Hashes;
 with Skill.Streams.Reader;
 with Skill.Types;
 with Skill.Types.Vectors;
+with Skill.Synchronization;
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
@@ -78,6 +79,7 @@ private
       New_Strings      : A1.Set;
       String_Positions : A2.Vector;
       Id_Map           : A3.Vector;
+      Mutex            : Skill.Synchronization.Mutex;
    end record;
 
 end Skill.String_Pools;

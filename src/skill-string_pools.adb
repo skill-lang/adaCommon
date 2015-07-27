@@ -20,7 +20,8 @@ package body Skill.String_Pools is
       This          : Pool := new Pool_T'(Input            => Input,
                                           New_Strings      => A1.Empty_Set,
                                           String_Positions => A2.Empty_Vector,
-                                          Id_Map           => A3.Empty_Vector);
+                                          Id_Map           => A3.Empty_Vector,
+                                          Mutex            => <>);
       Null_Position : Position;
 
       use Interfaces;
@@ -87,7 +88,6 @@ package body Skill.String_Pools is
          This.Id_Map.Replace_Element (Natural(Index), Result);
       end Read_Result;
 
-      Mutex : Skill.Synchronization.Mutex;
    begin
 
       if Index <= 0 then
@@ -104,9 +104,9 @@ package body Skill.String_Pools is
       -- decoding of field data
       -- @note this is correct, because string pool is the only one who can do
       -- parallel operations on input!
-      Mutex.Lock;
+      This.Mutex.Lock;
       Read_Result;
-      Mutex.Unlock;
+      This.Mutex.Unlock;
 
       return Result;
 
