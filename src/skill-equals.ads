@@ -12,7 +12,7 @@ with Skill.Types.Pools;
 -- the trick of this package is to instantiate equals codes as Skill.Equals.equals
 -- independent of the type! :)
 package Skill.Equals is
-   pragma Preelaborate;
+--     pragma Preelaborate;
 
    use type Skill.Types.String_Access;
 

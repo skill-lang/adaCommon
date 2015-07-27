@@ -59,7 +59,7 @@ package body Skill.Types.Pools is
          return This.Cached_Size;
       end if;
 
-      Size := Convert (P (This)).Static_Size;
+      Size := This.Dynamic.Static_Size;
       This.Sub_Pools.Foreach (F'Access);
 
       return Size;

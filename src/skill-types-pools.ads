@@ -41,7 +41,7 @@ with Skill.Types.Vectors;
 -- of the right types without producing significant excess code
 package Skill.Types.Pools is
 
-   pragma Preelaborate;
+--     pragma Preelaborate;
 
    -- abstract pool types
    type Pool_T is abstract new Field_Types.Field_Type_Base with private;
@@ -152,6 +152,9 @@ private
 
    type Owner_T is access Skill.Files.File_T;
 
+   -- note it is important to have the empty array start at 1, because that way
+   -- all descendent arrays will start at 1 as well and thus, no manual index
+   -- adjustment is necessary
    Empty_Data : Skill.Types.Annotation_Array :=
      new Skill.Types.Annotation_Array_T (1 .. 0);
    type Base_Pool_T is abstract new Pool_T with record

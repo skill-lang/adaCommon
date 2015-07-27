@@ -15,5 +15,5 @@ package Age is
    end record;
    type Age is access Age_T;
 
-   procedure My_Lib_Dummy;
+   function To_Age(This : access Skill.Types.Skill_Object) return Age;
 end Age;

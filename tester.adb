@@ -13,10 +13,15 @@ procedure Tester is
    use Skill;
    use type Skill.Types.String_Access;
 
-   procedure Print ( N : Natural) is
+   procedure Print (V : Natural) is
    begin
-      Ada.Text_IO.Put_Line (Natural'Image (N));
-      end Print;
+      Ada.Text_IO.Put_Line (Natural'Image (V));
+   end Print;
+
+   procedure Print (V : Types.v64) is
+   begin
+      Ada.Text_IO.Put_Line (Long_Integer'Image (Long_Integer(V)));
+   end Print;
 
    procedure Print is
       Sf : Age.Api.File := Age.Api.Open ("testFiles/ageUnrestricted.sf");
@@ -26,7 +31,9 @@ procedure Tester is
    begin
       Ada.Text_IO.Put_Line (S.all);
 
-      Print(Sf.Ages.Size);
+      Print (Sf.Ages.Size);
+
+      Print (Sf.Ages.Get (1).Age);
 
       Sf.Close;
    end Print;

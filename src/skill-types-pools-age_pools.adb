@@ -17,6 +17,7 @@ with Ada.Unchecked_Conversion;
 with Skill.Types;
 with Age.Api;
 with Age.Internal_Skill_Names;
+with Ada.Integer_Text_IO;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
@@ -25,6 +26,20 @@ package body Skill.Types.Pools.Age_Pools is
    package body Age_P is
 
       use Skill.Types;
+
+      -- API methods
+      function Get (This : access Pool_T; ID : Skill_ID_T) return Age.age is
+      begin
+         if 0 = ID then
+            return null;
+         else
+            return Age.To_Age(This.Data (Id));
+         end if;
+      end Get;
+
+      ----------------------
+      -- internal methods --
+      ----------------------
 
       -- constructor invoked by new_pool
       function Make (Type_Id : Natural) return Skill.Types.Pools.Pool is
@@ -37,26 +52,28 @@ package body Skill.Types.Pools.Age_Pools is
 
          This : Pool;
       begin
-         This := new Pool_T'
-           (Name          => Age.Internal_Skill_Names.Age_Skill_Name,
-            Type_Id       => Type_Id,
-            Super         => null,
-            Base          => null,
-            Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
-            Data_Fields_F => Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
-            Blocks        => Skill.Internal.Parts.Blocks_P.Empty_Vector,
-            Fixed         => False,
-            Cached_Size   => 0,
-            Data          => Skill.Types.Pools.Empty_Data,
-            Owner         => null,
-            Static_Data   => A1.Empty_Vector,
-            New_Objects   => A1.Empty_Vector);
+         This :=
+           new Pool_T'
+             (Name          => Age.Internal_Skill_Names.Age_Skill_Name,
+              Type_Id       => Type_Id,
+              Super         => null,
+              Base          => null,
+              Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
+              Data_Fields_F =>
+                Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
+              Blocks      => Skill.Internal.Parts.Blocks_P.Empty_Vector,
+              Fixed       => False,
+              Cached_Size => 0,
+              Data        => Skill.Types.Pools.Empty_Data,
+              Owner       => null,
+              Static_Data => A1.Empty_Vector,
+              New_Objects => A1.Empty_Vector);
 
          This.Base := Convert (This);
          return Convert (This);
       exception
          when E : others =>
-            Skill.Errors.Print_Stacktrace(E);
+            Skill.Errors.Print_Stacktrace (E);
             Skill.Errors.Print_Stacktrace;
             raise Skill.Errors.Skill_Error with "Age pool allocation failed";
       end Make;
@@ -68,7 +85,7 @@ package body Skill.Types.Pools.Age_Pools is
          This.Blocks.Free;
          This.Static_Data.Free;
          This.New_Objects.Free;
-      end;
+      end Free;
 
       overriding function Insert_Instance
         (This : access Pool_T;
@@ -78,7 +95,7 @@ package body Skill.Types.Pools.Age_Pools is
            (Source => Age.Age,
             Target => Skill.Types.Annotation);
 
-         I : Natural := Natural (ID) - 1;
+         I : Natural := Natural (ID);
          R : Age.Age;
       begin
          if null /= This.Data (I) then

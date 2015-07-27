@@ -13,7 +13,7 @@ limited with Skill.Types.Pools;
 with Skill.Types;
 
 package Skill.Field_Declarations is
-   pragma Preelaborate;
+--     pragma Preelaborate;
 
    type Field_Declaration_T is abstract tagged private;
    -- can not be not null, because we need to store them in arrays :-/

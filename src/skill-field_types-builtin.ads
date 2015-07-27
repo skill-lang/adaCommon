@@ -13,7 +13,7 @@ with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 
 package Skill.Field_Types.Builtin is
-   pragma Preelaborate;
+--     pragma Preelaborate;
 
    generic
       type T is private;

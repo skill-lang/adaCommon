@@ -12,7 +12,7 @@ with Skill.Types.Pools;
 -- the trick of this package is to instantiate hash codes as Skill.hashes.hash
 -- independent of the type! :)
 package Skill.Hashes is
-   pragma Preelaborate;
+--     pragma Preelaborate;
 
    function Hash
      (Element : Skill.Types.String_Access) return Ada.Containers.Hash_Type is

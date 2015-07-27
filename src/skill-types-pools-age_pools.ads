@@ -21,6 +21,13 @@ package Skill.Types.Pools.Age_Pools is
       type Pool_T is new Base_Pool_T with private;
       type Pool is access Pool_T;
 
+      -- API methods
+      function Get (This : access Pool_T; ID : Skill_ID_T) return Age.age;
+
+      ----------------------
+      -- internal methods --
+      ----------------------
+
       -- constructor invoked by new_pool
       function Make (Type_Id : Natural) return Pools.Pool;
       -- destructor invoked by close
@@ -31,6 +38,11 @@ package Skill.Types.Pools.Age_Pools is
          ID   : Skill_ID_T) return Boolean;
 
       overriding function Static_Size (This : access Pool_T) return Natural;
+
+      -- applies F for each element in this
+--        procedure Foreach
+--          (This : access Pool_T;
+--           F    : access procedure (I : Age));
 
    private
 

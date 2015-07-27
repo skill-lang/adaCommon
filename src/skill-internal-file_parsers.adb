@@ -59,9 +59,9 @@ package body Skill.Internal.File_Parsers is
       Types_By_Name : Files.Type_Map    := Files.P_Type_Map.Empty_Map;
 
       -- parser state
-      package A1 is new Ada.Containers.Doubly_Linked_Lists(Types.Pools.Pool);
+      package A1 is new Types.Vectors(Natural, Types.Pools.Pool);
       -- deferred pool resize requests
-      Resize_Queue : A1.List;
+      Resize_Queue : A1.Vector := A1.Empty_Vector;
 
       -- entries of local fields
       type LF_Entry is record
@@ -294,8 +294,8 @@ package body Skill.Internal.File_Parsers is
 
          -- seenTypes.clear();
          Seen_Types := A3.Empty_Set;
-         -- resizeQueue.clear();
-         Resize_Queue := A1.Empty_List;
+
+         Resize_Queue.Clear;
 
          Local_Fields.Clear;
 
@@ -312,26 +312,25 @@ package body Skill.Internal.File_Parsers is
             package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
             Resize_Stack : A4.Vector := A4.Empty_Vector;
 
-            use type A1.Cursor;
-            I : A1.Cursor := Resize_Queue.First;
+            procedure Resize (E : Skill.Types.Pools.Pool) is
+               function Convert is new Ada.Unchecked_Conversion
+                 (Source => Types.Pools.Pool,
+                  Target => Types.Pools.Pool_Dyn);
+               function Convert is new Ada.Unchecked_Conversion
+                 (Source => Types.Pools.Pool_Dyn,
+                  Target => Types.Pools.Base_Pool);
+               P : Skill.Types.Pools.Pool_Dyn := Convert (E);
+            begin
+               if P.all in Skill.Types.Pools.Base_Pool_T'Class then
+                  Convert (P).Resize_Data;
+               end if;
+               Resize_Stack.Append (E);
+            end Resize;
          begin
+
             -- resize base pools and push entries to stack
-            while I /= Resize_Queue.Last loop
-               declare
-                  function Convert is new Ada.Unchecked_Conversion
-                    (Source => Types.Pools.Pool,
-                     Target => Types.Pools.Pool_Dyn);
-                  function Convert is new Ada.Unchecked_Conversion
-                    (Source => Types.Pools.Pool_Dyn,
-                     Target => Types.Pools.Base_Pool);
-                  P : Skill.Types.Pools.Pool_Dyn := Convert(A1.Element(I));
-               begin
-                  if P.all in Skill.Types.Pools.Base_Pool_T'Class then
-                     Convert(P).Resize_Data;
-                  end if;
-                  Resize_Stack.Append(A1.Element(I));
-               end;
-            end loop;
+            -- TODO Resize_Stack.Hint_Size (Resize_Queue.Length);
+            Resize_Queue.Foreach(Resize'Access);
 
             -- create instances from stack
             while not Resize_Stack.Is_Empty loop
