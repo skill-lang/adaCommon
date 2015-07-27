@@ -43,7 +43,7 @@ package body Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool is (This.Super);
 
-   function Size (This : access Pool_T) return Natural is
+   function Size (This : access Pool_T'Class) return Natural is
       Size : Natural;
 
       type P is access all Pool_T;

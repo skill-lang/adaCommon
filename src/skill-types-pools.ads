@@ -71,7 +71,7 @@ package Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool;
 
-   function Size (This : access Pool_T) return Natural;
+   function Size (This : access Pool_T'Class) return Natural;
 
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes
