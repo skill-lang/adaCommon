@@ -18,7 +18,9 @@ package Skill.Files is
    type Read_Mode is (Create, Read);
    type Write_Mode is (Write, Append);
 
-   package P_Type_Vector is new Skill.Types.Vectors (Natural, Skill.Types.Pools.Pool);
+   package P_Type_Vector is new Skill.Types.Vectors
+     (Natural,
+      Skill.Types.Pools.Pool);
    subtype Type_Vector is P_Type_Vector.Vector;
 
    use type Skill.Types.Pools.Pool;
@@ -27,7 +29,7 @@ package Skill.Files is
       Element_Type    => Skill.Types.Pools.Pool,
       Hash            => Skill.Hashes.Hash,
       Equivalent_Keys => Skill.Equals.Equals);
-   type Type_Map is not null access P_Type_Map.Map;
+   subtype Type_Map is P_Type_Map.Map;
 
    type File_T is abstract tagged limited record
       -- path used for flush/close operations

@@ -6,7 +6,6 @@
 
 with Interfaces;
 
-
 package Skill.Types is
    pragma Preelaborate;
 
@@ -19,13 +18,12 @@ package Skill.Types is
    subtype Uv64 is Interfaces.Unsigned_64 range Interfaces.Unsigned_64'Range;
 
    -- TF: we can not restrict range, because that would destroy NaNs, right?
-   subtype F32 Is Interfaces.IEEE_Float_32;
+   subtype F32 is Interfaces.IEEE_Float_32;
    subtype F64 is Interfaces.IEEE_Float_64;
 
    type String_Access is access String;
    type String_Access_Array is
      array (Integer range <>) of not null String_Access;
-
 
    -- declare skill ids type for later configuration
    subtype Skill_ID_T is Integer;

@@ -21,13 +21,12 @@ with Ada.Unchecked_Conversion;
 -- around several restrictions of the (generic) ada type system.
 package body Skill.Types.Pools is
 
-
    function Dynamic (This : access Pool_T) return Pool_Dyn is
       type P is access all Pool_T;
       function Convert is new Ada.Unchecked_Conversion (P, Pool_Dyn);
    begin
-      return Convert (P(This));
-   end;
+      return Convert (P (This));
+   end Dynamic;
 
    -- pool properties
 
@@ -71,8 +70,7 @@ package body Skill.Types.Pools is
      (This.Blocks);
 
    function Data_Fields
-     (This : access Pool_T)
-      return Skill.Field_Declarations.Field_Vector is
+     (This : access Pool_T) return Skill.Field_Declarations.Field_Vector is
      (This.Data_Fields_F);
 
    -- internal use only

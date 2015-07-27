@@ -19,7 +19,9 @@ package Skill.Field_Declarations is
    -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
 
-   package Field_Vector_P is new Skill.Types.Vectors (Positive, Field_Declaration);
+   package Field_Vector_P is new Skill.Types.Vectors
+     (Positive,
+      Field_Declaration);
    subtype Field_Vector is Field_Vector_P.Vector;
 
    type Lazy_Field_T is new Field_Declaration_T with private;
@@ -60,12 +62,10 @@ package Skill.Field_Declarations is
       T     : Field_Types.Field_Type;
       Name  : Skill.Types.String_Access) return Lazy_Field;
 
-
-    -- internal use only
-    -- Read data from a mapped input stream and set it accordingly. This is invoked at the very end of state
-    -- construction and done massively in parallel.
+   -- internal use only
+   -- Read data from a mapped input stream and set it accordingly. This is invoked at the very end of state
+   -- construction and done massively in parallel.
 --      procedure Read (This : access Field_Declaration_T; Input : Sub_Stream; Last : Chunk) is abstract;
-
 
    procedure Free (This : access Field_Declaration_T) is abstract;
    procedure Free (This : access Lazy_Field_T);
@@ -79,7 +79,7 @@ private
       Input : Skill.Streams.Reader.Sub_Stream;
    end record;
    type Chunk_Entry is access Chunk_Entry_T;
-   package Chunk_List_P is new Skill.Types.Vectors(Natural, Chunk_Entry);
+   package Chunk_List_P is new Skill.Types.Vectors (Natural, Chunk_Entry);
 
    type Field_Declaration_T is abstract tagged record
       Data_Chunks : Chunk_List_P.Vector := Chunk_List_P.Empty_Vector;

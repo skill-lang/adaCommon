@@ -151,13 +151,22 @@ package body Age.Api is
       begin
          This.Dynamic.Free;
       end Delete;
+
+      type Ft is access all File_T;
+
+      procedure Delete is new Ada.Unchecked_Deallocation(File_T, FT);
+
+      Self : FT := Ft(This);
    begin
       This.Flush;
 
       Delete (This.Path);
-      --        This.Strings.Free;
+      -- TODO       This.Strings.Free;
       This.Types.Foreach (Delete'Access);
-      null;
+      This.Types.Free;
+
+
+      Delete(Self);
    end Close;
 
    function Ages (This : access File_T) return Age_Pool is

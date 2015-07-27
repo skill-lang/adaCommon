@@ -17,11 +17,13 @@ package body Skill.String_Pools is
 
    function Create (Input : Skill.Streams.Reader.Input_Stream) return Pool is
       use type Skill.Streams.Reader.Input_Stream;
-      This          : Pool := new Pool_T'(Input            => Input,
-                                          New_Strings      => A1.Empty_Set,
-                                          String_Positions => A2.Empty_Vector,
-                                          Id_Map           => A3.Empty_Vector,
-                                          Mutex            => <>);
+      This : Pool :=
+        new Pool_T'
+          (Input            => Input,
+           New_Strings      => A1.Empty_Set,
+           String_Positions => A2.Empty_Vector,
+           Id_Map           => A3.Empty_Vector,
+           Mutex            => <>);
       Null_Position : Position;
 
       use Interfaces;
@@ -60,7 +62,7 @@ package body Skill.String_Pools is
 
    function Get
      (This  : access Pool_T;
-      Index : Types.V64) return Skill.Types.String_Access
+      Index : Types.v64) return Skill.Types.String_Access
    is
       Result : Skill.Types.String_Access;
 
@@ -68,9 +70,9 @@ package body Skill.String_Pools is
 
       -- should be synchronized now
       procedure Read_Result is
-         Off   : Position := This.String_Positions.Element (Natural(Index));
+         Off   : Position := This.String_Positions.Element (Natural (Index));
          Input : Skill.Streams.Reader.Input_Stream := This.Input;
-         Last  : Types.v64                           := Input.Position;
+         Last  : Types.v64                         := Input.Position;
 
          function Convert is new Ada.Unchecked_Conversion
            (Types.i8,
@@ -85,7 +87,7 @@ package body Skill.String_Pools is
          end loop;
 
          Input.Jump (Last);
-         This.Id_Map.Replace_Element (Natural(Index), Result);
+         This.Id_Map.Replace_Element (Natural (Index), Result);
       end Read_Result;
 
    begin
@@ -94,7 +96,7 @@ package body Skill.String_Pools is
          return null;
       end if;
 
-      Result := This.Id_Map.Element (Natural(Index));
+      Result := This.Id_Map.Element (Natural (Index));
       if null /= Result then
          return Result;
       end if;
@@ -114,8 +116,8 @@ package body Skill.String_Pools is
       when E : others =>
          raise Skill.Errors.Skill_Error
            with InvalidPoolIndexException
-             (Natural(Index),
-              Integer(This.String_Positions.Length),
+             (Natural (Index),
+              Integer (This.String_Positions.Length),
               "string",
               E);
    end Get;

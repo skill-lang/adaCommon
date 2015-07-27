@@ -56,7 +56,7 @@ package body Skill.Internal.File_Parsers is
       -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
       Type_Vector   : Files.Type_Vector := Files.P_Type_Vector.Empty_Vector;
-      Types_By_Name : Files.Type_Map    := new Files.P_Type_Map.Map;
+      Types_By_Name : Files.Type_Map    := Files.P_Type_Map.Empty_Map;
 
       -- parser state
       package A1 is new Ada.Containers.Doubly_Linked_Lists(Types.Pools.Pool);
@@ -352,6 +352,8 @@ package body Skill.Internal.File_Parsers is
                   end loop Insert_Loop;
                end;
             end loop;
+
+            Resize_Stack.Free;
          end;
 
 

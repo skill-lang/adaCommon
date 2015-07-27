@@ -35,7 +35,7 @@ package Skill.String_Pools is
 
    function Get
      (This  : access Pool_T;
-      Index : Types.V64) return Skill.Types.String_Access;
+      Index : Types.v64) return Skill.Types.String_Access;
 
    -- internal use only
    function InvalidPoolIndexException

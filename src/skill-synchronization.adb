@@ -6,18 +6,18 @@
 
 package body Skill.Synchronization is
 
-  protected body Mutex is
+   protected body Mutex is
 
-    entry Lock when not Locked is
-    begin
-       Locked := True;
-    end Lock;
+      entry Lock when not Locked is
+      begin
+         Locked := True;
+      end Lock;
 
-    procedure Unlock is
-    begin
-       Locked := False;
-    end Unlock;
+      procedure Unlock is
+      begin
+         Locked := False;
+      end Unlock;
 
-  end Mutex;
+   end Mutex;
 
 end Skill.Synchronization;
