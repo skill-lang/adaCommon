@@ -73,14 +73,14 @@ package Skill.Types.Vectors is
       Index   : Index_Type;
       Element : Element_Type);
 
-   pragma Inline
-     (Foreach,
-      Append,
-      Append_Unsafe,
-      Pop,
-      Element,
-      Ensure_Index,
-      Replace_Element);
+--     pragma Inline
+--       (Foreach,
+--        Append,
+--        Append_Unsafe,
+--        Pop,
+--        Element,
+--        Ensure_Index,
+--        Replace_Element);
 
 private
    subtype Index_Base is Index_Type'Base;

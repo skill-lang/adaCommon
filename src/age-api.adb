@@ -54,6 +54,9 @@ package body Age.Api is
         (Skill.Types.Pools.Pool,
          Age_Pool);
    begin
+      -- read fields
+
+      -- make state
       return new File_T'
           (Path          => Path,
            Mode          => Mode,

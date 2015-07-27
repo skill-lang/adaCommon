@@ -54,7 +54,7 @@ package Skill.Streams.Reader is
 
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
 
-   pragma Inline (I8, I16, I32, I64, V64);
+--     pragma Inline (I8, I16, I32, I64, V64);
 
    function Parse_Exception
      (This          :    access Input_Stream_T;

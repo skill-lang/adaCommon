@@ -35,6 +35,8 @@ procedure Tester is
 
       Print (Sf.Ages.Get (1).Age);
 
+      Print (Sf.Ages.Get (2).Age);
+
       Sf.Close;
    end Print;
 
