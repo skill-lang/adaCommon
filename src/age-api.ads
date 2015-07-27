@@ -31,9 +31,12 @@ package Age.Api is
    -- work aroun GNAT bug
    package Age_Pool_P renames Skill.Types.Pools.Age_Pools.Age_P;
    subtype Age_Pool is Age_Pool_P.Pool;
+   function Ages (This : access File_T) return Age_Pool;
 
 private
 
-   type File_T is new Skill.Files.File_T with null record;
+   type File_T is new Skill.Files.File_T with record
+      Ages : Age_Pool;
+   end record;
 
 end Age.Api;

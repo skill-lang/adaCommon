@@ -50,13 +50,19 @@ package body Age.Api is
       Types         : Skill.Files.Type_Vector;
       Types_By_Name : Skill.Files.Type_Map) return File
    is
+      function Convert is new Ada.Unchecked_Conversion
+        (Skill.Types.Pools.Pool,
+         Age_Pool);
    begin
       return new File_T'
           (Path          => Path,
            Mode          => Mode,
            Strings       => Strings,
            Types         => Types,
-           Types_By_Name => Types_By_Name);
+           Types_By_Name => Types_By_Name,
+           Ages          =>
+             Convert
+               (Types_By_Name.Element (Internal_Skill_Names.Age_Skill_Name)));
    end Make_State;
 
    -- type instantiation functions
@@ -153,5 +159,10 @@ package body Age.Api is
       This.Types.Foreach (Delete'Access);
       null;
    end Close;
+
+   function Ages (This : access File_T) return Age_Pool is
+   begin
+      return This.Ages;
+   end Ages;
 
 end Age.Api;
