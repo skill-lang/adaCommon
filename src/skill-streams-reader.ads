@@ -31,6 +31,9 @@ package Skill.Streams.Reader is
       First : Types.v64;
       Last  : Types.v64) return Sub_Stream;
 
+   -- destroy a sub map
+   procedure Free (This : access Sub_Stream_T);
+
    function Path
      (This : access Input_Stream_T) return Skill.Types.String_Access;
 

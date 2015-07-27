@@ -4,12 +4,14 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden, Dennis Przytarski                  --
 --                                                                            --
 
+with Ada.Characters.Latin_1;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
+
 with Interfaces;
 
 with Skill.Types;
 with Interfaces.C.Strings;
-with Ada.Characters.Latin_1;
 
 package body Skill.Streams.Reader is
 
@@ -44,6 +46,15 @@ package body Skill.Streams.Reader is
            Position => 0,
            Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
    end Map;
+
+   procedure Free (This : access Sub_Stream_T)
+   is
+      type S is access all Sub_Stream_T;
+      procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
+      D : S := S(This);
+   begin
+      Delete(D);
+      end;
 
    function Path
      (This : access Input_Stream_T) return Skill.Types.String_Access

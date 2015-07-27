@@ -410,7 +410,7 @@ package body Skill.Internal.File_Parsers is
                               P : Types.Pools.Pool;
                            begin
                               F.Add_Chunk
-                                (new Internal.Parts.Bulck_Chunk'
+                                (new Internal.Parts.Bulk_Chunk'
                                    (Offset,
                                     End_Offset,
                                     Types.V64 (E.Pool.Size)));

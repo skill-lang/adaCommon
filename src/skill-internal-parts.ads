@@ -28,11 +28,16 @@ package Skill.Internal.Parts is
    end record;
    type Chunk is access Chunk_T'Class;
 
+   procedure Free (This : access Chunk_T) is abstract;
+
    type Simple_Chunk is new Chunk_T with record
       BPO : Skill.Types.v64;
    end record;
 
-   type Bulck_Chunk is new Chunk_T with null record;
+   type Bulk_Chunk is new Chunk_T with null record;
 
    package Chunks is new Ada.Containers.Vectors (Natural, Chunk);
+
+   procedure Free (This : access Simple_Chunk);
+   procedure Free (This : access Bulk_Chunk);
 end Skill.Internal.Parts;

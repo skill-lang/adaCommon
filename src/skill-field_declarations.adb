@@ -9,6 +9,7 @@ with Skill.Internal.Parts;
 with Interfaces;
 with Skill.Types.Pools;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 package body Skill.Field_Declarations is
 
@@ -63,11 +64,25 @@ package body Skill.Field_Declarations is
    is
    begin
       return new Lazy_Field_T'
-          (Data_Chunks => Chunk_List_P.Empty_List,
+          (Data_Chunks => Chunk_List_P.Empty_Vector,
            T           => T,
            Name        => Name,
            Index       => ID,
            Owner       => Owner);
    end Make_Lazy_Field;
+
+   procedure Free (This : access Lazy_Field_T) is
+      procedure Delete (This : Chunk_Entry) is
+         procedure Free is new Ada.Unchecked_Deallocation (Chunk_Entry_T, Chunk_Entry);
+         D : Chunk_Entry := This;
+      begin
+         This.C.Free;
+         This.Input.Free;
+            Free(D);
+      end Delete;
+   begin
+      This.Data_Chunks.Foreach(Delete'Access);
+      This.Data_Chunks.Free;
+   end;
 
 end Skill.Field_Declarations;

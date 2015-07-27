@@ -66,6 +66,11 @@ package Skill.Field_Declarations is
     -- construction and done massively in parallel.
 --      procedure Read (This : access Field_Declaration_T; Input : Sub_Stream; Last : Chunk) is abstract;
 
+
+   procedure Free (This : access Field_Declaration_T) is abstract;
+   procedure Free (This : access Lazy_Field_T);
+   procedure Free (This : access Auto_Field_T) is null;
+
 private
 
    --Data chunk information, as it is required for parsing of field data
@@ -74,11 +79,10 @@ private
       Input : Skill.Streams.Reader.Sub_Stream;
    end record;
    type Chunk_Entry is access Chunk_Entry_T;
-   package Chunk_List_P is new Ada.Containers.Doubly_Linked_Lists
-     (Chunk_Entry);
+   package Chunk_List_P is new Skill.Types.Vectors(Natural, Chunk_Entry);
 
-   type Field_Declaration_T is tagged record
-      Data_Chunks : Chunk_List_P.List := Chunk_List_P.Empty_List;
+   type Field_Declaration_T is abstract tagged record
+      Data_Chunks : Chunk_List_P.Vector := Chunk_List_P.Empty_Vector;
       T           : Skill.Field_Types.Field_Type;
       Name        : Types.String_Access;
       Index       : Natural;

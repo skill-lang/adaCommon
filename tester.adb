@@ -18,7 +18,9 @@ procedure Tester is
 
       S : Types.String_Access := Sf.Strings.Get(1);
    begin
-         Ada.Text_IO.Put_Line (S.all);
+      Ada.Text_IO.Put_Line (S.all);
+
+      Sf.Close;
    end Print;
 
 begin
