@@ -155,7 +155,7 @@ package body Skill.Streams.Reader is
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
       pragma Warnings (Off);
 
-      subtype Count_Type is Natural'Base range 0 .. 8;
+      subtype Count_Type is Natural range 0 .. 8;
       use type Interfaces.Unsigned_64;
       function Convert is new Ada.Unchecked_Conversion
         (Source => Types.i8,

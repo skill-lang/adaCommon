@@ -1,7 +1,7 @@
 --  ___ _  ___ _ _                                                            --
--- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     !! remove after integration into generator !!       --
--- |___/_|\_\_|_|____|    by: Timm Felden                                     --
+-- / __| |/ (_) | |       Your SKilL Scala Binding                            --
+-- \__ \ ' <| | | |__     <<debug>>                                           --
+-- |___/_|\_\_|_|____|    by: <<some developer>>                              --
 --                                                                            --
 
 with Skill.Files;
@@ -28,7 +28,8 @@ package Age.Api is
    procedure Close (This : access File_T);
 
    -- user type pools
-   -- work aroun GNAT bug
+   -- work around GNAT bug
+
    package Age_Pool_P renames Skill.Types.Pools.Age_Pools.Age_P;
    subtype Age_Pool is Age_Pool_P.Pool;
    function Ages (This : access File_T) return Age_Pool;

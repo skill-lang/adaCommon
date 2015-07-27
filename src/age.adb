@@ -1,11 +1,10 @@
 --  ___ _  ___ _ _                                                            --
--- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     !! remove after integration into generator !!       --
--- |___/_|\_\_|_|____|    by: Timm Felden                                     --
+-- / __| |/ (_) | |       Your SKilL Scala Binding                            --
+-- \__ \ ' <| | | |__     <<debug>>                                           --
+-- |___/_|\_\_|_|____|    by: <<some developer>>                              --
 --                                                                            --
 
 with Ada.Unchecked_Conversion;
-
 
 -- types generated out of the specification
 package body Age is
@@ -17,5 +16,19 @@ package body Age is
    begin
       return Convert (T (This));
    end To_Age;
+
+   -- Age fields
+
+   function Get_Age (This : access Age_T'Class) return Skill.Types.V64
+   is
+   begin
+      return This.Age;
+   end Get_Age;
+
+   procedure Set_Age (This : access Age_T'Class; V : Skill.Types.V64)
+   is
+   begin
+      This.Age := V;
+   end Set_Age;
 
 end Age;

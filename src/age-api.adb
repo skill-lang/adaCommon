@@ -1,29 +1,31 @@
 --  ___ _  ___ _ _                                                            --
--- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     !! remove after integration into generator !!       --
--- |___/_|\_\_|_|____|    by: Timm Felden                                     --
+-- / __| |/ (_) | |       Your SKilL Scala Binding                            --
+-- \__ \ ' <| | | |__     <<debug>>                                           --
+-- |___/_|\_\_|_|____|    by: <<some developer>>                              --
 --                                                                            --
 
-with Skill.Types.Pools;
-with Skill.Files;
-with Skill.Streams;
+with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
+
 with Skill.Errors;
-with Skill.Internal.File_Parsers;
-with Skill.String_Pools;
 with Skill.Equals;
 with Skill.Field_Types;
+with Skill.Files;
+with Skill.Internal.File_Parsers;
 with Skill.Internal.Parts;
-with Ada.Unchecked_Conversion;
+with Skill.Streams;
+with Skill.String_Pools;
 with Skill.Types;
+with Skill.Types.Pools;
+
 with Age.Internal_Skill_Names;
-with Ada.Unchecked_Deallocation;
 
 -- parametrization of file, read/write and pool code
 package body Age.Api is
 
-   use Skill;
    use type Skill.Types.Pools.Pool;
 
+   -- TODO we can make this faster using a hash map (for large type systems)
    function New_Pool
      (Type_ID : Natural;
       Name    : Skill.Types.String_Access;
@@ -55,6 +57,7 @@ package body Age.Api is
          Age_Pool);
    begin
       -- read fields
+      -- TODO implementation
 
       -- make state
       return new File_T'
