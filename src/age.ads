@@ -17,6 +17,7 @@ package Age is
 
    -- Age type conversions
    function To_Age (This : access Skill.Types.Skill_Object) return Age;
+   pragma Inline (To_Age);
 
    -- Age fields
 

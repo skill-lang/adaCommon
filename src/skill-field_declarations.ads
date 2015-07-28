@@ -15,7 +15,11 @@ with Skill.Types;
 package Skill.Field_Declarations is
 --     pragma Preelaborate;
 
-   type Chunk_Entry_T is private;
+   --Data chunk information, as it is required for parsing of field data
+   type Chunk_Entry_T is record
+      C     : Skill.Internal.Parts.Chunk;
+      Input : Skill.Streams.Reader.Sub_Stream;
+   end record;
    type Chunk_Entry is access Chunk_Entry_T;
    package Chunk_List_P is new Skill.Types.Vectors (Natural, Chunk_Entry);
 
@@ -50,6 +54,10 @@ package Skill.Field_Declarations is
    function Owner
      (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
 
+   procedure Read (This : access Field_Declaration_T; CE : Chunk_Entry) is abstract;
+   procedure Read (This : access Lazy_Field_T; CE : Chunk_Entry) is null;
+   procedure Read (This : access Auto_Field_T; CE : Chunk_Entry) is null;
+
    -- internal use only
    function Field_ID (This : access Field_Declaration_T'Class) return Natural;
 
@@ -82,12 +90,6 @@ package Skill.Field_Declarations is
    procedure Free (This : access Auto_Field_T) is null;
 
 private
-
-   --Data chunk information, as it is required for parsing of field data
-   type Chunk_Entry_T is record
-      C     : Skill.Internal.Parts.Chunk;
-      Input : Skill.Streams.Reader.Sub_Stream;
-   end record;
 
    type Lazy_Field_T is new Field_Declaration_T with record
       null;

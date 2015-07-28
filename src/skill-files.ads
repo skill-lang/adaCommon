@@ -52,4 +52,7 @@ package Skill.Files is
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool;
 
+   -- internal use only
+   procedure Finalize_Pools (This : access File_T'Class);
+
 end Skill.Files;

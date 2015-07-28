@@ -7,6 +7,7 @@
 with Skill.Files;
 with Skill.Field_Declarations;
 with Skill.Field_Types;
+with Skill.Types.Pools.Age_Pools;
 
 package Age.Known_Field_Age_Age is
 
@@ -20,8 +21,15 @@ package Age.Known_Field_Age_Age is
       Owner : Skill.Field_Declarations.Owner_T)
       return Skill.Field_Declarations.Field_Declaration;
 
-   overriding
-   procedure Free (This : access Known_Field_Age_Age_T);
+   overriding procedure Free (This : access Known_Field_Age_Age_T);
+
+   function Owner_Dyn
+     (This : access Known_Field_Age_Age_T)
+      return Skill.Types.Pools.Age_Pools.Age_P.Pool;
+
+   overriding procedure Read
+     (This : access Known_Field_Age_Age_T;
+      CE   : Skill.Field_Declarations.Chunk_Entry);
 
 private
 

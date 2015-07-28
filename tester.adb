@@ -46,11 +46,12 @@ procedure Tester is
       Sf.Close;
    end Print;
 
-   T : array(1 .. 100) of Tasks.Run (Print'Access);
+--     T : array(1 .. 100) of Tasks.Run (Print'Access);
 begin
-   for I in T'Range loop
-      T(I).Start;
-   end loop;
+   Print;
+--     for I in T'Range loop
+--        T(I).Start;
+--     end loop;
 exception when E : others =>
       Skill.Errors.Print_Stacktrace (E);
 end Tester;

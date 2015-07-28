@@ -121,15 +121,10 @@ package body Skill.Types.Pools.Age_Pools is
          T    : Field_Types.Field_Type;
          Name : String_Access)
          return Skill.Field_Declarations.Field_Declaration
-
       is
-         function Convert is new Ada.Unchecked_Conversion
-           (Field_Declarations.Lazy_Field,
-            Field_Declarations.Field_Declaration);
          type P is access all Pool_T;
          function Convert is new Ada.Unchecked_Conversion
-           (P,
-            Field_Declarations.Owner_T);
+           (P, Field_Declarations.Owner_T);
 
          F : Field_Declarations.Field_Declaration;
 
@@ -142,7 +137,7 @@ package body Skill.Types.Pools.Age_Pools is
          then
             F := Age.Known_Field_Age_Age.Make (ID, T, Convert (P (This)));
          else
-            return Super (This).Add_Field (ID, T, Name);
+         return Super (This).Add_Field (ID, T, Name);
          end if;
 
          -- TODO restrictions

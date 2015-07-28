@@ -482,7 +482,6 @@ package body Skill.Internal.File_Parsers is
          Field_Data_Queue.Free;
          Resize_Queue.Free;
       end;
-
    begin
 
       while not Input.Eof loop

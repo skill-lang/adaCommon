@@ -120,6 +120,11 @@ package Skill.Types.Pools is
    -- internal use only
    procedure Resize_Data (This : access Base_Pool_T);
 
+   -- internal use only
+   procedure Set_Owner
+     (This  : access Base_Pool_T'Class;
+      Owner : access Skill.Files.File_T'Class);
+
 private
 
    type Pool_T is abstract new Field_Types.Field_Type_Base with record

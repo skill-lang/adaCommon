@@ -33,6 +33,9 @@ package Skill.Internal.Parts is
    type Simple_Chunk is new Chunk_T with record
       BPO : Skill.Types.v64;
    end record;
+   type Simple_Chunk_X is not null access Simple_Chunk;
+
+   function To_Simple (This : access Chunk_T'Class) return Simple_Chunk_X;
 
    type Bulk_Chunk is new Chunk_T with null record;
 

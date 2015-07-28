@@ -55,12 +55,9 @@ package body Age.Api is
       function Convert is new Ada.Unchecked_Conversion
         (Skill.Types.Pools.Pool,
          Age_Pool);
-   begin
-      -- read fields
-      -- TODO implementation
 
-      -- make state
-      return new File_T'
+      Rval : File :=
+        new File_T'
           (Path          => Path,
            Mode          => Mode,
            Strings       => Strings,
@@ -69,6 +66,12 @@ package body Age.Api is
            Ages          =>
              Convert
                (Types_By_Name.Element (Internal_Skill_Names.Age_Skill_Name)));
+   begin
+      -- read fields
+      Rval.Finalize_Pools;
+
+      -- make state
+      return Rval;
    end Make_State;
 
    -- type instantiation functions

@@ -109,14 +109,14 @@ package body Skill.Types.Pools is
      (This : access Base_Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration is
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+   is
 
       type P is access all Pool_T;
-      function Convert is new Ada.Unchecked_Conversion
-        (P, Pool);
+      function Convert is new Ada.Unchecked_Conversion (P, Pool);
    begin
-      return Convert(P(This)).Add_Field(ID, T, Name);
-   end;
+      return Convert (P (This)).Add_Field (ID, T, Name);
+   end Add_Field;
 
    -- base pool properties
 
@@ -137,6 +137,17 @@ package body Skill.Types.Pools is
       end loop;
       This.Data := D;
    end Resize_Data;
+
+   procedure Set_Owner
+     (This  : access Base_Pool_T'Class;
+      Owner : access Skill.Files.File_T'Class)
+   is
+
+      type P is access all Skill.Files.File_T'Class;
+      function Convert is new Ada.Unchecked_Conversion (P, Owner_T);
+   begin
+      This.Owner := Convert (P (Owner));
+   end Set_Owner;
 
    -- sub pool properties
 
