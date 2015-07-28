@@ -30,18 +30,18 @@ procedure Tester is
    procedure Print is
    --        Sf : Age.Api.File := Age.Api.Open ("testFiles/ageUnrestricted.sf");
 --        Sf : Age.Api.File := Age.Api.Open ("testFiles/age.sf");
-      Sf : Age.Api.File := Age.Api.Open ("testFiles/emptyBlocks.sf");
+      Sf : Age.Api.File := Age.Api.Open ("testFiles/date.sf");
 
---        S : Types.String_Access := Sf.Strings.Get(1);
+      S : Types.String_Access := Sf.Strings.Get(1);
    begin
       M.Lock;
---        Ada.Text_IO.Put_Line (S.all);
+      Ada.Text_IO.Put_Line (S.all);
 
       Print (Sf.Ages.Size);
 
---        Print (Sf.Ages.Get (1).Get_Age);
+      Print (Sf.Ages.Get (1).Get_Age);
 
---        Print (Sf.Ages.Get (2).Get_Age);
+      Print (Sf.Ages.Get (2).Get_Age);
       M.Unlock;
 
       Sf.Close;

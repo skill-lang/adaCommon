@@ -17,6 +17,7 @@ with Skill.Streams;
 with Skill.String_Pools;
 with Skill.Types;
 with Skill.Types.Pools;
+with Skill.Types.Pools.Unknown_Base;
 
 with Age.Internal_Skill_Names;
 
@@ -36,9 +37,9 @@ package body Age.Api is
          return Age_Pool_P.Make (Type_ID);
       end if;
 
---        If null = Super then
---              return Unknown_Base (Type_ID, Name);
---        end if;
+      if null = Super then
+         return Skill.Types.Pools.Unknown_Base.Make (Type_ID, Name);
+      end if;
 --
 --              return Super.Make_Sub_Pool (Type_ID, Name);
       return null;
