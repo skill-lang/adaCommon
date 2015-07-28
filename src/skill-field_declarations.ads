@@ -15,7 +15,19 @@ with Skill.Types;
 package Skill.Field_Declarations is
 --     pragma Preelaborate;
 
-   type Field_Declaration_T is abstract tagged private;
+   type Chunk_Entry_T is private;
+   type Chunk_Entry is access Chunk_Entry_T;
+   package Chunk_List_P is new Skill.Types.Vectors (Natural, Chunk_Entry);
+
+   type Owner_T is not null access Skill.Types.Pools.Pool_T;
+
+   type Field_Declaration_T is abstract tagged record
+      Data_Chunks : Chunk_List_P.Vector := Chunk_List_P.Empty_Vector;
+      T           : Skill.Field_Types.Field_Type;
+      Name        : Types.String_Access;
+      Index       : Natural;
+      Owner       : Owner_T;
+   end record;
    -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
 
@@ -30,9 +42,7 @@ package Skill.Field_Declarations is
    type Auto_Field_T is abstract new Field_Declaration_T with private;
    type Auto_Field is access Auto_Field_T'Class;
 
-   type Chunk_Entry is private;
-
-   type Owner_T is not null access Skill.Types.Pools.Pool_T;
+   procedure Delete_Chunk (This : Chunk_Entry);
 
    function Name
      (This : access Field_Declaration_T'Class) return Types.String_Access;
@@ -77,16 +87,6 @@ private
    type Chunk_Entry_T is record
       C     : Skill.Internal.Parts.Chunk;
       Input : Skill.Streams.Reader.Sub_Stream;
-   end record;
-   type Chunk_Entry is access Chunk_Entry_T;
-   package Chunk_List_P is new Skill.Types.Vectors (Natural, Chunk_Entry);
-
-   type Field_Declaration_T is abstract tagged record
-      Data_Chunks : Chunk_List_P.Vector := Chunk_List_P.Empty_Vector;
-      T           : Skill.Field_Types.Field_Type;
-      Name        : Types.String_Access;
-      Index       : Natural;
-      Owner       : Owner_T;
    end record;
 
    type Lazy_Field_T is new Field_Declaration_T with record

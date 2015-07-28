@@ -1,7 +1,7 @@
 --  ___ _  ___ _ _                                                            --
--- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     !! remove after integration into generator !!       --
--- |___/_|\_\_|_|____|    by: Timm Felden                                     --
+-- / __| |/ (_) | |       Your SKilL Scala Binding                            --
+-- \__ \ ' <| | | |__     <<debug>>                                           --
+-- |___/_|\_\_|_|____|    by: <<some developer>>                              --
 --                                                                            --
 
 with Skill.Files;
@@ -22,7 +22,7 @@ package Skill.Types.Pools.Age_Pools is
       type Pool is access Pool_T;
 
       -- API methods
-      function Get (This : access Pool_T; ID : Skill_ID_T) return Age.age;
+      function Get (This : access Pool_T; ID : Skill_ID_T) return Age.Age;
 
       ----------------------
       -- internal methods --
@@ -32,6 +32,13 @@ package Skill.Types.Pools.Age_Pools is
       function Make (Type_Id : Natural) return Pools.Pool;
       -- destructor invoked by close
       procedure Free (This : access Pool_T);
+
+      overriding
+      function Add_Field
+        (This : access Pool_T;
+         ID   : Natural;
+         T    : Field_Types.Field_Type;
+         Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
       overriding function Insert_Instance
         (This : access Pool_T;

@@ -65,7 +65,7 @@ package body Skill.Internal.File_Parsers is
 
       -- entries of local fields
       type LF_Entry is record
-         Pool : Types.Pools.Pool;
+         Pool : Types.Pools.Pool_Dyn;
          Count : Types.V64;
       end record;
       package A2 is new Types.Vectors(Natural, LF_Entry);
@@ -75,7 +75,7 @@ package body Skill.Internal.File_Parsers is
 
       -- field data updates: pool x fieldID
       type FD_Entry is record
-         Pool : Types.Pools.Pool;
+         Pool : Types.Pools.Pool_Dyn;
          ID   : Positive;
       end record;
       package A4 is new Types.Vectors (Natural, FD_Entry);
@@ -210,7 +210,7 @@ package body Skill.Internal.File_Parsers is
                -- store block info and prepare resize
                Definition.Blocks.Append (Block);
                Resize_Queue.Append (Definition);
-               Local_Fields.Append(LF_Entry'(Definition, Input.V64));
+               Local_Fields.Append(LF_Entry'(Definition.Dynamic, Input.V64));
             end;
          exception
             when E : Constraint_Error =>
@@ -480,6 +480,7 @@ package body Skill.Internal.File_Parsers is
       begin
          Local_Fields.Free;
          Field_Data_Queue.Free;
+         Resize_Queue.Free;
       end;
 
    begin

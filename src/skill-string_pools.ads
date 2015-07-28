@@ -24,6 +24,7 @@ package Skill.String_Pools is
 
    -- internal use only
    function Create (Input : Skill.Streams.Reader.Input_Stream) return Pool;
+   procedure Free (This : access Pool_T);
 
    function Size (This : access Pool_T) return Integer;
 
@@ -70,7 +71,7 @@ private
    end record;
 
    package A2 is new Ada.Containers.Vectors (Natural, Position);
-   package A3 is new Ada.Containers.Vectors
+   package A3 is new Skill.Types.Vectors
      (Natural,
       Skill.Types.String_Access);
 

@@ -105,6 +105,19 @@ package body Skill.Types.Pools is
       return F;
    end Add_Field;
 
+   function Add_Field
+     (This : access Base_Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration is
+
+      type P is access all Pool_T;
+      function Convert is new Ada.Unchecked_Conversion
+        (P, Pool);
+   begin
+      return Convert(P(This)).Add_Field(ID, T, Name);
+   end;
+
    -- base pool properties
 
    -- internal use only

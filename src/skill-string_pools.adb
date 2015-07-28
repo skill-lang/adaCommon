@@ -12,9 +12,11 @@ with Skill.Streams.Reader;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
 with Skill.Synchronization;
+with Ada.Unchecked_Deallocation;
 
 package body Skill.String_Pools is
 
+   -- note: input is now owned by the pool
    function Create (Input : Skill.Streams.Reader.Input_Stream) return Pool is
       use type Skill.Streams.Reader.Input_Stream;
       This : Pool :=
@@ -40,6 +42,30 @@ package body Skill.String_Pools is
          Skill.Errors.Print_Stacktrace (E);
          raise Skill.Errors.Skill_Error;
    end Create;
+
+   procedure Free (This : access Pool_T) is
+      procedure Delete is new Ada.Unchecked_Deallocation
+        (String,
+         Skill.Types.String_Access);
+      procedure Free (This : Skill.Types.String_Access) is
+         D : Skill.Types.String_Access := This;
+      begin
+         if null /= D then
+            Delete (D);
+         end if;
+      end Free;
+
+      type P is access all Pool_T;
+      procedure Delete is new Ada.Unchecked_Deallocation (Pool_T, P);
+      D : P := P (This);
+   begin
+      This.Input.Free;
+
+      This.Id_Map.Foreach (Free'Access);
+      This.Id_Map.Free;
+
+      Delete (D);
+   end Free;
 
    function Size (This : access Pool_T) return Integer is
    begin

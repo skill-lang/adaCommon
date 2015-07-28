@@ -31,6 +31,8 @@ package Skill.Streams.Reader is
       First : Types.v64;
       Last  : Types.v64) return Sub_Stream;
 
+   -- destroy a map and close the file
+   procedure Free (This : access Input_Stream_T);
    -- destroy a sub map
    procedure Free (This : access Sub_Stream_T);
 
@@ -91,6 +93,9 @@ private
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
    pragma Import (C, MMap_Open, "mmap_open");
+   -- void mmap_close(FILE *stream)
+   procedure MMap_Close (File : Interfaces.C_Streams.FILEs);
+   pragma Import (C, MMap_Close, "mmap_close");
 
    type Abstract_Stream is tagged record
       Length   : Interfaces.C.size_t;
@@ -99,7 +104,7 @@ private
    end record;
 
    type Input_Stream_T is new Abstract_Stream with record
-      Path : Skill.Types.String_Access;
+      Path : Skill.Types.String_Access; -- shared string!
       File : Interfaces.C_Streams.FILEs;
    end record;
 

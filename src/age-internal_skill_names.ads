@@ -1,7 +1,7 @@
 --  ___ _  ___ _ _                                                            --
--- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     !! remove after integration into generator !!       --
--- |___/_|\_\_|_|____|    by: Timm Felden                                     --
+-- / __| |/ (_) | |       Your SKilL Scala Binding                            --
+-- \__ \ ' <| | | |__     <<debug>>                                           --
+-- |___/_|\_\_|_|____|    by: <<some developer>>                              --
 --                                                                            --
 
 with Skill.Types;

@@ -47,6 +47,16 @@ package body Skill.Streams.Reader is
            Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
    end Map;
 
+   procedure Free (This : access Input_Stream_T) is
+
+      type S is access all Input_Stream_T;
+      procedure Delete is new Ada.Unchecked_Deallocation (Input_Stream_T, S);
+      D : S := S (This);
+   begin
+      MMap_Close (This.File);
+      Delete (D);
+   end Free;
+
    procedure Free (This : access Sub_Stream_T) is
       type S is access all Sub_Stream_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
@@ -152,6 +162,7 @@ package body Skill.Streams.Reader is
       return R;
    end I64;
 
+   -- TODO unroll this loop and try to enable inlining somehow
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
       pragma Warnings (Off);
 

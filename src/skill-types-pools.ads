@@ -92,6 +92,11 @@ package Skill.Types.Pools is
       ID   : Natural;
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+   function Add_Field
+     (This : access Base_Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
    -- internal use only
    function Insert_Instance

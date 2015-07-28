@@ -32,7 +32,7 @@ package body Age.Api is
       Super   : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool
    is
    begin
-      if Equals.Equals (Name, Internal_Skill_Names.Age_Skill_Name) then
+      if Skill.Equals.Equals (Name, Internal_Skill_Names.Age_Skill_Name) then
          return Age_Pool_P.Make (Type_ID);
       end if;
 
@@ -73,7 +73,7 @@ package body Age.Api is
 
    -- type instantiation functions
    function Constant_Length_Array
-     (Length : Types.v64;
+     (Length : Skill.Types.v64;
       Base_T : Skill.Field_Types.Field_Type)
       return Skill.Field_Types.Field_Type
    is
@@ -114,16 +114,16 @@ package body Age.Api is
 
    function Open
      (Path    : String;
-      Read_M  : Files.Read_Mode  := Skill.Files.Read;
-      Write_M : Files.Write_Mode := Skill.Files.Write) return File
+      Read_M  : Skill.Files.Read_Mode  := Skill.Files.Read;
+      Write_M : Skill.Files.Write_Mode := Skill.Files.Write) return File
    is
    begin
       case Read_M is
 
-         when Files.Read =>
+         when Skill.Files.Read =>
             return Read (Skill.Streams.Input (new String'(Path)), Write_M);
 
-         when Files.Create =>
+         when Skill.Files.Create =>
             raise Skill.Errors.Skill_Error with "TBD";
 
             --          case Create:
@@ -151,28 +151,27 @@ package body Age.Api is
    procedure Close (This : access File_T) is
       procedure Delete is new Ada.Unchecked_Deallocation
         (String,
-         Types.String_Access);
+         Skill.Types.String_Access);
 
-      procedure Delete (This : Types.Pools.Pool) is
+      procedure Delete (This : Skill.Types.Pools.Pool) is
       begin
          This.Dynamic.Free;
       end Delete;
 
       type Ft is access all File_T;
 
-      procedure Delete is new Ada.Unchecked_Deallocation(File_T, FT);
+      procedure Delete is new Ada.Unchecked_Deallocation (File_T, Ft);
 
-      Self : FT := Ft(This);
+      Self : Ft := Ft (This);
    begin
       This.Flush;
 
       Delete (This.Path);
-      -- TODO       This.Strings.Free;
+      This.Strings.Free;
       This.Types.Foreach (Delete'Access);
       This.Types.Free;
 
-
-      Delete(Self);
+      Delete (Self);
    end Close;
 
    function Ages (This : access File_T) return Age_Pool is

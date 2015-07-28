@@ -13,6 +13,17 @@ with Ada.Unchecked_Deallocation;
 
 package body Skill.Field_Declarations is
 
+   procedure Delete_Chunk (This : Chunk_Entry) is
+      procedure Delete is new Ada.Unchecked_Deallocation
+        (Chunk_Entry_T,
+         Chunk_Entry);
+      D : Chunk_Entry := This;
+   begin
+      This.C.Free;
+      This.Input.Free;
+      Delete (D);
+   end Delete_Chunk;
+
    function Name
      (This : access Field_Declaration_T'Class) return Types.String_Access is
      (This.Name);
@@ -72,17 +83,9 @@ package body Skill.Field_Declarations is
    end Make_Lazy_Field;
 
    procedure Free (This : access Lazy_Field_T) is
-      procedure Delete (This : Chunk_Entry) is
-         procedure Free is new Ada.Unchecked_Deallocation (Chunk_Entry_T, Chunk_Entry);
-         D : Chunk_Entry := This;
-      begin
-         This.C.Free;
-         This.Input.Free;
-            Free(D);
-      end Delete;
    begin
-      This.Data_Chunks.Foreach(Delete'Access);
+      This.Data_Chunks.Foreach (Delete_Chunk'Access);
       This.Data_Chunks.Free;
-   end;
+   end Free;
 
 end Skill.Field_Declarations;
