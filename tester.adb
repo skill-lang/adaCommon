@@ -30,7 +30,7 @@ procedure Tester is
    procedure Print is
    --        Sf : Age.Api.File := Age.Api.Open ("testFiles/ageUnrestricted.sf");
 --        Sf : Age.Api.File := Age.Api.Open ("testFiles/age.sf");
-      Sf : Age.Api.File := Age.Api.Open ("testFiles/date.sf");
+      Sf : Age.Api.File := Age.Api.Open ("testFiles/trivialType.sf");
 
       S : Types.String_Access := Sf.Strings.Get(1);
    begin

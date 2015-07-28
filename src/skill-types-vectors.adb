@@ -11,8 +11,9 @@ package body Skill.Types.Vectors is
    function Empty_Vector return Vector is
    begin
       return new Vector_T'
-        (Data => new Element_Array_T (Index_Type'First .. Index_Type'First + 4),
-         Next_Index => Index_Type'First);
+          (Data =>
+             new Element_Array_T (Index_Type'First .. Index_Type'First + 4),
+           Next_Index => Index_Type'First);
    end Empty_Vector;
 
    procedure Free (This : access Vector_T) is
@@ -88,33 +89,33 @@ package body Skill.Types.Vectors is
 
    procedure Ensure_Index (This : access Vector_T; New_Index : Index_Type) is
    begin
-      if
-        (Index_Type (This.Next_Index) - Index_Type'First > This.Data'Length)
-      then
-         declare
-            New_Size : Index_Type'Base := 2 * This.Data'Length;
-         begin
-            while (New_Index - Index_Type'First > New_Size) loop
-               New_Size := 2 * New_Size;
-            end loop;
-            New_Size := New_Size + Index_Type'First;
-
-            declare
-               New_Container : Element_Array :=
-                 new Element_Array_T (Index_Type'First .. New_Size);
-
-               procedure Free is new Ada.Unchecked_Deallocation
-                 (Element_Array_T,
-                  Element_Array_Access);
-               D : Element_Array_Access := Element_Array_Access (This.Data);
-            begin
-               New_Container (Index_Type'First .. This.Data'Last) :=
-                 This.Data (Index_Type'First .. This.Data'Last);
-               This.Data := New_Container;
-               Free (D);
-            end;
-         end;
+      if New_Index < This.Data'Last then
+         return;
       end if;
+
+      declare
+         New_Size : Index_Type'Base := 2 * This.Data'Length;
+      begin
+         while (New_Index - Index_Type'First > New_Size) loop
+            New_Size := 2 * New_Size;
+         end loop;
+         New_Size := New_Size + Index_Type'First;
+
+         declare
+            New_Container : Element_Array :=
+              new Element_Array_T (Index_Type'First .. New_Size);
+
+            procedure Free is new Ada.Unchecked_Deallocation
+              (Element_Array_T,
+               Element_Array_Access);
+            D : Element_Array_Access := Element_Array_Access (This.Data);
+         begin
+            New_Container (Index_Type'First .. This.Data'Last) :=
+              This.Data (Index_Type'First .. This.Data'Last);
+            This.Data := New_Container;
+            Free (D);
+         end;
+      end;
    end Ensure_Index;
 
    procedure Ensure_Allocation
