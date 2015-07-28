@@ -46,17 +46,29 @@ package body Age.Api is
 
    -- build a state from intermediate information
    function Make_State
-     (Path          : Skill.Types.String_Access;
-      Mode          : Skill.Files.Write_Mode;
-      Strings       : Skill.String_Pools.Pool;
-      Types         : Skill.Files.Type_Vector;
-      Types_By_Name : Skill.Files.Type_Map) return File
+     (Path    : Skill.Types.String_Access;
+      Mode    : Skill.Files.Write_Mode;
+      Strings : Skill.String_Pools.Pool;
+      Types   : Skill.Files.Type_Vector;
+      TBN     : Skill.Files.Type_Map) return File
    is
       function Convert is new Ada.Unchecked_Conversion
         (Skill.Types.Pools.Pool,
          Age_Pool);
 
-      Rval : File :=
+      Rval          : File;
+      P             : Skill.Types.Pools.Pool;
+      Types_By_Name : Skill.Files.Type_Map := TBN;
+   begin
+      -- create missing type information
+
+      if not Types_By_Name.Contains (Internal_Skill_Names.Age_Skill_Name) then
+         P := Age_Pool_P.Make (Types.Length);
+         Types.Append (P);
+         Types_By_Name.Include (Internal_Skill_Names.Age_Skill_Name, P);
+      end if;
+
+      Rval :=
         new File_T'
           (Path          => Path,
            Mode          => Mode,
@@ -66,7 +78,7 @@ package body Age.Api is
            Ages          =>
              Convert
                (Types_By_Name.Element (Internal_Skill_Names.Age_Skill_Name)));
-   begin
+
       -- read fields
       Rval.Finalize_Pools;
 

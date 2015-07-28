@@ -41,7 +41,7 @@ Project Skill_Common is
          when "clean" =>
             null;
          when "debug" =>
-            for Switches ("Ada") use ("-g", "-gnata", "-gnatf", "-fstack-check");
+            for Switches ("Ada") use ("-g", "-gnatE", "-gnata", "-gnatf", "-fstack-check");
             for Switches (others) use ("-g", "-fstack-check");
          when "release" =>
             for Switches (others) use ("-O3", "-march=corei7");

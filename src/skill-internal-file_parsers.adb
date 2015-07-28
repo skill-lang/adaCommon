@@ -132,9 +132,41 @@ package body Skill.Internal.File_Parsers is
 
             procedure Type_Restriction is
                Count : Types.v64 := Input.V64;
+               Id : Types.V64;
             begin
-               -- TODO
-               null;
+               for I in 1 .. Count loop
+                  Id := Input.V64;
+                  case Id is
+                  when 0 =>
+                     -- unique
+                     null;
+
+                  when 1 =>
+                     -- singleton
+                     null;
+
+                  when 2 =>
+                     -- monotone
+                     null;
+
+                  when others =>
+                     if Id <= 5 or else  1 = (id mod 2) then
+                        raise Skill.Errors.Skill_Error
+                        with Input.Parse_Exception
+                          (Block_Counter,
+                           "Found unknown type restriction " &
+                             Integer'Image (Integer (Id)) &
+                             ". Please regenerate your binding, if possible.");
+                     end if;
+
+                     Ada.Text_IO.Put_Line
+                       ("Skiped unknown skippable type restriction." &
+                          " Please update the SKilL implementation.");
+
+                  end case;
+               end loop;
+
+               -- TODO result creation!!
             end Type_Restriction;
 
          begin
@@ -387,9 +419,54 @@ package body Skill.Internal.File_Parsers is
 
                            procedure Field_Restriction is
                               Count : Types.v64 := Input.V64;
+                              Id : Types.V64;
                            begin
-                              -- TODO
-                              null;
+                              for I in 1 .. Count loop
+                                 Id := Input.V64;
+                                 case Id is
+                                    when 0 =>
+                                       -- nonnull
+                                       null;
+
+                                    when 1 =>
+                                       -- default
+                                       null;
+
+                                    when 3 =>
+                                       -- range
+                                       ID := Input.V64;
+                                       ID := Input.V64;
+
+                                    when 5 =>
+                                       -- coding
+                                       ID := Input.V64;
+
+                                    when 7 =>
+                                       -- CLP
+                                       null;
+
+                                    when 9 =>
+                                       -- one of
+                                       null;
+
+                                    when others =>
+                                       if Id <= 9 or else 1 = (Id mod 2) then
+                                          raise Skill.Errors.Skill_Error
+                                          with Input.Parse_Exception
+                                            (Block_Counter,
+                                             "Found unknown field restriction " &
+                                               Integer'Image (Integer (Id)) &
+                                               ". Please regenerate your binding, if possible.");
+                                       end if;
+
+                                       Ada.Text_IO.Put_Line
+                                         ("Skiped unknown skippable field restriction." &
+                                            " Please update the SKilL implementation.");
+
+                                 end case;
+                              end loop;
+
+                              -- TODO results!!
                            end Field_Restriction;
                         begin
                            if null = Field_Name then
