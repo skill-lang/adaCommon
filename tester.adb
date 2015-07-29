@@ -30,7 +30,7 @@ procedure Tester is
    procedure Print is
    --        Sf : Age.Api.File := Age.Api.Open ("testFiles/ageUnrestricted.sf");
 --        Sf : Age.Api.File := Age.Api.Open ("testFiles/age.sf");
-      Sf : Age.Api.File := Age.Api.Open ("testFiles/trivialType.sf");
+      Sf : Age.Api.File := Age.Api.Open ("testFiles/age16.sf");
 
       S : Types.String_Access := Sf.Strings.Get(1);
    begin
@@ -47,7 +47,7 @@ procedure Tester is
       Sf.Close;
    end Print;
 
---     T : array(1 .. 100) of Tasks.Run (Print'Access);
+--     T : array(1 .. 10) of Tasks.Run (Print'Access);
 begin
    Print;
 --     for I in T'Range loop

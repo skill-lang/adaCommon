@@ -47,20 +47,19 @@ package Skill.Streams.Reader is
    procedure Jump (This : access Abstract_Stream'Class; Pos : Skill.Types.v64);
 
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
+   pragma Inline (I8);
 
    function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
+   pragma Inline (I16);
 
    function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32;
+   pragma Inline (I32);
 
    function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
+   pragma Inline (I64);
 
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
-
-   --     pragma Inline (I8, I16, I32, I64, V64);
-   pragma Inline (I8);
-   pragma Inline (I16);
-   pragma Inline (I32);
-   pragma Inline (I64);
+   -- wont happen, simply too large
 --     pragma Inline (V64);
 
    function Parse_Exception

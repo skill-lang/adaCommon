@@ -24,9 +24,12 @@ package Age is
    --  People have a small positive age, but maybe they will start to live
    --  longer in the future, who knows
    function Get_Age (This : access Age_T'Class) return Skill.Types.V64;
+   pragma Inline (Get_Age);
+
    --  People have a small positive age, but maybe they will start to live
    --  longer in the future, who knows
    procedure Set_Age (This : access Age_T'Class; V : Skill.Types.V64);
+   pragma Inline (Set_Age);
 
 private
 
