@@ -19,10 +19,6 @@ with Skill.Types.Pools;
 with Skill.Types;
 with Skill.Types.Vectors;
 
-with Age.Api;
-with Age.Internal_Skill_Names;
-with Age.Known_Field_Age_Age;
-
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
 package body Skill.Types.Pools.Unknown_Base is
@@ -120,31 +116,9 @@ package body Skill.Types.Pools.Unknown_Base is
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration
    is
-      type P is access all Pool_T;
-      function Convert is new Ada.Unchecked_Conversion
-        (P,
-         Field_Declarations.Owner_T);
-
-      F : Field_Declarations.Field_Declaration;
-
       type Super is access all Base_Pool_T;
    begin
-
-      if Skill.Equals.Equals
-          (Name,
-           Age.Internal_Skill_Names.Age_Skill_Name)
-      then
-         F := Age.Known_Field_Age_Age.Make (ID, T, Convert (P (This)));
-      else
-         return Super (This).Add_Field (ID, T, Name);
-      end if;
-
-      -- TODO restrictions
-      --          for (FieldRestriction<?> r : restrictions)
-      --              f.addRestriction(r);
-      This.Data_Fields.Append (F);
-
-      return F;
+      return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
 
    overriding function Insert_Instance
