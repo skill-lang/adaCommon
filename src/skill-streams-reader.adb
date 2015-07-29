@@ -162,6 +162,32 @@ package body Skill.Streams.Reader is
       return R;
    end I64;
 
+   function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32 is
+      use C;
+      use Uchar;
+
+      R  : Types.F32;
+      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      for R'Address use P.all'Address;
+      pragma Import (Ada, R);
+   begin
+      This.Position := This.Position + 4;
+      return R;
+   end F32;
+
+   function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64 is
+      use C;
+      use Uchar;
+
+      R : Types.F64;
+      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      for R'Address use P.all'Address;
+      pragma Import (Ada, R);
+   begin
+      This.Position := This.Position + 8;
+      return R;
+   end F64;
+
    -- TODO unroll this loop and try to enable inlining somehow
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
       pragma Warnings (Off);

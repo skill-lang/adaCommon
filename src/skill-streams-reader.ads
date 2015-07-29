@@ -49,6 +49,11 @@ package Skill.Streams.Reader is
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
    pragma Inline (I8);
 
+   use type Interfaces.Integer_8;
+   function Bool (This : access Abstract_Stream'Class) return Boolean is
+      (This.I8 /= 0);
+   pragma Inline (Bool);
+
    function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
    pragma Inline (I16);
 
@@ -57,6 +62,12 @@ package Skill.Streams.Reader is
 
    function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
    pragma Inline (I64);
+
+   function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32;
+   pragma Inline (F32);
+
+   function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64;
+   pragma Inline (F64);
 
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
    -- wont happen, simply too large
