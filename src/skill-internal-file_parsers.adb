@@ -310,14 +310,15 @@ package body Skill.Internal.File_Parsers is
             when 20 =>
                return Map_Type(Parse_Field_Type, Parse_Field_Type);
             when others =>
-               if ID >= 32 and Id < Type_Vector.Length - 32 then
+               if ID >= 32 and Id < Type_Vector.Length + 32 then
                   return Convert(Type_Vector.Element (ID - 32));
                end if;
 
                raise Errors.Skill_Error
                with Input.Parse_Exception
                  (Block_Counter,
-                  "Invalid type ID: " & Natural'Image (ID));
+                  "Invalid type ID: " & Natural'Image (ID) & " largest is: "
+                  & Natural'Image (Type_Vector.Length + 32));
             end case;
          end Parse_Field_Type;
 

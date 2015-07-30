@@ -1,4 +1,6 @@
+with Skill.Streams.Reader;
+
 procedure Tester is
 begin
-  null;
+   null;
 end Tester;
