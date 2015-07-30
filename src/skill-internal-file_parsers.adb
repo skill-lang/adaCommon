@@ -429,7 +429,7 @@ package body Skill.Internal.File_Parsers is
                   else
                      -- field already seen
                      End_Offset := Input.V64;
-                     E.Pool.Data_Fields.Element (ID - 1).Add_Chunk
+                     E.Pool.Data_Fields.Element (ID).Add_Chunk
                        (new Internal.Parts.Simple_Chunk'
                           (Offset,
                            End_Offset,
