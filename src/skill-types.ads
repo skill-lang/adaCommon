@@ -37,4 +37,9 @@ package Skill.Types is
    type Annotation_Array_T is array (Natural range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;
 
+   -- default type conversion for root type
+   function To_Annotation (This : Skill.Types.Annotation) return Skill.Types.Annotation is
+      (This);
+   pragma Inline (To_Annotation);
+
 end Skill.Types;

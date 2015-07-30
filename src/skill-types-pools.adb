@@ -28,6 +28,13 @@ package body Skill.Types.Pools is
       return Convert (P (This));
    end Dynamic;
 
+   function To_Pool (This : access Pool_T'Class) return Pool is
+      type T is access all Pool_T;
+      function Convert is new Ada.Unchecked_Conversion (T, Pool);
+   begin
+      return Convert (T (This));
+   end To_Pool;
+
    -- pool properties
 
    function To_String (This : Pool_T) return String is (This.Name.all);
@@ -107,6 +114,19 @@ package body Skill.Types.Pools is
 
    function Add_Field
      (This : access Base_Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+   is
+
+      type P is access all Pool_T;
+      function Convert is new Ada.Unchecked_Conversion (P, Pool);
+   begin
+      return Convert (P (This)).Add_Field (ID, T, Name);
+   end Add_Field;
+
+   function Add_Field
+     (This : access Sub_Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration

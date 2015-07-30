@@ -1,6 +1,6 @@
 --  ___ _  ___ _ _                                                            --
 -- / __| |/ (_) | |       Common SKilL implementation                         --
--- \__ \ ' <| | | |__     unknown base pools                                  --
+-- \__ \ ' <| | | |__     generic subpools                                    --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
@@ -9,24 +9,30 @@ with Skill.Internal.File_Parsers;
 with Skill.Types.Pools;
 with Skill.Types;
 with Skill.Types.Vectors;
-with Skill.Types.Pools.Sub;
 
--- instantiated pool packages
--- GNAT Bug workaround; should be "new Base(Annotation...)" instead
-package Skill.Types.Pools.Unknown_Base is
+-- generic sub pool packages
+generic
+   type T is new Skill_Object with private;
+   type P is access T;
 
-   type Pool_T is new Base_Pool_T with private;
+   with function To_P (This : Annotation) return P;
+   with function To_A (This : P) return Annotation;
+
+package Skill.Types.Pools.Sub is
+   type Pool_T is new Sub_Pool_T with private;
    type Pool is access Pool_T;
 
    -- API methods
-   function Get (This : access Pool_T; ID : Skill_ID_T) return Annotation;
+   function Get (This : access Pool_T; ID : Skill_ID_T) return P;
 
    ----------------------
    -- internal methods --
    ----------------------
 
    -- constructor invoked by new_pool
-   function Make (Type_Id : Natural; Name : String_Access) return Pools.Pool;
+   function Make (Super   : Skill.Types.Pools.Pool;
+      Type_Id : Natural;
+                  Name    : String_Access) return Pools.Pool;
    -- destructor invoked by close
    procedure Free (This : access Pool_T);
 
@@ -47,22 +53,20 @@ package Skill.Types.Pools.Unknown_Base is
    --          (This : access Pool_T;
    --           F    : access procedure (I : Age));
 
-   package Sub_Pools is new Pools.Sub (Skill_Object, Annotation, To_Annotation, To_Annotation);
-
    function Make_Sub_Pool
      (This : access Pool_T;
       ID   : Natural;
       Name : String_Access) return Skill.Types.Pools.Pool is
-      (Sub_Pools.Make(This.To_Pool, ID, Name));
+      (Make (This.To_Pool, Id, Name));
 
 private
 
-   package A1 is new Vectors (Natural, Annotation);
+   package A1 is new Vectors (Natural, P);
    subtype Instance_Vector is A1.Vector;
 
-   type Pool_T is new Base_Pool_T with record
+   type Pool_T is new Sub_Pool_T with record
       Static_Data : Instance_Vector;
       New_Objects : Instance_Vector;
    end record;
 
-end Skill.Types.Pools.Unknown_Base;
+end Skill.Types.Pools.Sub;

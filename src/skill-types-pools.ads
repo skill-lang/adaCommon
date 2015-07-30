@@ -58,6 +58,9 @@ package Skill.Types.Pools is
 
    -- pointer conversions
    function Dynamic (This : access Pool_T) return Pool_Dyn;
+   pragma Inline (Dynamic);
+   function To_Pool (This : access Pool_T'Class) return Pool;
+   pragma Inline (To_Pool);
 
    -- pool properties
 
@@ -97,6 +100,11 @@ package Skill.Types.Pools is
       ID   : Natural;
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+   function Add_Field
+     (This : access Sub_Pool_T;
+      ID   : Natural;
+      T    : Field_Types.Field_Type;
+      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
    -- internal use only
    function Insert_Instance
@@ -108,6 +116,19 @@ package Skill.Types.Pools is
    function Insert_Instance
      (This : access Base_Pool_T;
       ID   : Skill_ID_T) return Boolean is abstract;
+
+   function Make_Sub_Pool
+     (This : access Pool_T;
+      ID   : Natural;
+      Name : String_Access) return Skill.Types.Pools.Pool is abstract;
+   function Make_Sub_Pool
+     (This : access Sub_Pool_T;
+      ID   : Natural;
+      Name : String_Access) return Skill.Types.Pools.Pool is abstract;
+   function Make_Sub_Pool
+     (This : access Base_Pool_T;
+      ID   : Natural;
+      Name : String_Access) return Skill.Types.Pools.Pool is abstract;
 
    -- internal use only
    procedure Free (This : access Pool_T) is abstract;
