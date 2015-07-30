@@ -47,7 +47,12 @@ package Skill.Types.Pools.Unknown_Base is
    --          (This : access Pool_T;
    --           F    : access procedure (I : Age));
 
-   package Sub_Pools is new Pools.Sub (Skill_Object, Annotation, To_Annotation, To_Annotation);
+   function Cast_Annotation (This : Annotation) return Annotation is
+     (This);
+   pragma Inline (Cast_Annotation);
+
+   package Sub_Pools is new Pools.Sub (Skill_Object, Annotation
+                                       , Cast_Annotation);
 
    function Make_Sub_Pool
      (This : access Pool_T;

@@ -8,7 +8,6 @@ with Ada.Containers.Vectors;
 with Skill.Files;
 with Skill.Types;
 with Skill.Streams.Reader;
-with Ada.Text_IO;
 with Interfaces;
 with Skill.Errors;
 with Ada.Unchecked_Conversion;
@@ -25,6 +24,7 @@ with Skill.Types.Vectors;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
+with Ada.Text_IO;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -35,11 +35,6 @@ package body Skill.Internal.File_Parsers is
    use Skill;
    use type Types.String_Access;
    use type Types.Pools.Pool;
-
-   procedure Print (I : Types.i8) is
-   begin
-      Ada.Text_IO.Put_Line (Integer'Image (Integer (I)));
-   end Print;
 
    function Read
      (Input : Skill.Streams.Reader.Input_Stream;
@@ -241,8 +236,8 @@ package body Skill.Internal.File_Parsers is
 
                -- store block info and prepare resize
                Definition.Blocks.Append (Block);
-               Resize_Queue.Append (Definition);
-               Local_Fields.Append(LF_Entry'(Definition.Dynamic, Input.V64));
+               Resize_Queue.Append (Definition); -- <-TODO hier nur base pools einfügen!
+               Local_Fields.Append (LF_Entry'(Definition.Dynamic, Input.V64));
             end;
          exception
             when E : Constraint_Error =>
@@ -306,12 +301,12 @@ package body Skill.Internal.File_Parsers is
             when 18 =>
                return List_Type(Parse_Field_Type);
             when 19 =>
-               return Set_Type(Parse_Field_Type);
+               return Set_Type (Parse_Field_Type);
             when 20 =>
-               return Map_Type(Parse_Field_Type, Parse_Field_Type);
+               return Map_Type (Parse_Field_Type, Parse_Field_Type);
             when others =>
                if ID >= 32 and Id < Type_Vector.Length + 32 then
-                  return Convert(Type_Vector.Element (ID - 32));
+                  return Convert (Type_Vector.Element (ID - 32));
                end if;
 
                raise Errors.Skill_Error
@@ -321,6 +316,132 @@ package body Skill.Internal.File_Parsers is
                   & Natural'Image (Type_Vector.Length + 32));
             end case;
          end Parse_Field_Type;
+
+         procedure Parse_Fields (E : LF_Entry) is
+            Legal_Field_ID_Barrier : Positive :=
+                                       1 + E.Pool.Data_Fields.Length;
+            Last_Block             : Skill.Internal.Parts.Block :=
+                                       E.Pool.Blocks.Last_Element;
+            End_Offset             : Types.V64;
+         begin
+            for Field_Counter in 1 .. E.Count loop
+               declare
+                  Id : Integer := Integer (Input.V64);
+               begin
+
+                  if Id <= 0 or else Legal_Field_ID_Barrier < ID then
+                     raise Errors.Skill_Error
+                     with Input.Parse_Exception
+                       (Block_Counter,
+                        "Found an illegal field ID: " & Integer'Image (ID));
+                  end if;
+
+                  if Id = Legal_Field_ID_Barrier then
+                     Legal_Field_ID_Barrier := Legal_Field_ID_Barrier + 1;
+                     -- new field
+                     declare
+                        Field_Name : Types.String_Access := Strings.Get
+                          (Input.V64);
+                        T          : Field_Types.Field_Type;
+
+                        procedure Field_Restriction is
+                           Count : Types.v64 := Input.V64;
+                           Id    : Types.V64;
+                        begin
+                           for I in 1 .. Count loop
+                              Id := Input.V64;
+                              case Id is
+                                 when 0 =>
+                                    -- nonnull
+                                    null;
+
+                                 when 1 =>
+                                    -- default
+                                    null;
+
+                                 when 3 =>
+                                    -- range
+                                    ID := Input.V64;
+                                    ID := Input.V64;
+
+                                 when 5 =>
+                                    -- coding
+                                    ID := Input.V64;
+
+                                 when 7 =>
+                                    -- CLP
+                                    null;
+
+                                 when 9 =>
+                                    -- one of
+                                    null;
+
+                                 when others =>
+                                    if Id <= 9 or else 1 = (Id mod 2) then
+                                       raise Skill.Errors.Skill_Error
+                                       with Input.Parse_Exception
+                                         (Block_Counter,
+                                          "Found unknown field restriction " &
+                                            Integer'Image (Integer (Id)) &
+                                            ". Please regenerate your binding, if possible.");
+                                    end if;
+
+                                    Ada.Text_IO.Put_Line
+                                      ("Skiped unknown skippable field restriction." &
+                                         " Please update the SKilL implementation.");
+
+                              end case;
+                           end loop;
+
+                           -- TODO results!!
+                        end Field_Restriction;
+                     begin
+                        if null = Field_Name then
+                           raise Errors.Skill_Error
+                           with Input.Parse_Exception
+                             (Block_Counter,
+                              "corrupted file: nullptr in fieldname");
+                        end if;
+
+                        T := Parse_Field_Type;
+                        Field_Restriction;
+                        End_Offset := Input.V64;
+
+                        declare
+                           -- TODO restrictions
+                           F : Field_Declarations.Field_Declaration :=
+                                 E.Pool.Add_Field (ID, T, Field_Name);
+                        begin
+                           F.Add_Chunk
+                             (new Internal.Parts.Bulk_Chunk'
+                                (Offset,
+                                 End_Offset,
+                                 Types.V64 (E.Pool.Size)));
+
+                        exception
+                           when E : Errors.Skill_Error =>
+                              raise Errors.Skill_Error
+                              with Input.Parse_Exception
+                                (Block_Counter, E,
+                                 "failed to add field");
+                        end;
+                     end;
+                  else
+                     -- field already seen
+                     End_Offset := Input.V64;
+                     E.Pool.Data_Fields.Element (ID - 1).Add_Chunk
+                       (new Internal.Parts.Simple_Chunk'
+                          (Offset,
+                           End_Offset,
+                           Last_Block.Count,
+                           Last_Block.Bpo));
+                  end if;
+                  Offset := End_Offset;
+
+                  Field_Data_Queue.Append (FD_Entry'(E.Pool, ID));
+               end;
+            end loop;
+         end;
 
       begin
          -- reset counters and queues
@@ -390,137 +511,8 @@ package body Skill.Internal.File_Parsers is
 
 
          -- parse fields
-         while not Local_Fields.Is_Empty loop
-            declare
-               E : LF_Entry := Local_Fields.Pop;
-               Legal_Field_ID_Barrier : Positive :=
-                                          1 + E.Pool.Data_Fields.Length;
-               Last_Block             : Skill.Internal.Parts.Block :=
-                                          E.Pool.Blocks.Last_Element;
-               End_Offset             : Types.V64;
-            begin
+         Local_Fields.Foreach(Parse_Fields'Access);
 
-               for Field_Counter in 1 .. E.Count loop
-                  declare
-                     Id : Integer := Integer(Input.V64);
-                  begin
-                     if Id <= 0 or else Id > Legal_Field_ID_Barrier then
-                        raise Errors.Skill_Error
-                        with Input.Parse_Exception
-                          (Block_Counter,
-                           "Found an illegal field ID: " & Integer'Image (ID));
-                     end if;
-
-                     if Id = Legal_Field_ID_Barrier then
-                        -- new field
-                        declare
-                           Field_Name : Types.String_Access := Strings.Get
-                             (Input.V64);
-                           T          : Field_Types.Field_Type;
-
-                           procedure Field_Restriction is
-                              Count : Types.v64 := Input.V64;
-                              Id : Types.V64;
-                           begin
-                              for I in 1 .. Count loop
-                                 Id := Input.V64;
-                                 case Id is
-                                    when 0 =>
-                                       -- nonnull
-                                       null;
-
-                                    when 1 =>
-                                       -- default
-                                       null;
-
-                                    when 3 =>
-                                       -- range
-                                       ID := Input.V64;
-                                       ID := Input.V64;
-
-                                    when 5 =>
-                                       -- coding
-                                       ID := Input.V64;
-
-                                    when 7 =>
-                                       -- CLP
-                                       null;
-
-                                    when 9 =>
-                                       -- one of
-                                       null;
-
-                                    when others =>
-                                       if Id <= 9 or else 1 = (Id mod 2) then
-                                          raise Skill.Errors.Skill_Error
-                                          with Input.Parse_Exception
-                                            (Block_Counter,
-                                             "Found unknown field restriction " &
-                                               Integer'Image (Integer (Id)) &
-                                               ". Please regenerate your binding, if possible.");
-                                       end if;
-
-                                       Ada.Text_IO.Put_Line
-                                         ("Skiped unknown skippable field restriction." &
-                                            " Please update the SKilL implementation.");
-
-                                 end case;
-                              end loop;
-
-                              -- TODO results!!
-                           end Field_Restriction;
-                        begin
-                           if null = Field_Name then
-                              raise Errors.Skill_Error
-                              with Input.Parse_Exception
-                                (Block_Counter,
-                                 "corrupted file: nullptr in fieldname");
-                           end if;
-
-                           T := Parse_Field_Type;
-                           Field_Restriction;
-                           End_Offset := Input.V64;
-
-                           declare
-                              -- TODO restrictions
-                              F : Field_Declarations.Field_Declaration :=
-                                    E.Pool.Add_Field (ID, T, Field_Name);
-
-                              P : Types.Pools.Pool;
-                           begin
-                              F.Add_Chunk
-                                (new Internal.Parts.Bulk_Chunk'
-                                   (Offset,
-                                    End_Offset,
-                                    Types.V64 (E.Pool.Size)));
-
-                           exception
-                              when E : Errors.Skill_Error =>
-                                 raise Errors.Skill_Error
-                                 with Input.Parse_Exception
-                                   (Block_Counter, E,
-                                    "failed to add field");
-                           end;
-
-                           Legal_Field_ID_Barrier := Legal_Field_ID_Barrier + 1;
-                        end;
-                     else
-                        -- field already seen
-                        End_Offset := Input.V64;
-                        E.Pool.Data_Fields.Element (ID - 1).Add_Chunk
-                          (new Internal.Parts.Simple_Chunk'
-                             (Offset,
-                              End_Offset,
-                              Last_Block.Count,
-                              Last_Block.Bpo));
-                     end if;
-                     Offset := End_Offset;
-
-                     Field_Data_Queue.Append (FD_Entry'(E.Pool, ID));
-                  end;
-               end loop;
-            end;
-         end loop;
 
          -- update field data information, so that it can be read in parallel or
          -- even lazy

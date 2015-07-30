@@ -18,6 +18,7 @@ with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Types;
 with Skill.Types.Vectors;
+with Ada.Text_IO;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
@@ -52,12 +53,13 @@ package body Skill.Types.Pools.Sub is
 
       This : Pool;
    begin
+
       This :=
         new Pool_T'
           (Name          => Name,
            Type_Id       => Type_Id,
            Super         => Super,
-           Base          => null,
+           Base          => Super.Base,
            Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
            Data_Fields_F =>
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
@@ -67,13 +69,13 @@ package body Skill.Types.Pools.Sub is
            Static_Data => A1.Empty_Vector,
            New_Objects => A1.Empty_Vector);
 
-      This.Base := Convert (This);
       return Convert (This);
    exception
       when E : others =>
          Skill.Errors.Print_Stacktrace (E);
          Skill.Errors.Print_Stacktrace;
-         raise Skill.Errors.Skill_Error with "Age pool allocation failed";
+         raise Skill.Errors.Skill_Error
+           with "Generic sub pool allocation failed";
    end Make;
 
    procedure Free (This : access Pool_T) is
@@ -83,23 +85,10 @@ package body Skill.Types.Pools.Sub is
          This.Free;
       end Delete;
 
-      Data : Annotation_Array := This.Base.Data;
-      procedure Delete is new Ada.Unchecked_Deallocation
-        (Skill.Types.Skill_Object,
-         Skill.Types.Annotation);
-      procedure Delete is new Ada.Unchecked_Deallocation
-        (Skill.Types.Annotation_Array_T,
-         Skill.Types.Annotation_Array);
-
       type P is access all Pool_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Pool_T, P);
       D : P := P (This);
    begin
-      for I in Data'Range loop
-         Delete (Data (I));
-      end loop;
-      Delete (Data);
-
       This.Sub_Pools.Free;
       This.Data_Fields_F.Foreach (Delete'Access);
       This.Data_Fields_F.Free;
@@ -127,13 +116,14 @@ package body Skill.Types.Pools.Sub is
       I : Natural := Natural (ID);
       R : P;
    begin
+
       if null /= This.Base.Data (I) then
          return False;
       end if;
 
       R                  := new T;
       R.Skill_ID         := ID;
-      This.Base.Data (I) := To_A (R);
+      This.Base.Data (I) := To_Annotation (R);
       This.Static_Data.Append (R);
       return True;
    end Insert_Instance;

@@ -16,7 +16,6 @@ generic
    type P is access T;
 
    with function To_P (This : Annotation) return P;
-   with function To_A (This : P) return Annotation;
 
 package Skill.Types.Pools.Sub is
    type Pool_T is new Sub_Pool_T with private;
