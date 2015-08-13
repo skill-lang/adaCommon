@@ -17,7 +17,7 @@ package Skill.Streams.Reader is
    type Abstract_Stream is tagged private;
 
    type Input_Stream_T is new Abstract_Stream with private;
-   type Input_Stream is not null access Skill.Streams.Reader.Input_Stream_T;
+   type Input_Stream is access Skill.Streams.Reader.Input_Stream_T;
    type Sub_Stream_T is new Abstract_Stream with private;
    type Sub_Stream is access Sub_Stream_T;
 

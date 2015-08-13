@@ -58,8 +58,12 @@ package body Skill.String_Pools is
       type P is access all Pool_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Pool_T, P);
       D : P := P (This);
+
+      use type Skill.Streams.Reader.Input_Stream;
    begin
-      This.Input.Free;
+      if null /= This.Input then
+         This.Input.Free;
+      end if;
 
       This.Id_Map.Foreach (Free'Access);
       This.Id_Map.Free;
