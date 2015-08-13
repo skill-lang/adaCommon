@@ -10,9 +10,7 @@ with Interfaces.C.Pointers;
 with Skill.Types;
 limited with Skill.Streams.Reader;
 
-
 package Skill.Streams is
-   pragma Preelaborate;
 
    type Unsigned_Char_Array is
      array
@@ -20,6 +18,8 @@ package Skill.Streams is
    pragma Convention (C, Unsigned_Char_Array);
    for Unsigned_Char_Array'Component_Size use Interfaces.C.unsigned_char'Size;
 
-   function Input (Path : Skill.Types.String_Access) return Skill.Streams.Reader.Input_Stream;
+   function Input
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Reader.Input_Stream;
 
 end Skill.Streams;

@@ -5,6 +5,7 @@
 --                                                                            --
 
 with Interfaces;
+with Ada.Tags;
 
 package Skill.Types is
    pragma Preelaborate;
@@ -34,6 +35,7 @@ package Skill.Types is
       Skill_ID : Skill_ID_T;
    end record;
    type Annotation is access Skill_Object;
+   type Annotation_Dyn is access Skill_Object'Class;
    type Annotation_Array_T is array (Natural range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;
 
@@ -41,5 +43,16 @@ package Skill.Types is
    function To_Annotation
      (This : access Skill_Object'Class) return Skill.Types.Annotation;
    pragma Inline (To_Annotation);
+   pragma Pure_Function (To_Annotation);
+
+   function Dynamic (This : access Skill_Object) return Annotation_Dyn;
+   pragma Inline (Dynamic);
+   pragma Pure_Function (Dynamic);
+
+   function Tag
+     (This : access Skill_Object'Class) return Ada.Tags.Tag is
+     (This'Tag);
+   pragma Inline (Tag);
+   pragma Pure_Function (Tag);
 
 end Skill.Types;

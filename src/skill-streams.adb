@@ -12,9 +12,12 @@ with Skill.Streams.Reader;
 
 package body Skill.Streams is
 
-   function Input (Path : Skill.Types.String_Access) return Skill.Streams.Reader.Input_Stream is
+   function Input
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Reader.Input_Stream
+   is
    begin
-      return Skill.Streams.Reader.Open(Path);
+      return Skill.Streams.Reader.Open (Path);
    end Input;
 
 end Skill.Streams;

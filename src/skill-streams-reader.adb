@@ -12,6 +12,8 @@ with Interfaces;
 
 with Skill.Types;
 with Interfaces.C.Strings;
+with System;
+with Skill.Errors;
 
 package body Skill.Streams.Reader is
 
@@ -22,7 +24,25 @@ package body Skill.Streams.Reader is
         Interfaces.C.Strings.New_String (Path.all);
 
       Map : Mmap := MMap_Open (Cpath);
+
+      Mf  : aliased access Integer;
+      for Mf'Address use Map.File'Address;
+      pragma Import (Ada, Mf);
+
+      Ml  : aliased access Integer;
+      for Ml'Address use Map.Length'Address;
+      pragma Import (Ada, Ml);
+
+      Mm  : aliased access Integer;
+      for Mm'Address use Map.Map'Address;
+      pragma Import (Ada, Mm);
+
    begin
+      if Mf = null and Ml = null and Mm = null then
+         raise Skill.Errors.Skill_Error
+         with "failed to open stream, see stdout for details";
+      end if;
+
       Interfaces.C.Strings.Free (Cpath);
       return new Input_Stream_T'
           (Path     => Path,

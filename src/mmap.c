@@ -17,10 +17,11 @@ typedef struct {
    unsigned char const *pointer;
 } mmap_c_array;
 
-void error(char const *message)
+mmap_c_array error(char const *message)
 {
-   fprintf(stderr, "mmap.c: %s\n errno was: %s\n", message, strerror(errno));
-   exit(EXIT_FAILURE);
+  fprintf(stderr, "mmap.c: %s\n errno was: %s\n", message, strerror(errno));
+  mmap_c_array const rval = { NULL, 0, NULL };
+  return rval;
 }
 
 mmap_c_array mmap_open(char const *filename)
@@ -28,12 +29,12 @@ mmap_c_array mmap_open(char const *filename)
   FILE *stream = fopen(filename, "r");
   if(NULL == stream){
     fprintf(stderr, "could not open file at \"%s\"\n", filename);
-    error("Execution of function fopen failed.");
+    return error("Execution of function fopen failed.");
   }
 
   struct stat fileStat;
   if(-1 == fstat(fileno(stream), &fileStat))
-    error("Execution of function fstat failed.");
+    return error("Execution of function fstat failed.");
 
   size_t const length = fileStat.st_size;
 
@@ -45,7 +46,7 @@ mmap_c_array mmap_open(char const *filename)
   char const *mapped = mmap(NULL, length, PROT_READ, MAP_SHARED | MAP_POPULATE, fileno(stream), 0);
 
   if(MAP_FAILED == mapped)
-    error("Execution of function mmap failed.");
+    return error("Execution of function mmap failed.");
 
   mmap_c_array const rval = { stream, length, mapped };
   return rval;

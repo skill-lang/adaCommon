@@ -13,7 +13,6 @@ with Skill.Types;
 with Ada.Exceptions;
 
 package Skill.Streams.Reader is
-   pragma Preelaborate;
 
    type Abstract_Stream is tagged private;
 
@@ -50,8 +49,9 @@ package Skill.Streams.Reader is
    pragma Inline (I8);
 
    use type Interfaces.Integer_8;
-   function Bool (This : access Abstract_Stream'Class) return Boolean is
-      (This.I8 /= 0);
+   function Bool
+     (This : access Abstract_Stream'Class) return Boolean is
+     (This.I8 /= 0);
    pragma Inline (Bool);
 
    function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
