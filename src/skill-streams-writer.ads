@@ -12,31 +12,31 @@ with Interfaces.C_Streams;
 with Skill.Types;
 with Ada.Exceptions;
 
-package Skill.Streams.Reader is
+package Skill.Streams.Writer is
 
    type Abstract_Stream is tagged private;
 
-   type Input_Stream_T is new Abstract_Stream with private;
-   type Input_Stream is access Skill.Streams.Reader.Input_Stream_T;
+   type Output_Stream_T is new Abstract_Stream with private;
+   type Output_Stream is access Output_Stream_T;
    type Sub_Stream_T is new Abstract_Stream with private;
    type Sub_Stream is access Sub_Stream_T;
 
-   function Open (Path : Skill.Types.String_Access) return Input_Stream;
+   function Open (Path : Skill.Types.String_Access) return Output_Stream;
 
    -- creates a sub map
    function Map
-     (This  : access Input_Stream_T;
+     (This  : access Output_Stream_T;
       Base  : Types.v64;
       First : Types.v64;
       Last  : Types.v64) return Sub_Stream;
 
    -- destroy a map and close the file
-   procedure Free (This : access Input_Stream_T);
+   procedure Free (This : access Output_Stream_T);
    -- destroy a sub map
    procedure Free (This : access Sub_Stream_T);
 
    function Path
-     (This : access Input_Stream_T) return Skill.Types.String_Access;
+     (This : access Output_Stream_T) return Skill.Types.String_Access;
 
    function Eof (This : access Abstract_Stream'Class) return Boolean;
 
@@ -74,13 +74,13 @@ package Skill.Streams.Reader is
 --     pragma Inline (V64);
 
    function Parse_Exception
-     (This          :    access Input_Stream_T;
+     (This          :    access Output_Stream_T;
       Block_Counter :    Positive;
       Cause         : in Ada.Exceptions.Exception_Occurrence;
       Message       :    String) return String;
 
    function Parse_Exception
-     (This          : access Input_Stream_T;
+     (This          : access Output_Stream_T;
       Block_Counter : Positive;
       Message       : String) return String;
 
@@ -94,6 +94,11 @@ private
       Element_Array      => Uchar_Array,
       Default_Terminator => 0);
 
+   type Mmap is record
+      File   : Interfaces.C_Streams.FILEs;
+      Length : Interfaces.C.size_t;
+      Map    : Uchar.Pointer;
+   end record;
 
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
@@ -108,7 +113,7 @@ private
       Map      : Uchar.Pointer;
    end record;
 
-   type Input_Stream_T is new Abstract_Stream with record
+   type Output_Stream_T is new Abstract_Stream with record
       Path : Skill.Types.String_Access; -- shared string!
       File : Interfaces.C_Streams.FILEs;
    end record;
@@ -116,4 +121,4 @@ private
    -- a part that is a sub section of an input stream
    type Sub_Stream_T is new Abstract_Stream with null record;
 
-end Skill.Streams.Reader;
+end Skill.Streams.Writer;

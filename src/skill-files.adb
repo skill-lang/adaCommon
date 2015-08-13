@@ -13,6 +13,7 @@ with Skill.Synchronization;
 with Skill.Types.Pools;
 with Skill.Field_Declarations;
 with Skill.Tasks;
+with Skill.Internal.File_Writers;
 
 package body Skill.Files is
 
@@ -24,6 +25,23 @@ package body Skill.Files is
    begin
       return This.Strings;
    end Strings;
+
+   procedure Flush (This : access File_T'Class) is
+      type T is access all File_T;
+      function Cast is new Ada.Unchecked_Conversion (T, File);
+   begin
+      case This.Mode is
+         when Write =>
+            Skill.Internal.File_Writers.Write
+              (Cast (T (This)),
+               Streams.Write (This.Path));
+
+         when Append =>
+            Skill.Internal.File_Writers.Append
+              (Cast (T (This)),
+               Streams.Append (This.Path));
+      end case;
+   end Flush;
 
    procedure Finalize_Pools (This : access File_T'Class) is
       Read_Barrier : Skill.Synchronization.Barrier;

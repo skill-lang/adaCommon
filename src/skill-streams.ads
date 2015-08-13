@@ -9,6 +9,8 @@ with Interfaces.C.Pointers;
 
 with Skill.Types;
 limited with Skill.Streams.Reader;
+limited with Skill.Streams.Writer;
+with Interfaces.C_Streams;
 
 package Skill.Streams is
 
@@ -21,5 +23,30 @@ package Skill.Streams is
    function Input
      (Path : Skill.Types.String_Access)
       return Skill.Streams.Reader.Input_Stream;
+
+   function Write
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Writer.Output_Stream;
+
+   function Append
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Writer.Output_Stream;
+
+private
+   package C renames Interfaces.C;
+
+   type Uchar_Array is array (C.size_t range <>) of aliased C.unsigned_char;
+   package Uchar is new C.Pointers
+     (Index              => C.size_t,
+      Element            => C.unsigned_char,
+      Element_Array      => Uchar_Array,
+      Default_Terminator => 0);
+
+
+   type Mmap is record
+      File   : Interfaces.C_Streams.FILEs;
+      Length : Interfaces.C.size_t;
+      Map    : Uchar.Pointer;
+   end record;
 
 end Skill.Streams;

@@ -9,6 +9,7 @@ with Interfaces.C.Pointers;
 
 with Skill.Types;
 with Skill.Streams.Reader;
+with Skill.Streams.Writer;
 
 package body Skill.Streams is
 
@@ -19,5 +20,15 @@ package body Skill.Streams is
    begin
       return Skill.Streams.Reader.Open (Path);
    end Input;
+
+   function Write
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Writer.Output_Stream is
+     (null);
+
+   function Append
+     (Path : Skill.Types.String_Access)
+      return Skill.Streams.Writer.Output_Stream is
+     (null);
 
 end Skill.Streams;
