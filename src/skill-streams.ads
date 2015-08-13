@@ -41,7 +41,7 @@ private
       Element            => C.unsigned_char,
       Element_Array      => Uchar_Array,
       Default_Terminator => 0);
-
+   subtype Map_Pointer is not null Uchar.Pointer;
 
    type Mmap is record
       File   : Interfaces.C_Streams.FILEs;

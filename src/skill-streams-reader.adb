@@ -14,10 +14,13 @@ with Skill.Types;
 with Interfaces.C.Strings;
 with System;
 with Skill.Errors;
+with System.Address_To_Access_Conversions;
+with System.Storage_Elements;
 
 package body Skill.Streams.Reader is
 
    use Skill;
+   use type Uchar.Pointer;
 
    function Open (Path : Types.String_Access) return Input_Stream is
       Cpath : Interfaces.C.Strings.chars_ptr :=
@@ -25,31 +28,31 @@ package body Skill.Streams.Reader is
 
       Map : Mmap := MMap_Open (Cpath);
 
-      Mf  : aliased access Integer;
+      Mf : aliased access Integer;
       for Mf'Address use Map.File'Address;
       pragma Import (Ada, Mf);
 
-      Ml  : aliased access Integer;
+      Ml : aliased access Integer;
       for Ml'Address use Map.Length'Address;
       pragma Import (Ada, Ml);
 
-      Mm  : aliased access Integer;
+      Mm : aliased access Integer;
       for Mm'Address use Map.Map'Address;
       pragma Import (Ada, Mm);
 
    begin
       if Mf = null and Ml = null and Mm = null then
          raise Skill.Errors.Skill_Error
-         with "failed to open stream, see stdout for details";
+           with "failed to open stream, see stdout for details";
       end if;
 
       Interfaces.C.Strings.Free (Cpath);
       return new Input_Stream_T'
-          (Path     => Path,
-           File     => Map.File,
-           Length   => Map.Length,
-           Map      => Map.Map,
-           Position => 0);
+          (Path => Path,
+           File => Map.File,
+           Map  => Map.Map,
+           Base => Map.Map,
+           EOF  => Map.Map + C.ptrdiff_t (Map.Length));
    end Open;
 
    function Map
@@ -62,9 +65,9 @@ package body Skill.Streams.Reader is
       use type Interfaces.Integer_64;
    begin
       return new Sub_Stream_T'
-          (Length   => Interfaces.C.size_t (Last - First),
-           Position => 0,
-           Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
+          (Map  => This.Base + C.ptrdiff_t (Base + First),
+           Base => This.Base + C.ptrdiff_t (Base + First),
+           EOF  => This.Base + C.ptrdiff_t (Base + Last));
    end Map;
 
    procedure Free (This : access Input_Stream_T) is
@@ -96,7 +99,7 @@ package body Skill.Streams.Reader is
      (This : access Abstract_Stream'Class) return Skill.Types.v64
    is
    begin
-      return Types.v64 (This.Position);
+      return Types.v64 (This.Map - This.Base);
    end Position;
 
    procedure Jump
@@ -104,28 +107,61 @@ package body Skill.Streams.Reader is
       Pos  : Skill.Types.v64)
    is
    begin
-      This.Position := Interfaces.C.size_t (Pos);
+      This.Map := This.Base + C.ptrdiff_t (Pos);
    end Jump;
 
    function Eof (This : access Abstract_Stream'Class) return Boolean is
       use C;
+      function Cast is new Ada.Unchecked_Conversion (Uchar.Pointer, Types.i64);
+      use type Interfaces.Integer_64;
    begin
-      return This.Position >= This.Length;
+      return Cast (This.Map) >= Cast (This.EOF);
    end Eof;
+
+   procedure Advance (This : access Abstract_Stream'Class) is
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+   begin
+      This.Map :=
+        Convert (Casts.To_Pointer (Casts.To_Address (Convert (This.Map)) + 1));
+   end Advance;
+   pragma Inline (Advance);
 
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
       use C;
       use Uchar;
 
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
       function Convert is new Ada.Unchecked_Conversion
         (Interfaces.C.unsigned_char,
          Skill.Types.i8);
-      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
-      R : Types.i8      := Convert (P.all);
-   begin
-      -- Increment (P);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+      P : Map_Pointer := This.Map;
+      R : Types.i8    := Convert (This.Map.all);
 
-      This.Position := This.Position + 1;
+   begin
+      This.Advance;
       return R;
    end I8;
 
@@ -135,11 +171,11 @@ package body Skill.Streams.Reader is
 
       subtype Bytes is Unsigned_Char_Array (1 .. 2);
       function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i16);
-      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P  : Uchar.Pointer := This.Map;
       P1 : Uchar.Pointer := P + 1;
-      R  : Types.i16     := Convert (Bytes'(P1.all, P.all));
+      R  : Types.i16     := Convert (Bytes'(P1.all, This.Map.all));
    begin
-      This.Position := This.Position + 2;
+      This.Map := This.Map + 2;
       return R;
    end I16;
 
@@ -149,13 +185,13 @@ package body Skill.Streams.Reader is
 
       subtype Bytes is Unsigned_Char_Array (1 .. 4);
       function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i32);
-      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P  : Uchar.Pointer := This.Map;
       P1 : Uchar.Pointer := P + 1;
       P2 : Uchar.Pointer := P + 2;
       P3 : Uchar.Pointer := P + 3;
-      R  : Types.i32     := Convert (Bytes'(P3.all, P2.all, P1.all, P.all));
+      R  : Types.i32 := Convert (Bytes'(P3.all, P2.all, P1.all, This.Map.all));
    begin
-      This.Position := This.Position + 4;
+      This.Map := This.Map + 4;
       return R;
    end I32;
 
@@ -165,7 +201,7 @@ package body Skill.Streams.Reader is
 
       subtype Bytes is Unsigned_Char_Array (1 .. 8);
       function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i64);
-      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      P  : Uchar.Pointer := This.Map;
       P1 : Uchar.Pointer := P + 1;
       P2 : Uchar.Pointer := P + 2;
       P3 : Uchar.Pointer := P + 3;
@@ -176,9 +212,16 @@ package body Skill.Streams.Reader is
       R  : Types.i64     :=
         Convert
           (Bytes'
-             (P7.all, P6.all, P5.all, P4.all, P3.all, P2.all, P1.all, P.all));
+             (P7.all,
+              P6.all,
+              P5.all,
+              P4.all,
+              P3.all,
+              P2.all,
+              P1.all,
+              This.Map.all));
    begin
-      This.Position := This.Position + 8;
+      This.Map := This.Map + 8;
       return R;
    end I64;
 
@@ -186,12 +229,12 @@ package body Skill.Streams.Reader is
       use C;
       use Uchar;
 
-      R  : Types.F32;
-      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
-      for R'Address use P.all'Address;
+      R : Types.F32;
+      P : Uchar.Pointer := This.Map;
+      for R'Address use This.Map.all'Address;
       pragma Import (Ada, R);
    begin
-      This.Position := This.Position + 4;
+      This.Map := This.Map + 4;
       return R;
    end F32;
 
@@ -200,47 +243,99 @@ package body Skill.Streams.Reader is
       use Uchar;
 
       R : Types.F64;
-      P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
-      for R'Address use P.all'Address;
+      P : Uchar.Pointer := This.Map;
+      for R'Address use This.Map.all'Address;
       pragma Import (Ada, R);
    begin
-      This.Position := This.Position + 8;
+      This.Map := This.Map + 8;
       return R;
    end F64;
 
-   -- TODO unroll this loop and try to enable inlining somehow
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
-      pragma Warnings (Off);
 
-      subtype Count_Type is Natural range 0 .. 8;
+      use C;
+      use Uchar;
       use type Interfaces.Unsigned_64;
-      function Convert is new Ada.Unchecked_Conversion
-        (Source => Types.i8,
-         Target => Types.Uv64);
+
       function Convert is new Ada.Unchecked_Conversion
         (Source => Types.Uv64,
          Target => Types.v64);
 
-      Count        : Count_Type := 0;
-      Return_Value : Types.Uv64 := 0;
-      Bucket       : Types.Uv64 := Convert (This.I8);
+      Bucket       : C.unsigned_char := This.Map.all;
+      Return_Value : Types.Uv64      := Types.Uv64 (Bucket);
    begin
-      while (Count < 8 and then 0 /= (Bucket and 16#80#)) loop
+      This.Advance;
+      if 0 /= (Bucket and 16#80#) then
+         Bucket := This.Map.all;
+         This.Advance;
          Return_Value :=
            Return_Value or
-           Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
-         Count  := Count + 1;
-         Bucket := Convert (This.I8);
-      end loop;
+           Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 7);
 
-      case Count is
-         when 8 =>
-            Return_Value := Return_Value or Interfaces.Shift_Left (Bucket, 56);
-         when others =>
+         if 0 /= (Bucket and 16#80#) then
+            Bucket := This.Map.all;
+            This.Advance;
             Return_Value :=
               Return_Value or
-              Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
-      end case;
+              Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 14);
+
+            if 0 /= (Bucket and 16#80#) then
+               Bucket := This.Map.all;
+               This.Advance;
+               Return_Value :=
+                 Return_Value or
+                 Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 21);
+
+               if 0 /= (Bucket and 16#80#) then
+                  Bucket := This.Map.all;
+                  This.Advance;
+                  Return_Value :=
+                    Return_Value or
+                    Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 28);
+
+                  if 0 /= (Bucket and 16#80#) then
+                     Bucket := This.Map.all;
+                     This.Advance;
+                     Return_Value :=
+                       Return_Value or
+                       Interfaces.Shift_Left
+                         (Types.Uv64 (Bucket) and 16#7f#,
+                          35);
+
+                     if 0 /= (Bucket and 16#80#) then
+                        Bucket := This.Map.all;
+                        This.Advance;
+                        Return_Value :=
+                          Return_Value or
+                          Interfaces.Shift_Left
+                            (Types.Uv64 (Bucket) and 16#7f#,
+                             42);
+                        if 0 /= (Bucket and 16#80#) then
+                           Bucket := This.Map.all;
+                           This.Advance;
+                           Return_Value :=
+                             Return_Value or
+                             Interfaces.Shift_Left
+                               (Types.Uv64 (Bucket) and 16#7f#,
+                                49);
+
+                           if 0 /= (Bucket and 16#80#) then
+                              Bucket := This.Map.all;
+                              This.Advance;
+                              Return_Value :=
+                                Return_Value or
+                                Interfaces.Shift_Left
+                                  (Types.Uv64 (Bucket),
+                                   56);
+
+                           end if;
+                        end if;
+                     end if;
+                  end if;
+               end if;
+            end if;
+         end if;
+      end if;
 
       return Convert (Return_Value);
    end V64;

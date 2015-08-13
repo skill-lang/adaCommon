@@ -87,14 +87,6 @@ package Skill.Streams.Reader is
 private
    package C renames Interfaces.C;
 
-   type Uchar_Array is array (C.size_t range <>) of aliased C.unsigned_char;
-   package Uchar is new C.Pointers
-     (Index              => C.size_t,
-      Element            => C.unsigned_char,
-      Element_Array      => Uchar_Array,
-      Default_Terminator => 0);
-
-
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
    pragma Import (C, MMap_Open, "mmap_open");
@@ -103,9 +95,12 @@ private
    pragma Import (C, MMap_Close, "mmap_close");
 
    type Abstract_Stream is tagged record
-      Length   : Interfaces.C.size_t;
-      Position : Interfaces.C.size_t;
-      Map      : Uchar.Pointer;
+      -- current position
+      Map : Map_Pointer;
+      -- first position
+      Base : Map_Pointer;
+      -- last position
+      EOF : Map_Pointer;
    end record;
 
    type Input_Stream_T is new Abstract_Stream with record

@@ -24,81 +24,53 @@ package Skill.Streams.Writer is
    function Open (Path : Skill.Types.String_Access) return Output_Stream;
 
    -- creates a sub map
-   function Map
-     (This  : access Output_Stream_T;
-      Base  : Types.v64;
-      First : Types.v64;
-      Last  : Types.v64) return Sub_Stream;
+--     function Map
+--       (This  : access Output_Stream_T;
+--        Base  : Types.v64;
+--        First : Types.v64;
+--        Last  : Types.v64) return Sub_Stream;
+--
+--     -- destroy a map and close the file
+--     procedure Free (This : access Output_Stream_T);
+--     -- destroy a sub map
+--     procedure Free (This : access Sub_Stream_T);
+--
+--     function Path
+--       (This : access Output_Stream_T) return Skill.Types.String_Access;
+--
+--     function Position
+--       (This : access Abstract_Stream'Class) return Skill.Types.v64;
 
-   -- destroy a map and close the file
-   procedure Free (This : access Output_Stream_T);
-   -- destroy a sub map
-   procedure Free (This : access Sub_Stream_T);
-
-   function Path
-     (This : access Output_Stream_T) return Skill.Types.String_Access;
-
-   function Eof (This : access Abstract_Stream'Class) return Boolean;
-
-   function Position
-     (This : access Abstract_Stream'Class) return Skill.Types.v64;
-
-   procedure Jump (This : access Abstract_Stream'Class; Pos : Skill.Types.v64);
-
-   function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
-   pragma Inline (I8);
-
-   use type Interfaces.Integer_8;
-   function Bool
-     (This : access Abstract_Stream'Class) return Boolean is
-     (This.I8 /= 0);
-   pragma Inline (Bool);
-
-   function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
-   pragma Inline (I16);
-
-   function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32;
-   pragma Inline (I32);
-
-   function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
-   pragma Inline (I64);
-
-   function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32;
-   pragma Inline (F32);
-
-   function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64;
-   pragma Inline (F64);
-
-   function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
-   -- wont happen, simply too large
+--     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
+--     pragma Inline (I8);
+--
+--     use type Interfaces.Integer_8;
+--     function Bool
+--       (This : access Abstract_Stream'Class) return Boolean is
+--       (This.I8 /= 0);
+--     pragma Inline (Bool);
+--
+--     function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
+--     pragma Inline (I16);
+--
+--     function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32;
+--     pragma Inline (I32);
+--
+--     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
+--     pragma Inline (I64);
+--
+--     function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32;
+--     pragma Inline (F32);
+--
+--     function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64;
+--     pragma Inline (F64);
+--
+--     function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
+--     -- wont happen, simply too large
 --     pragma Inline (V64);
-
-   function Parse_Exception
-     (This          :    access Output_Stream_T;
-      Block_Counter :    Positive;
-      Cause         : in Ada.Exceptions.Exception_Occurrence;
-      Message       :    String) return String;
-
-   function Parse_Exception
-     (This          : access Output_Stream_T;
-      Block_Counter : Positive;
-      Message       : String) return String;
 
 private
    package C renames Interfaces.C;
-
-   type Uchar_Array is array (C.size_t range <>) of aliased C.unsigned_char;
-   package Uchar is new C.Pointers
-     (Index              => C.size_t,
-      Element            => C.unsigned_char,
-      Element_Array      => Uchar_Array,
-      Default_Terminator => 0);
-
-   type Mmap is record
-      File   : Interfaces.C_Streams.FILEs;
-      Length : Interfaces.C.size_t;
-      Map    : Uchar.Pointer;
-   end record;
 
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
