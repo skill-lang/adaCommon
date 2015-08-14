@@ -36,7 +36,7 @@ package Skill.Types is
    end record;
    type Annotation is access Skill_Object;
    type Annotation_Dyn is access Skill_Object'Class;
-   type Annotation_Array_T is array (Natural range <>) of Annotation;
+   type Annotation_Array_T is array (Positive range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;
 
    -- default type conversion for root type

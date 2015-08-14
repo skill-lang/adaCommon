@@ -36,9 +36,12 @@ package Skill.Types.Pools.Unknown_Base is
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
-   overriding function Insert_Instance
-     (This : access Pool_T;
-      ID   : Skill_ID_T) return Boolean;
+
+   overriding
+   procedure Resize_Pool
+     (This       : access Pool_T;
+      Targets    : Type_Vector;
+      Self_Index : Natural) is null;
 
    overriding function Static_Size (This : access Pool_T) return Natural;
 

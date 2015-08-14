@@ -145,6 +145,7 @@ package body Skill.Types.Pools is
      (This : access Base_Pool_T) return Skill.Types.Annotation_Array is
      (This.Data);
 
+   -- invoked by resize pool (from base pool implementation)
    procedure Resize_Data (This : access Base_Pool_T) is
    -- data = Arrays.copyOf(data, data.length + (int) blocks.getLast().count);
       Count : Types.v64        := This.Blocks.Last_Element.Count;

@@ -109,24 +109,15 @@ package body Skill.Types.Pools.Sub is
       return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
 
-   overriding function Insert_Instance
-     (This : access Pool_T;
-      ID   : Skill.Types.Skill_ID_T) return Boolean
-   is
-      I : Natural := Natural (ID);
-      R : P;
+
+   overriding
+   procedure Resize_Pool
+     (This       : access Pool_T;
+      Targets    : Type_Vector;
+      Self_Index : Natural) is
    begin
-
-      if null /= This.Base.Data (I) then
-         return False;
-      end if;
-
-      R                  := new T;
-      R.Skill_ID         := ID;
-      This.Base.Data (I) := To_Annotation (R);
-      This.Static_Data.Append (R);
-      return True;
-   end Insert_Instance;
+      null;
+   end;
 
    overriding function Static_Size (This : access Pool_T) return Natural is
    begin

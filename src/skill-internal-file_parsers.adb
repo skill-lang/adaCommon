@@ -50,13 +50,13 @@ package body Skill.Internal.File_Parsers is
 
       -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
-      Type_Vector   : Files.Type_Vector := Files.P_Type_Vector.Empty_Vector;
+      Type_Vector   : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
       Types_By_Name : Files.Type_Map    := Files.P_Type_Map.Empty_Map;
 
-      -- parser state
-      package A1 is new Types.Vectors(Natural, Types.Pools.Pool);
+      -- parser state --
+
       -- deferred pool resize requests
-      Resize_Queue : A1.Vector := A1.Empty_Vector;
+      Resize_Queue : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
 
       -- entries of local fields
       type LF_Entry is record
@@ -463,52 +463,63 @@ package body Skill.Internal.File_Parsers is
 
          -- resize pools
          declare
-            package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
-            Resize_Stack : A4.Vector := A4.Empty_Vector;
-
+            Index : Natural := Natural'First;
             procedure Resize (E : Skill.Types.Pools.Pool) is
-               function Convert is new Ada.Unchecked_Conversion
-                 (Source => Types.Pools.Pool,
-                  Target => Types.Pools.Pool_Dyn);
-               function Convert is new Ada.Unchecked_Conversion
-                 (Source => Types.Pools.Pool_Dyn,
-                  Target => Types.Pools.Base_Pool);
-               P : Skill.Types.Pools.Pool_Dyn := Convert (E);
             begin
-               if P.all in Skill.Types.Pools.Base_Pool_T'Class then
-                  Convert (P).Resize_Data;
-               end if;
-               Resize_Stack.Append_Unsafe (E);
-            end Resize;
+               E.Dynamic.Resize_Pool (Resize_Queue, Index);
+               Index := Index + 1;
+            end;
          begin
-
-            -- resize base pools and push entries to stack
-            Resize_Stack.Ensure_Index (Resize_Queue.Length);
-            Resize_Queue.Foreach(Resize'Access);
-
-            -- create instances from stack
-            while not Resize_Stack.Is_Empty loop
-               declare
-                  pragma Warnings(Off);
-                  function Convert is new Ada.Unchecked_Conversion
-                    (Source => Types.Pools.Pool,
-                     Target => Types.Pools.Pool_Dyn);
-                  function Convert is new Ada.Unchecked_Conversion
-                    (Source => Types.v64,
-                     Target => Types.Skill_ID_T);
-                  P : Types.Pools.Pool_Dyn := Convert(Resize_Stack.Pop);
-                  Last : Parts.Block := P.Blocks.Last_Element;
-               begin
-                  Insert_Loop :
-                  for I in (Last.Bpo + 1) .. (Last.Bpo + Last.Count) loop
-                     exit Insert_Loop when not P.Insert_Instance (Convert (I));
-                  end loop Insert_Loop;
-               end;
-            end loop;
-
-            Resize_Stack.Free;
+            Resize_Queue.Foreach (Resize'Access);
          end;
 
+--           declare
+--              package A4 is new Types.Vectors(Natural, Skill.Types.Pools.Pool);
+--              Resize_Stack : A4.Vector := A4.Empty_Vector;
+--
+--              procedure Resize (E : Skill.Types.Pools.Pool) is
+--                 function Convert is new Ada.Unchecked_Conversion
+--                   (Source => Types.Pools.Pool,
+--                    Target => Types.Pools.Pool_Dyn);
+--                 function Convert is new Ada.Unchecked_Conversion
+--                   (Source => Types.Pools.Pool_Dyn,
+--                    Target => Types.Pools.Base_Pool);
+--                 P : Skill.Types.Pools.Pool_Dyn := Convert (E);
+--              begin
+--                 if P.all in Skill.Types.Pools.Base_Pool_T'Class then
+--                    Convert (P).Resize_Data;
+--                 end if;
+--                 Resize_Stack.Append_Unsafe (E);
+--              end Resize;
+--           begin
+--
+--              -- resize base pools and push entries to stack
+--              Resize_Stack.Ensure_Index (Resize_Queue.Length);
+--              Resize_Queue.Foreach(Resize'Access);
+--
+--              -- create instances from stack
+--              while not Resize_Stack.Is_Empty loop
+--                 declare
+--                    pragma Warnings(Off);
+--                    function Convert is new Ada.Unchecked_Conversion
+--                      (Source => Types.Pools.Pool,
+--                       Target => Types.Pools.Pool_Dyn);
+--                    function Convert is new Ada.Unchecked_Conversion
+--                      (Source => Types.v64,
+--                       Target => Types.Skill_ID_T);
+--                    P : Types.Pools.Pool_Dyn := Convert(Resize_Stack.Pop);
+--                    Last : Parts.Block := P.Blocks.Last_Element;
+--                 begin
+--                    Insert_Loop :
+--                    for I in (Last.Bpo + 1) .. (Last.Bpo + Last.Count) loop
+--                       exit Insert_Loop when not P.Insert_Instance (Convert (I));
+--                    end loop Insert_Loop;
+--                 end;
+--              end loop;
+--
+--              Resize_Stack.Free;
+--           end;
+--
 
          -- parse fields
          Local_Fields.Foreach(Parse_Fields'Access);

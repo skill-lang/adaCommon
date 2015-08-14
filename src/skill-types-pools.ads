@@ -53,6 +53,10 @@ package Skill.Types.Pools is
    type Base_Pool is access Base_Pool_T;
 
    -- data structures using pools
+   package P_Type_Vector is new Skill.Types.Vectors
+     (Natural,
+      Skill.Types.Pools.Pool);
+   subtype Type_Vector is P_Type_Vector.Vector;
    package Sub_Pool_Vector_P is new Types.Vectors (Natural, Sub_Pool);
    subtype Sub_Pool_Vector is Sub_Pool_Vector_P.Vector;
 
@@ -106,17 +110,6 @@ package Skill.Types.Pools is
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
-   -- internal use only
-   function Insert_Instance
-     (This : access Pool_T;
-      ID   : Skill_ID_T) return Boolean is abstract;
-   function Insert_Instance
-     (This : access Sub_Pool_T;
-      ID   : Skill_ID_T) return Boolean is abstract;
-   function Insert_Instance
-     (This : access Base_Pool_T;
-      ID   : Skill_ID_T) return Boolean is abstract;
-
    function Make_Sub_Pool
      (This : access Pool_T;
       ID   : Natural;
@@ -138,6 +131,23 @@ package Skill.Types.Pools is
    -- internal use only
    function Data
      (This : access Base_Pool_T) return Skill.Types.Annotation_Array;
+
+   -- internal use only
+   -- @note: this method is invoked in type order on exactly the pools that
+   -- ought to be rized
+   procedure Resize_Pool
+     (This       : access Pool_T;
+      Targets    : Type_Vector;
+      Self_Index : Natural) is abstract;
+   procedure Resize_Pool
+     (This       : access Base_Pool_T;
+      Targets    : Type_Vector;
+      Self_Index : Natural) is abstract;
+   procedure Resize_Pool
+     (This       : access Sub_Pool_T;
+      Targets    : Type_Vector;
+      Self_Index : Natural) is abstract;
+
    -- internal use only
    procedure Resize_Data (This : access Base_Pool_T);
 

@@ -121,24 +121,6 @@ package body Skill.Types.Pools.Unknown_Base is
       return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
 
-   overriding function Insert_Instance
-     (This : access Pool_T;
-      ID   : Skill.Types.Skill_ID_T) return Boolean
-   is
-      I : Natural := Natural (ID);
-      R : Annotation;
-   begin
-      if null /= This.Data (I) then
-         return False;
-      end if;
-
-      R             := new Skill_Object;
-      R.Skill_ID    := ID;
-      This.Data (I) := R;
-      This.Static_Data.Append (R);
-      return True;
-   end Insert_Instance;
-
    overriding function Static_Size (This : access Pool_T) return Natural is
    begin
       return This.Static_Data.Length + This.New_Objects.Length;

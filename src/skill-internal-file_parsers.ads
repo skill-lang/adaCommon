@@ -28,7 +28,7 @@ package Skill.Internal.File_Parsers is
         (Path          : Types.String_Access;
          Mode          : Files.Write_Mode;
          Strings       : String_Pools.Pool;
-         Types         : Files.Type_Vector;
+         Types         : Skill.Types.Pools.Type_Vector;
          Types_By_Name : Files.Type_Map) return Result is <>;
 
       -- type factories are generic arguments because of the way that Ada works
