@@ -96,10 +96,9 @@ package body Skill.Types.Pools.Unknown_Base is
       procedure Delete is new Ada.Unchecked_Deallocation (Pool_T, P);
       D : P := P (This);
    begin
-      for I in Data'Range loop
-         Delete (Data (I));
-      end loop;
-      Delete (Data);
+      if 0 /= Data'Length then
+         Delete (Data);
+      end if;
 
       This.Sub_Pools.Free;
       This.Data_Fields_F.Foreach (Delete'Access);
