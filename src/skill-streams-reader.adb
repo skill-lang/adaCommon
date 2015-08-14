@@ -22,37 +22,68 @@ package body Skill.Streams.Reader is
    use Skill;
    use type Uchar.Pointer;
 
-   function Open (Path : Types.String_Access) return Input_Stream is
-      Cpath : Interfaces.C.Strings.chars_ptr :=
-        Interfaces.C.Strings.New_String (Path.all);
-
-      Map : Mmap := MMap_Open (Cpath);
-
-      Mf : aliased access Integer;
-      for Mf'Address use Map.File'Address;
-      pragma Import (Ada, Mf);
-
-      Ml : aliased access Integer;
-      for Ml'Address use Map.Length'Address;
-      pragma Import (Ada, Ml);
-
-      Mm : aliased access Integer;
-      for Mm'Address use Map.Map'Address;
-      pragma Import (Ada, Mm);
-
+   -- type used to represent empty input streams
+   -- @note(TF) this is used to keep stream & map pointers not null
+   function Empty_Stream return Input_Stream is
+      pragma Warnings (Off);
+      function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
+      function Cast is new Ada.Unchecked_Conversion
+        (Integer,
+         Interfaces.C_Streams.FILEs);
    begin
-      if Mf = null and Ml = null and Mm = null then
-         raise Skill.Errors.Skill_Error
-           with "failed to open stream, see stdout for details";
+      return new Input_Stream_T'
+          (Map  => Cast (-1),
+           Base => Cast (-1),
+           EOF  => Cast (-1),
+           Path => null,
+           File => Cast (0));
+   end Empty_Stream;
+
+   function Open (Path : Types.String_Access) return Input_Stream is
+      use type Skill.Types.String_Access;
+      use type Interfaces.C.size_t;
+   begin
+      if null = Path then
+         return Empty_Stream;
       end if;
 
-      Interfaces.C.Strings.Free (Cpath);
-      return new Input_Stream_T'
-          (Path => Path,
-           File => Map.File,
-           Map  => Map.Map,
-           Base => Map.Map,
-           EOF  => Map.Map + C.ptrdiff_t (Map.Length));
+      declare
+         Cpath : Interfaces.C.Strings.chars_ptr :=
+           Interfaces.C.Strings.New_String (Path.all);
+
+         Map : Mmap := MMap_Open (Cpath);
+
+         Mf : aliased access Integer;
+         for Mf'Address use Map.File'Address;
+         pragma Import (Ada, Mf);
+
+         Ml : aliased access Integer;
+         for Ml'Address use Map.Length'Address;
+         pragma Import (Ada, Ml);
+
+         Mm : aliased access Integer;
+         for Mm'Address use Map.Map'Address;
+         pragma Import (Ada, Mm);
+
+      begin
+         Interfaces.C.Strings.Free (Cpath);
+
+         if Mf = null and Ml = null and Mm = null then
+            raise Skill.Errors.Skill_Error
+              with "failed to open stream, see stdout for details";
+         end if;
+
+         if 0 = Map.Length then
+            return Empty_Stream;
+         end if;
+
+         return new Input_Stream_T'
+             (Path => Path,
+              File => Map.File,
+              Map  => Map.Map,
+              Base => Map.Map,
+              EOF  => Map.Map + C.ptrdiff_t (Map.Length));
+      end;
    end Open;
 
    function Map
@@ -75,8 +106,14 @@ package body Skill.Streams.Reader is
       type S is access all Input_Stream_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Input_Stream_T, S);
       D : S := S (This);
+
+      function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
    begin
-      MMap_Close (This.File);
+      -- do not close fake files
+      if Cast (-1) /= This.Map then
+         MMap_Close (This.File);
+      end if;
+
       Delete (D);
    end Free;
 
