@@ -21,15 +21,16 @@ package Skill.Streams.Writer is
    type Sub_Stream_T is new Abstract_Stream with private;
    type Sub_Stream is access Sub_Stream_T;
 
-   function Open (Path : Skill.Types.String_Access) return Output_Stream;
+   function Open
+     (Path : not null Skill.Types.String_Access;
+      Mode : String) return Output_Stream;
 
-   -- creates a sub map
---     function Map
---       (This  : access Output_Stream_T;
---        Base  : Types.v64;
---        First : Types.v64;
---        Last  : Types.v64) return Sub_Stream;
---
+   -- creates a sub stream
+   -- note: only sub streams use mmaps
+   function Map
+     (This : access Output_Stream_T;
+      Size : Types.v64) return Sub_Stream;
+
 --     -- destroy a map and close the file
 --     procedure Free (This : access Output_Stream_T);
 --     -- destroy a sub map
@@ -38,8 +39,8 @@ package Skill.Streams.Writer is
 --     function Path
 --       (This : access Output_Stream_T) return Skill.Types.String_Access;
 --
---     function Position
---       (This : access Abstract_Stream'Class) return Skill.Types.v64;
+   function Position
+     (This : access Abstract_Stream'Class) return Skill.Types.v64;
 
 --     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
 --     pragma Inline (I8);
@@ -72,22 +73,25 @@ package Skill.Streams.Writer is
 private
    package C renames Interfaces.C;
 
-   -- mmap_c_array mmap_open (char const * filename)
-   function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
-   pragma Import (C, MMap_Open, "mmap_open");
-   -- void mmap_close(FILE *stream)
-   procedure MMap_Close (File : Interfaces.C_Streams.FILEs);
-   pragma Import (C, MMap_Close, "mmap_close");
-
    type Abstract_Stream is tagged record
-      Length   : Interfaces.C.size_t;
-      Position : Interfaces.C.size_t;
-      Map      : Uchar.Pointer;
+      -- current position
+      Map : Map_Pointer;
+      -- first position
+      Base : Map_Pointer;
+      -- last position
+      EOF : Map_Pointer;
    end record;
 
+   function MMap_Write_Map
+     (F      : Interfaces.C_Streams.FILEs;
+      Length : C.size_t;
+      Offset : C.size_t) return Uchar.Pointer;
+   pragma Import (C, MMap_Write_Map, "mmap_write_map");
+
    type Output_Stream_T is new Abstract_Stream with record
-      Path : Skill.Types.String_Access; -- shared string!
-      File : Interfaces.C_Streams.FILEs;
+      Path   : Skill.Types.String_Access; -- shared string!
+      File   : Interfaces.C_Streams.FILEs;
+      Buffer : Uchar_Array (1 .. 1024);
    end record;
 
    -- a part that is a sub section of an input stream

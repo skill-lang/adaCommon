@@ -14,58 +14,77 @@ with Skill.Types;
 with Interfaces.C.Strings;
 with System;
 with Skill.Errors;
+with Interfaces.C_Streams;
+with System.Storage_Elements;
+with System.Address_To_Access_Conversions;
 
 package body Skill.Streams.Writer is
 
    use Skill;
+   use Interfaces;
+   use type System.Address;
 
-   function Open (Path : Types.String_Access) return Output_Stream is
-      Cpath : Interfaces.C.Strings.chars_ptr :=
-        Interfaces.C.Strings.New_String (Path.all);
+   function Open
+     (Path : not null Types.String_Access;
+      Mode : String) return Output_Stream
+   is
 
-      Map : Mmap := MMap_Open (Cpath);
+      F : Interfaces.C_Streams.FILEs :=
+        C_Streams.fopen (Path.all'Address, Mode'Address);
 
-      Mf : aliased access Integer;
-      for Mf'Address use Map.File'Address;
-      pragma Import (Ada, Mf);
+      R : Output_Stream;
 
-      Ml : aliased access Integer;
-      for Ml'Address use Map.Length'Address;
-      pragma Import (Ada, Ml);
-
-      Mm : aliased access Integer;
-      for Mm'Address use Map.Map'Address;
-      pragma Import (Ada, Mm);
-
+      use System.Storage_Elements;
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
    begin
-      if Mf = null and Ml = null and Mm = null then
+      if C_Streams.NULL_Stream = F then
          raise Skill.Errors.Skill_Error
-           with "failed to open stream, see stdout for details";
+           with "failed to write file: " & Path.all;
       end if;
 
-      Interfaces.C.Strings.Free (Cpath);
-      return new Output_Stream_T'
-          (Path     => Path,
-           File     => Map.File,
-           Length   => Map.Length,
-           Map      => Map.Map,
-           Position => 0);
+      R :=
+        new Output_Stream_T'
+          (Path   => Path,
+           File   => F,
+           Map    => Invalid_Pointer,
+           Base   => Invalid_Pointer,
+           EOF    => Invalid_Pointer,
+           Buffer => <>);
+
+      R.Map  := Convert (Casts.To_Pointer (R.Buffer'Address));
+      R.Base := Convert (Casts.To_Pointer (R.Buffer'Address));
+      R.EOF  := Convert (Casts.To_Pointer (R.Buffer'Address + R.Buffer'Size));
+
+      return R;
    end Open;
 
---     function Map
---       (This  : access Output_Stream_T;
---        Base  : Types.v64;
---        First : Types.v64;
---        Last  : Types.v64) return Sub_Stream
---     is
---        use type Uchar.Pointer;
---        use type Interfaces.Integer_64;
---     begin
---        return new Sub_Stream_T'
---            (Length   => Interfaces.C.size_t (Last - First),
---             Position => 0,
---             Map      => This.Map + Interfaces.C.ptrdiff_t (Base + First));
---     end Map;
+   function Map
+     (This : access Output_Stream_T;
+      Size : Types.v64) return Sub_Stream
+   is
+      use type Uchar.Pointer;
+      use type Interfaces.Integer_64;
+
+      Map : Uchar.Pointer :=
+        MMap_Write_Map (This.File, C.size_t (This.Position), C.size_t (Size));
+   begin
+      if null = Map then
+         raise Skill.Errors.Skill_Error
+           with "failed to create map of size " &
+           Long_Long_Integer'Image (Long_Long_Integer (Size)) &
+           "in file: " &
+           This.Path.all;
+      end if;
+
+      return new Sub_Stream_T'
+          (Map  => Map_Pointer (Map),
+           Base => Map_Pointer (Map),
+           EOF  => Map_Pointer (Map) + C.ptrdiff_t (Size));
+   end Map;
 --
 --     procedure Free (This : access Output_Stream_T) is
 --
@@ -92,12 +111,13 @@ package body Skill.Streams.Writer is
 --        return This.Path;
 --     end Path;
 --
---     function Position
---       (This : access Abstract_Stream'Class) return Skill.Types.v64
---     is
---     begin
---        return Types.v64 (This.Position);
---     end Position;
+   function Position
+     (This : access Abstract_Stream'Class) return Skill.Types.v64
+   is
+      use type Map_Pointer;
+   begin
+      return Types.v64 (This.Map - This.Base);
+   end Position;
 --
 --     procedure Jump
 --       (This : access Abstract_Stream'Class;

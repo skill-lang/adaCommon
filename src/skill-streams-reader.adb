@@ -25,18 +25,13 @@ package body Skill.Streams.Reader is
    -- type used to represent empty input streams
    -- @note(TF) this is used to keep stream & map pointers not null
    function Empty_Stream return Input_Stream is
-      pragma Warnings (Off);
-      function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
-      function Cast is new Ada.Unchecked_Conversion
-        (Integer,
-         Interfaces.C_Streams.FILEs);
    begin
       return new Input_Stream_T'
-          (Map  => Cast (-1),
-           Base => Cast (-1),
-           EOF  => Cast (-1),
+          (Map  => Invalid_Pointer,
+           Base => Invalid_Pointer,
+           EOF  => Invalid_Pointer,
            Path => null,
-           File => Cast (0));
+           File => Interfaces.C_Streams.NULL_Stream);
    end Empty_Stream;
 
    function Open (Path : Types.String_Access) return Input_Stream is
@@ -107,10 +102,9 @@ package body Skill.Streams.Reader is
       procedure Delete is new Ada.Unchecked_Deallocation (Input_Stream_T, S);
       D : S := S (This);
 
-      function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
    begin
       -- do not close fake files
-      if Cast (-1) /= This.Map then
+      if Invalid_Pointer /= This.Map then
          MMap_Close (This.File);
       end if;
 

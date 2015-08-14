@@ -90,7 +90,7 @@ private
 
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
-   pragma Import (C, MMap_Open, "mmap_open");
+   pragma Import (C, MMap_Open, "mmap_read");
    -- void mmap_close(FILE *stream)
    procedure MMap_Close (File : Interfaces.C_Streams.FILEs);
    pragma Import (C, MMap_Close, "mmap_close");

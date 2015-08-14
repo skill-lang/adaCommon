@@ -12,7 +12,9 @@ package body Skill.Internal.File_Writers is
    procedure Write
      (State  : Skill.Files.File;
       Output : Skill.Streams.Writer.Output_Stream) is
-      begin null; end;
+   begin
+      null;
+   end;
 
    -- append a file to an existing one
    procedure Append
