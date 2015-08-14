@@ -71,7 +71,7 @@ package Skill.Streams.Reader is
 
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
    -- wont happen, simply too large
---     pragma Inline (V64);
+   pragma Inline (V64);
 
    function Parse_Exception
      (This          :    access Input_Stream_T;

@@ -141,6 +141,27 @@ package body Skill.Streams.Reader is
    end Advance;
    pragma Inline (Advance);
 
+   procedure Advance (P : in out Map_Pointer) is
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+   begin
+      P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + 1));
+   end Advance;
+
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
       use C;
       use Uchar;
@@ -261,41 +282,42 @@ package body Skill.Streams.Reader is
         (Source => Types.Uv64,
          Target => Types.v64);
 
-      Bucket       : C.unsigned_char := This.Map.all;
+      P            : Map_Pointer     := This.Map;
+      Bucket       : C.unsigned_char := P.all;
       Return_Value : Types.Uv64      := Types.Uv64 (Bucket);
    begin
-      This.Advance;
+      Advance (P);
       if 0 /= (Bucket and 16#80#) then
-         Bucket := This.Map.all;
-         This.Advance;
+         Bucket := P.all;
+         Advance (P);
          Return_Value :=
            Return_Value or
            Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 7);
 
          if 0 /= (Bucket and 16#80#) then
-            Bucket := This.Map.all;
-            This.Advance;
+            Bucket := P.all;
+            Advance (P);
             Return_Value :=
               Return_Value or
               Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 14);
 
             if 0 /= (Bucket and 16#80#) then
-               Bucket := This.Map.all;
-               This.Advance;
+               Bucket := P.all;
+               Advance (P);
                Return_Value :=
                  Return_Value or
                  Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 21);
 
                if 0 /= (Bucket and 16#80#) then
-                  Bucket := This.Map.all;
-                  This.Advance;
+                  Bucket := P.all;
+                  Advance (P);
                   Return_Value :=
                     Return_Value or
                     Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 28);
 
                   if 0 /= (Bucket and 16#80#) then
-                     Bucket := This.Map.all;
-                     This.Advance;
+                     Bucket := P.all;
+                     Advance (P);
                      Return_Value :=
                        Return_Value or
                        Interfaces.Shift_Left
@@ -303,16 +325,16 @@ package body Skill.Streams.Reader is
                           35);
 
                      if 0 /= (Bucket and 16#80#) then
-                        Bucket := This.Map.all;
-                        This.Advance;
+                        Bucket := P.all;
+                        Advance (P);
                         Return_Value :=
                           Return_Value or
                           Interfaces.Shift_Left
                             (Types.Uv64 (Bucket) and 16#7f#,
                              42);
                         if 0 /= (Bucket and 16#80#) then
-                           Bucket := This.Map.all;
-                           This.Advance;
+                           Bucket := P.all;
+                           Advance (P);
                            Return_Value :=
                              Return_Value or
                              Interfaces.Shift_Left
@@ -320,8 +342,8 @@ package body Skill.Streams.Reader is
                                 49);
 
                            if 0 /= (Bucket and 16#80#) then
-                              Bucket := This.Map.all;
-                              This.Advance;
+                              Bucket := P.all;
+                              Advance (P);
                               Return_Value :=
                                 Return_Value or
                                 Interfaces.Shift_Left
@@ -337,6 +359,7 @@ package body Skill.Streams.Reader is
          end if;
       end if;
 
+      This.Map := P;
       return Convert (Return_Value);
    end V64;
 
