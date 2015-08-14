@@ -10,6 +10,7 @@ with Interfaces;
 with Skill.Equals;
 with Skill.Hashes;
 with Skill.Streams.Reader;
+with Skill.Streams.Writer;
 with Skill.Types;
 with Skill.Types.Vectors;
 with Skill.Synchronization;
@@ -54,6 +55,10 @@ package Skill.String_Pools is
       Ada.Characters.Latin_1.LF &
       Ada.Exceptions.Exception_Information (Cause));
 
+   -- internal use only
+   procedure Prepare_And_Write
+     (This   : access Pool_T;
+      Output : Skill.Streams.Writer.Output_Stream);
 private
 
    use type Skill.Types.String_Access;
@@ -70,10 +75,8 @@ private
       Length         : Types.i32 := -1;
    end record;
 
-   package A2 is new Ada.Containers.Vectors (Natural, Position);
-   package A3 is new Skill.Types.Vectors
-     (Natural,
-      Skill.Types.String_Access);
+   package A2 is new Skill.Types.Vectors (Natural, Position);
+   package A3 is new Skill.Types.Vectors (Natural, Skill.Types.String_Access);
 
    type Pool_T is tagged limited record
       Input            : Skill.Streams.Reader.Input_Stream;

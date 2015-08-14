@@ -152,67 +152,60 @@ package body Skill.String_Pools is
               E);
    end Get;
 
---      public String get(long index) {
---          if (0L == index)
---              return null;
---
---          String result;
---          try {
---              result = idMap.get((int) index);
---          } catch (IndexOutOfBoundsException e) {
---              throw new InvalidPoolIndexException(index, stringPositions.size(), "string", e);
---          }
---          if (null != result)
---              return result;
---
---          // we have to load the string from disk
---          // @note this block has to be synchronized in order to enable parallel
---          // decoding of field data
---          // @note this is correct, because string pool is the only one who can do
---          // parallel operations on input!
---          synchronized (this) {
---              Position off = stringPositions.get((int) index);
---              input.push(off.absoluteOffset);
---              byte[] chars = input.bytes(off.length);
---              input.pop();
---
---              try {
---                  result = new String(chars, "UTF-8");
---              } catch (UnsupportedEncodingException e) {
---                  // as if that would ever happen
---                  e.printStackTrace();
---              }
---              idMap.set((int) index, result);
---          }
---          return result;
---      }
+   procedure Prepare_And_Write
+     (This   : access Pool_T;
+      Output : Skill.Streams.Writer.Output_Stream)
+   is
+      S : Types.String_Access;
 
---                 declare
---                    -- range shifted by 1 to allow for empty ranges
---                    S : Types.String_Access :=
---                      new String (2 .. Positive (Off - Last + 1));
---                    function Convert is new Ada.Unchecked_Conversion
---                      (Types.i8,
---                       Character);
---                 begin
---                    for P in S'Range loop
---                       S (P) := Convert (Input.I8);
---                    end loop;
---                    Last := Off;
---                    Ada.Text_IO.Put_Line (S.all);
---                 end;
---                 declare
---                    -- range shifted by 1 to allow for empty ranges
---                    S : Types.String_Access :=
---                      new String (2 .. Positive (Off - Last + 1));
---                    function Convert is new Ada.Unchecked_Conversion
---                      (Types.i8,
---                       Character);
---                 begin
---                    for P in S'Range loop
---                       S (P) := Convert (Input.I8);
---                    end loop;
---                    Last := Off;
---                    Ada.Text_IO.Put_Line (S.all);
---                 end;
+      Count : Types.V64;
+
+      use type Types.v64;
+   begin
+--        Das Hier Typmäßig Benennen
+--            HashMap<String, Integer> serializationIDs = ws.stringIDs;
+
+      -- ensure all strings are present
+      for I in 1 .. This.String_Positions.Length - 1 loop
+         S := This.Get (Types.v64 (I));
+      end loop;
+--
+--          // create inverse map
+--          for (int i = 1; i < idMap.size(); i++) {
+--              serializationIDs.put(idMap.get(i), i);
+--          }
+--
+--          // instert new strings to the map;
+--          // this is the place where duplications with lazy strings will be detected and eliminated
+--          for (String s : newStrings) {
+--              if (!serializationIDs.containsKey(s)) {
+--                  serializationIDs.put(s, idMap.size());
+--                  idMap.add(s);
+--              }
+--          }
+--
+
+      Count := Types.V64(This.Id_Map.Length - 1);
+      Output.V64 (Count);
+      declare
+         Off : Types.I32 := 0;
+
+         -- map offsets
+         Offsets : Streams.Writer.Sub_Stream := Output.Map(4 * Count);
+
+         procedure Put (S : Types.String_Access) is
+         begin
+            -- first ID is mapped to null
+            if null = S then
+               return;
+            end if;
+
+            Off := Off + S.all'Size;
+            Output.Put_Plain_String(S);
+            Offsets.I32 (Off);
+         end;
+      begin
+         This.Id_Map.Foreach(Put'Access);
+      end;
+   end Prepare_And_Write;
 end Skill.String_Pools;

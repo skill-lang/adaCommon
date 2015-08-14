@@ -14,7 +14,7 @@ with Ada.Exceptions;
 
 package Skill.Streams.Writer is
 
-   type Abstract_Stream is tagged private;
+   type Abstract_Stream is abstract tagged private;
 
    type Output_Stream_T is new Abstract_Stream with private;
    type Output_Stream is access Output_Stream_T;
@@ -54,8 +54,12 @@ package Skill.Streams.Writer is
 --     function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
 --     pragma Inline (I16);
 --
---     function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32;
---     pragma Inline (I32);
+   procedure I32
+     (This : access Abstract_Stream;
+      V    : Skill.Types.i32) is abstract;
+   pragma Inline (I32);
+   procedure I32 (This : access Output_Stream_T; V : Skill.Types.i32);
+   procedure I32 (This : access Sub_Stream_T; V : Skill.Types.i32);
 --
 --     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
 --     pragma Inline (I64);
@@ -66,14 +70,26 @@ package Skill.Streams.Writer is
 --     function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64;
 --     pragma Inline (F64);
 --
---     function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64;
---     -- wont happen, simply too large
---     pragma Inline (V64);
+   procedure V64
+     (This : access Abstract_Stream;
+      V    : Skill.Types.v64) is abstract;
+   procedure V64 (This : access Output_Stream_T; V : Skill.Types.v64);
+   procedure V64 (This : access Sub_Stream_T; V : Skill.Types.v64);
+
+   -- write the image of a string into a file
+   procedure Put_Plain_String
+     (This : access Output_Stream_T;
+      V    : Skill.Types.String_Access);
 
 private
+
+   procedure Ensure_Size (This : access Output_Stream_T; V : Positive);
+   procedure Put_Byte (This : access Abstract_Stream'Class; V : Interfaces.Unsigned_8);
+   pragma Inline (Put_Byte);
+
    package C renames Interfaces.C;
 
-   type Abstract_Stream is tagged record
+   type Abstract_Stream is abstract tagged record
       -- current position
       Map : Map_Pointer;
       -- first position

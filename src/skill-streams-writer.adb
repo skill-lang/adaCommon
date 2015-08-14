@@ -132,6 +132,58 @@ package body Skill.Streams.Writer is
 --     begin
 --        return This.Position >= This.Length;
 --     end Eof;
+
+
+   procedure Advance (This : access Abstract_Stream'Class) is
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+   begin
+      This.Map :=
+        Convert (Casts.To_Pointer (Casts.To_Address (Convert (This.Map)) + 1));
+   end Advance;
+   pragma Inline (Advance);
+
+   procedure Advance (P : in out Map_Pointer) is
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+   begin
+      P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + 1));
+   end Advance;
+
+   procedure Ensure_Size (This : access Output_Stream_T; V : Positive) is
+   begin
+      -- TODO
+      null;
+   end Ensure_Size;
+
 --
 --     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
 --        use C;
@@ -163,21 +215,31 @@ package body Skill.Streams.Writer is
 --        return R;
 --     end I16;
 --
---     function I32 (This : access Abstract_Stream'Class) return Skill.Types.i32 is
---        use C;
---        use Uchar;
---
---        subtype Bytes is Unsigned_Char_Array (1 .. 4);
---        function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i32);
---        P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        P1 : Uchar.Pointer := P + 1;
---        P2 : Uchar.Pointer := P + 2;
---        P3 : Uchar.Pointer := P + 3;
---        R  : Types.i32     := Convert (Bytes'(P3.all, P2.all, P1.all, P.all));
---     begin
---        This.Position := This.Position + 4;
---        return R;
---     end I32;
+   procedure I32 (This : access Output_Stream_T; V : Skill.Types.I32) is
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion (Unsigned_32, Unsigned_8);
+      function Cast is new Ada.Unchecked_Conversion (Types.I32, Unsigned_32);
+   begin
+      This.Ensure_Size (4);
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 24)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 16)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 0)));
+   end I32;
+   procedure I32 (This : access Sub_Stream_T; V : Skill.Types.I32) is
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion (Unsigned_32, Unsigned_8);
+      function Cast is new Ada.Unchecked_Conversion (Types.I32, Unsigned_32);
+   begin
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 24)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 16)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 0)));
+   end I32;
 --
 --     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64 is
 --        use C;
@@ -228,7 +290,16 @@ package body Skill.Streams.Writer is
 --        return R;
 --     end F64;
 --
---     -- TODO unroll this loop and try to enable inlining somehow
+
+   -- TODO unroll this loop and try to enable inlining somehow
+   procedure V64 (This : access Output_Stream_T; V : Skill.Types.v64) is
+   begin
+      This.Ensure_Size(9);
+   end;
+   procedure V64 (This : access Sub_Stream_T; V : Skill.Types.v64) is
+   begin
+      null;
+   end;
 --     function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
 --        pragma Warnings (Off);
 --
@@ -265,50 +336,20 @@ package body Skill.Streams.Writer is
 --        return Convert (Return_Value);
 --     end V64;
 --
---     function Parse_Exception
---       (This          :    access Output_Stream_T;
---        Block_Counter :    Positive;
---        Cause         : in Ada.Exceptions.Exception_Occurrence;
---        Message       :    String) return String
---     is
---     begin
---        return "Parse exception at" &
---          Ada.Characters.Latin_1.LF &
---          This.Path.all &
---          Ada.Characters.Latin_1.LF &
---          " position: " &
---          Long_Integer'Image (Long_Integer (This.Position)) &
---          Ada.Characters.Latin_1.LF &
---          " block: " &
---          Positive'Image (Block_Counter) &
---          Ada.Characters.Latin_1.LF &
---          " reason: " &
---          Message &
---          Ada.Characters.Latin_1.LF &
---          " caused by: " &
---          Ada.Exceptions.Exception_Information (Cause);
---
---     end Parse_Exception;
---     function Parse_Exception
---       (This          : access Output_Stream_T;
---        Block_Counter : Positive;
---        Message       : String) return String
---     is
---     begin
---        return "Parse exception at" &
---          Ada.Characters.Latin_1.LF &
---          This.Path.all &
---          Ada.Characters.Latin_1.LF &
---          " position: " &
---          Long_Integer'Image (Long_Integer (This.Position)) &
---          Ada.Characters.Latin_1.LF &
---          " block: " &
---          Positive'Image (Block_Counter) &
---          Ada.Characters.Latin_1.LF &
---          " reason: " &
---          Message &
---          Ada.Characters.Latin_1.LF;
---
---     end Parse_Exception;
---
+   procedure Put_Plain_String
+     (This : access Output_Stream_T;
+      V    : Skill.Types.String_Access) is
+      function Cast is new Ada.Unchecked_Conversion (Character, Unsigned_8);
+   begin
+      for C of V.all loop
+         This.Put_Byte (Cast (C));
+      end loop;
+   end Put_Plain_String;
+
+
+   procedure Put_Byte (This : access Abstract_Stream'Class; V : Unsigned_8) is
+   begin
+      This.Map.all := C.Unsigned_Char(V);
+      This.Advance;
+   end;
 end Skill.Streams.Writer;
