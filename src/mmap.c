@@ -43,10 +43,13 @@ mmap_read_record mmap_read(char const *filename)
     return rval;
   }
 
-  char const *mapped = mmap(NULL, length, PROT_READ, MAP_SHARED | MAP_POPULATE, fileno(stream), 0);
+  void *mapped = mmap(NULL, length, PROT_READ, MAP_SHARED, fileno(stream), 0);
 
   if(MAP_FAILED == mapped)
     return error("Execution of function mmap failed.");
+
+  if (-1 == madvise(mapped, length, MADV_WILLNEED))
+    return error("Execution of function madvise failed.");
 
   mmap_read_record const rval = { stream, length, mapped };
   return rval;
@@ -54,9 +57,12 @@ mmap_read_record mmap_read(char const *filename)
 
 char const* mmap_write_map(FILE *stream, size_t length, size_t offset)
 {
-  char const *rval = mmap(NULL, length, PROT_WRITE, MAP_SHARED | MAP_POPULATE, fileno(stream), offset);
+  void *rval = mmap(NULL, length, PROT_WRITE, MAP_SHARED, fileno(stream), offset);
 
   if(MAP_FAILED == rval)
+    return NULL;
+
+  if (-1 == madvise(rval, length, MADV_WILLNEED))
     return NULL;
 
   return rval;
