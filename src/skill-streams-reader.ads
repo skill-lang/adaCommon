@@ -32,7 +32,7 @@ package Skill.Streams.Reader is
       Last  : Types.v64) return Sub_Stream;
 
    -- destroy a map and close the file
-   procedure Free (This : access Input_Stream_T);
+   procedure Close (This : access Input_Stream_T);
    -- destroy a sub map
    procedure Free (This : access Sub_Stream_T);
 

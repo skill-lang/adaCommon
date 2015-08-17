@@ -96,7 +96,7 @@ package body Skill.Streams.Reader is
            EOF  => This.Base + C.ptrdiff_t (Base + Last));
    end Map;
 
-   procedure Free (This : access Input_Stream_T) is
+   procedure Close (This : access Input_Stream_T) is
 
       type S is access all Input_Stream_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Input_Stream_T, S);
@@ -109,7 +109,7 @@ package body Skill.Streams.Reader is
       end if;
 
       Delete (D);
-   end Free;
+   end Close;
 
    procedure Free (This : access Sub_Stream_T) is
       type S is access all Sub_Stream_T;
@@ -322,7 +322,7 @@ package body Skill.Streams.Reader is
          Bucket := P.all;
          Advance (P);
          Return_Value :=
-           Return_Value or
+           (Return_Value and 16#7f#) or
            Interfaces.Shift_Left (Types.Uv64 (Bucket) and 16#7f#, 7);
 
          if 0 /= (Bucket and 16#80#) then
