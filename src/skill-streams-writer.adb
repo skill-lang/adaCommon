@@ -48,16 +48,17 @@ package body Skill.Streams.Writer is
 
       R :=
         new Output_Stream_T'
-          (Path   => Path,
-           File   => F,
-           Map    => Invalid_Pointer,
-           Base   => Invalid_Pointer,
-           EOF    => Invalid_Pointer,
-           Buffer => <>);
+          (Path          => Path,
+           File          => F,
+           Map           => Invalid_Pointer,
+           Base          => Invalid_Pointer,
+           EOF           => Invalid_Pointer,
+           Bytes_Written => 0,
+           Buffer        => <>);
 
       R.Map  := Convert (Casts.To_Pointer (R.Buffer'Address));
       R.Base := Convert (Casts.To_Pointer (R.Buffer'Address));
-      R.EOF  := Convert (Casts.To_Pointer (R.Buffer'Address + R.Buffer'Size));
+      R.EOF  := Convert (Casts.To_Pointer (R.Buffer'Address + 1024));
 
       return R;
    end Open;
@@ -85,17 +86,55 @@ package body Skill.Streams.Writer is
            Base => Map_Pointer (Map),
            EOF  => Map_Pointer (Map) + C.ptrdiff_t (Size));
    end Map;
---
---     procedure Free (This : access Output_Stream_T) is
---
---        type S is access all Output_Stream_T;
---        procedure Delete is new Ada.Unchecked_Deallocation (Output_Stream_T, S);
---        D : S := S (This);
---     begin
---        MMap_Close (This.File);
---        Delete (D);
---     end Free;
---
+
+   procedure Flush_Buffer (This : access Output_Stream_T) is
+      use type Map_Pointer;
+      use type C_Streams.size_t;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+
+      Length : C_Streams.size_t := C_Streams.size_t (This.Map - This.Base);
+   begin
+
+      if 0 /= Length then
+         if Length /=
+           Interfaces.C_Streams.fwrite
+             (Casts.To_Address (Convert (This.Base)),
+              1,
+              Length,
+              This.File)
+         then
+            raise Skill.Errors.Skill_Error
+              with "something went sideways while flushing a buffer";
+         end if;
+
+         This.Bytes_Written := This.Bytes_Written + Types.v64 (Length);
+         This.Map           := This.Base;
+      end if;
+   end Flush_Buffer;
+
+   procedure Close (This : access Output_Stream_T) is
+
+      type S is access all Output_Stream_T;
+      procedure Delete is new Ada.Unchecked_Deallocation (Output_Stream_T, S);
+      D : S := S (This);
+
+      Exit_Code : Integer;
+   begin
+      -- do Pending Writes
+      This.Flush_Buffer;
+      Exit_Code := Interfaces.C_Streams.fclose (This.File);
+      Delete (D);
+   end Close;
+
 --     procedure Free (This : access Sub_Stream_T) is
 --        type S is access all Sub_Stream_T;
 --        procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
@@ -132,7 +171,6 @@ package body Skill.Streams.Writer is
 --     begin
 --        return This.Position >= This.Length;
 --     end Eof;
-
 
    procedure Advance (This : access Abstract_Stream'Class) is
       use C;
@@ -178,10 +216,13 @@ package body Skill.Streams.Writer is
       P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + 1));
    end Advance;
 
-   procedure Ensure_Size (This : access Output_Stream_T; V : Positive) is
+   procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t) is
+      use type Map_Pointer;
+      use type C.ptrdiff_t;
    begin
-      -- TODO
-      null;
+      if This.EOF - This.Map < 1 + V then
+         This.Flush_Buffer;
+      end if;
    end Ensure_Size;
 
 --
@@ -215,30 +256,31 @@ package body Skill.Streams.Writer is
 --        return R;
 --     end I16;
 --
-   procedure I32 (This : access Output_Stream_T; V : Skill.Types.I32) is
+   procedure I32 (This : access Output_Stream_T; V : Skill.Types.i32) is
+      pragma Warnings (Off);
       use C;
       use Uchar;
 
       function Cast is new Ada.Unchecked_Conversion (Unsigned_32, Unsigned_8);
-      function Cast is new Ada.Unchecked_Conversion (Types.I32, Unsigned_32);
+      function Cast is new Ada.Unchecked_Conversion (Types.i32, Unsigned_32);
    begin
       This.Ensure_Size (4);
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 24)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 16)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 8)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 0)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 24)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 16)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 0)));
    end I32;
-   procedure I32 (This : access Sub_Stream_T; V : Skill.Types.I32) is
+   procedure I32 (This : access Sub_Stream_T; V : Skill.Types.i32) is
       use C;
       use Uchar;
 
       function Cast is new Ada.Unchecked_Conversion (Unsigned_32, Unsigned_8);
-      function Cast is new Ada.Unchecked_Conversion (Types.I32, Unsigned_32);
+      function Cast is new Ada.Unchecked_Conversion (Types.i32, Unsigned_32);
    begin
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 24)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 16)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 8)));
-      This.Put_Byte ( Cast ( Interfaces.Shift_Right (Cast (V), 0)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 24)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 16)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 0)));
    end I32;
 --
 --     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64 is
@@ -292,14 +334,154 @@ package body Skill.Streams.Writer is
 --
 
    -- TODO unroll this loop and try to enable inlining somehow
-   procedure V64 (This : access Output_Stream_T; V : Skill.Types.v64) is
+   procedure V64 (This : access Output_Stream_T; Value : Skill.Types.v64) is
+      function To_Byte is new Ada.Unchecked_Conversion
+        (Skill.Types.Uv64,
+         Interfaces.Unsigned_8);
+      V : Types.Uv64 := Types.Uv64 (Value);
+
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
    begin
-      This.Ensure_Size(9);
-   end;
+      This.Ensure_Size (9);
+
+      if 0 = (V and 16#FFFFFFFFFFFFFF80#) then
+         This.Put_Byte (To_Byte (V));
+      else
+         if 0 = (V and 16#FFFFFFFFFFFFC000#) then
+            This.Put_Byte (To_Byte (16#80# or V));
+            This.Put_Byte (To_Byte (Interfaces.Shift_Right (V, 7)));
+         else
+            if 0 = (V and 16#FFFFFFFFFFE00000#) then
+               This.Put_Byte (To_Byte (16#80# or V));
+               This.Put_Byte
+               (To_Byte (16#80# or Interfaces.Shift_Right (V, 7)));
+               This.Put_Byte (To_Byte (Interfaces.Shift_Right (V, 14)));
+            else
+               if 0 = (V and 16#FFFFFFFFF0000000#) then
+                  This.Put_Byte (To_Byte (16#80# or V));
+                  This.Put_Byte
+                  (To_Byte (16#80# or Interfaces.Shift_Right (V, 7)));
+                  This.Put_Byte
+                  (To_Byte (16#80# or Interfaces.Shift_Right (V, 14)));
+                  This.Put_Byte (To_Byte (Interfaces.Shift_Right (V, 21)));
+               else
+                  if 0 = (V and 16#FFFFFFF800000000#) then
+                     This.Put_Byte (To_Byte (16#80# or V));
+                     This.Put_Byte
+                     (To_Byte (16#80# or Interfaces.Shift_Right (V, 7)));
+                     This.Put_Byte
+                     (To_Byte (16#80# or Interfaces.Shift_Right (V, 14)));
+                     This.Put_Byte
+                     (To_Byte (16#80# or Interfaces.Shift_Right (V, 21)));
+                     This.Put_Byte (To_Byte (Interfaces.Shift_Right (V, 28)));
+                  else
+                     if 0 = (V and 16#FFFFFC0000000000#) then
+                        This.Put_Byte (To_Byte (16#80# or V));
+                        This.Put_Byte
+                        (To_Byte (16#80# or Interfaces.Shift_Right (V, 7)));
+                        This.Put_Byte
+                        (To_Byte (16#80# or Interfaces.Shift_Right (V, 14)));
+                        This.Put_Byte
+                        (To_Byte (16#80# or Interfaces.Shift_Right (V, 21)));
+                        This.Put_Byte
+                        (To_Byte (16#80# or Interfaces.Shift_Right (V, 28)));
+                        This.Put_Byte
+                        (To_Byte (Interfaces.Shift_Right (V, 35)));
+                     else
+                        if 0 = (V and 16#FFFE000000000000#) then
+                           This.Put_Byte (To_Byte (16#80# or V));
+                           This.Put_Byte
+                           (To_Byte (16#80# or Interfaces.Shift_Right (V, 7)));
+                           This.Put_Byte
+                           (To_Byte
+                              (16#80# or Interfaces.Shift_Right (V, 14)));
+                           This.Put_Byte
+                           (To_Byte
+                              (16#80# or Interfaces.Shift_Right (V, 21)));
+                           This.Put_Byte
+                           (To_Byte
+                              (16#80# or Interfaces.Shift_Right (V, 28)));
+                           This.Put_Byte
+                           (To_Byte
+                              (16#80# or Interfaces.Shift_Right (V, 35)));
+                           This.Put_Byte
+                           (To_Byte (Interfaces.Shift_Right (V, 42)));
+                        else
+                           if 0 = (V and 16#FF00000000000000#) then
+                              This.Put_Byte (To_Byte (16#80# or V));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 7)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 14)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 21)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 28)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 35)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 42)));
+                              This.Put_Byte
+                              (To_Byte (Interfaces.Shift_Right (V, 49)));
+                           else
+                              This.Put_Byte (To_Byte (16#80# or V));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 7)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 14)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 21)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 28)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 35)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 42)));
+                              This.Put_Byte
+                              (To_Byte
+                                 (16#80# or Interfaces.Shift_Right (V, 49)));
+                              This.Put_Byte
+                              (To_Byte (Interfaces.Shift_Right (V, 56)));
+                           end if;
+                        end if;
+                     end if;
+                  end if;
+               end if;
+            end if;
+         end if;
+      end if;
+   end V64;
    procedure V64 (This : access Sub_Stream_T; V : Skill.Types.v64) is
    begin
       null;
-   end;
+   end V64;
 --     function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
 --        pragma Warnings (Off);
 --
@@ -338,7 +520,8 @@ package body Skill.Streams.Writer is
 --
    procedure Put_Plain_String
      (This : access Output_Stream_T;
-      V    : Skill.Types.String_Access) is
+      V    : Skill.Types.String_Access)
+   is
       function Cast is new Ada.Unchecked_Conversion (Character, Unsigned_8);
    begin
       for C of V.all loop
@@ -346,10 +529,9 @@ package body Skill.Streams.Writer is
       end loop;
    end Put_Plain_String;
 
-
    procedure Put_Byte (This : access Abstract_Stream'Class; V : Unsigned_8) is
    begin
-      This.Map.all := C.Unsigned_Char(V);
+      This.Map.all := C.unsigned_char (V);
       This.Advance;
-   end;
+   end Put_Byte;
 end Skill.Streams.Writer;

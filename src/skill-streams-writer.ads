@@ -31,8 +31,11 @@ package Skill.Streams.Writer is
      (This : access Output_Stream_T;
       Size : Types.v64) return Sub_Stream;
 
---     -- destroy a map and close the file
---     procedure Free (This : access Output_Stream_T);
+   -- internal use
+   procedure Flush_Buffer (This : access Output_Stream_T);
+
+   -- destroy a map and close the file
+   procedure Close (This : access Output_Stream_T);
 --     -- destroy a sub map
 --     procedure Free (This : access Sub_Stream_T);
 --
@@ -73,7 +76,7 @@ package Skill.Streams.Writer is
    procedure V64
      (This : access Abstract_Stream;
       V    : Skill.Types.v64) is abstract;
-   procedure V64 (This : access Output_Stream_T; V : Skill.Types.v64);
+   procedure V64 (This : access Output_Stream_T; Value : Skill.Types.v64);
    procedure V64 (This : access Sub_Stream_T; V : Skill.Types.v64);
 
    -- write the image of a string into a file
@@ -83,8 +86,10 @@ package Skill.Streams.Writer is
 
 private
 
-   procedure Ensure_Size (This : access Output_Stream_T; V : Positive);
-   procedure Put_Byte (This : access Abstract_Stream'Class; V : Interfaces.Unsigned_8);
+   procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t);
+   procedure Put_Byte
+     (This : access Abstract_Stream'Class;
+      V    : Interfaces.Unsigned_8);
    pragma Inline (Put_Byte);
 
    package C renames Interfaces.C;
@@ -105,9 +110,10 @@ private
    pragma Import (C, MMap_Write_Map, "mmap_write_map");
 
    type Output_Stream_T is new Abstract_Stream with record
-      Path   : Skill.Types.String_Access; -- shared string!
-      File   : Interfaces.C_Streams.FILEs;
-      Buffer : Uchar_Array (1 .. 1024);
+      Path          : Skill.Types.String_Access; -- shared string!
+      File          : Interfaces.C_Streams.FILEs;
+      Bytes_Written : Types.v64;
+      Buffer        : Uchar_Array (1 .. 1024);
    end record;
 
    -- a part that is a sub section of an input stream

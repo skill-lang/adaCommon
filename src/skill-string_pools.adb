@@ -62,7 +62,7 @@ package body Skill.String_Pools is
       use type Skill.Streams.Reader.Input_Stream;
    begin
       if null /= This.Input then
-         This.Input.Free;
+         This.Input.Close;
       end if;
 
       This.Id_Map.Foreach (Free'Access);
