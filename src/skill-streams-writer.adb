@@ -30,7 +30,7 @@ package body Skill.Streams.Writer is
    is
 
       F : Interfaces.C_Streams.FILEs :=
-        C_Streams.fopen (Path.all'Address, Mode'Address);
+        C_Streams.fopen (C.To_C(Path.all)'Address, Mode'Address);
 
       R : Output_Stream;
 
