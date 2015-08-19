@@ -7,6 +7,7 @@
 with Ada.Containers.Vectors;
 
 with Skill.Field_Types;
+limited with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
@@ -82,14 +83,18 @@ package Skill.Types.Pools is
 
    function Size (This : access Pool_T'Class) return Natural;
 
-   procedure Do_In_Type_Order (This : access Pool_T'Class;
-                               F : access procedure(I : Annotation));
-   procedure Do_For_Static_Instances (This : access Pool_T;
-                               F : access procedure(I : Annotation)) is abstract;
-   procedure Do_For_Static_Instances (This : access Base_Pool_T;
-                               F : access procedure(I : Annotation)) is abstract;
-   procedure Do_For_Static_Instances (This : access Sub_Pool_T;
-                               F : access procedure(I : Annotation)) is abstract;
+   procedure Do_In_Type_Order
+     (This : access Pool_T'Class;
+      F    : access procedure (I : Annotation));
+   procedure Do_For_Static_Instances
+     (This : access Pool_T;
+      F    : access procedure (I : Annotation)) is abstract;
+   procedure Do_For_Static_Instances
+     (This : access Base_Pool_T;
+      F    : access procedure (I : Annotation)) is abstract;
+   procedure Do_For_Static_Instances
+     (This : access Sub_Pool_T;
+      F    : access procedure (I : Annotation)) is abstract;
 
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes
@@ -120,6 +125,22 @@ package Skill.Types.Pools is
       ID   : Natural;
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+
+   function Known_Fields
+     (This : access Pool_T'Class) return String_Access_Array_Access;
+
+   procedure Add_Known_Field
+     (This        : access Pool_T;
+      Name        : String_Access;
+      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
+   procedure Add_Known_Field
+     (This        : access Sub_Pool_T;
+      Name        : String_Access;
+      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
+   procedure Add_Known_Field
+     (This        : access Base_Pool_T;
+      Name        : String_Access;
+      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
 
    function Make_Sub_Pool
      (This : access Pool_T;
@@ -210,6 +231,9 @@ private
       -- the list of all data fields
       Data_Fields_F : Skill.Field_Declarations.Field_Vector;
 
+      -- names of all known fields of this pool
+      Known_Fields : String_Access_Array_Access;
+
       -- layout of skill ids of this type
       Blocks : Skill.Internal.Parts.Blocks;
 
@@ -224,6 +248,9 @@ private
    end record;
 
    type Owner_T is access Skill.Files.File_T;
+
+   No_Known_Fields : Skill.Types.String_Access_Array_Access :=
+     new Skill.Types.String_Access_Array (1 .. 0);
 
    -- note it is important to have the empty array start at 1, because that way
    -- all descendent arrays will start at 1 as well and thus, no manual index

@@ -14,6 +14,9 @@ with Skill.Types.Pools;
 with Skill.Field_Declarations;
 with Skill.Tasks;
 with Skill.Internal.File_Writers;
+with Skill.Equals;
+with Skill.Hashes;
+with Ada.Containers.Hashed_Sets;
 
 package body Skill.Files is
 
@@ -43,7 +46,7 @@ package body Skill.Files is
 
          when Destroyed =>
             raise Skill.Errors.Skill_Error
-            with "state gets destroyed after first flush. I could fix this if you gave me 1m$.";
+              with "state gets destroyed after first flush. I could fix this if you gave me 1m$.";
       end case;
 
       This.Mode := Destroyed;
@@ -79,7 +82,15 @@ package body Skill.Files is
            (Skill.Types.Pools.Pool_Dyn,
             Skill.Types.Pools.Base_Pool);
 
-         P : Skill.Types.Pools.Pool_Dyn := P_Static.Dynamic;
+         use type Types.String_Access;
+         package A1 is new Ada.Containers.Hashed_Sets
+           (Element_Type        => Types.String_Access,
+            Hash                => Skill.Hashes.Hash,
+            Equivalent_Elements => Skill.Equals.Equals,
+            "="                 => "=");
+
+         P           : Skill.Types.Pools.Pool_Dyn := P_Static.Dynamic;
+         Field_Names : A1.Set;
       begin
          -- note: this loop must happen in type order!
 
@@ -89,15 +100,17 @@ package body Skill.Files is
          end if;
 
          -- add missing field declarations
---              HashSet<String> fieldNames = new HashSet<>();
---              for (de.ust.skill.common.java.api.FieldDeclaration<?> f : p.dataFields)
---                  fieldNames.add(f.name());
+         Field_Names := A1.Empty_Set;
+         for I in 1 .. P.Data_Fields.Length loop
+            Field_Names.Insert(P.Data_Fields.Element(I).Name);
+         end loop;
 
          -- ensure existence of known fields
---              for (String n : p.knownFields) {
---                  if (!fieldNames.contains(n))
---                      p.addKnownField(n, stringType, annotationType);
---              }
+         for N of P.Known_Fields.all loop
+            if not Field_Names.Contains(N) then
+               P.Dynamic.Add_Known_Field(N, This.String_Type);
+            end if;
+         end loop;
 
          -- read known fields
          P.Data_Fields.Foreach (Finish'Access);

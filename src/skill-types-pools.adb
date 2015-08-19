@@ -160,6 +160,9 @@ package body Skill.Types.Pools is
      (This : access Pool_T'Class) return Sub_Pool_Vector is
      (This.Sub_Pools);
 
+   function Known_Fields (This  : access Pool_T'Class) return String_Access_Array_Access is
+      (This.Known_Fields);
+
    -- base pool properties
 
    -- internal use only

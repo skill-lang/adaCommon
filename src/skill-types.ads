@@ -25,6 +25,7 @@ package Skill.Types is
    type String_Access is access String;
    type String_Access_Array is
      array (Integer range <>) of not null String_Access;
+   type String_Access_Array_Access is access all String_Access_Array;
 
    -- declare skill ids type for later configuration
    subtype Skill_ID_T is Integer;

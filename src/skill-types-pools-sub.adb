@@ -63,6 +63,7 @@ package body Skill.Types.Pools.Sub is
            Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
            Data_Fields_F =>
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
+           Known_Fields => No_Known_Fields,
            Blocks      => Skill.Internal.Parts.Blocks_P.Empty_Vector,
            Fixed       => False,
            Cached_Size => 0,
