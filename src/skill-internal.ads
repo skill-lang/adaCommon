@@ -6,4 +6,6 @@
 
 package Skill.Internal is
    pragma Pure;
+
+   type Lbpo_Map_T is array(Integer range <>) of Integer;
 end Skill.Internal;

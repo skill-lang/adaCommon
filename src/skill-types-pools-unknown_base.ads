@@ -36,9 +36,7 @@ package Skill.Types.Pools.Unknown_Base is
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
-
-   overriding
-   procedure Resize_Pool
+   overriding procedure Resize_Pool
      (This       : access Pool_T;
       Targets    : Type_Vector;
       Self_Index : Natural) is null;
@@ -50,18 +48,26 @@ package Skill.Types.Pools.Unknown_Base is
    --          (This : access Pool_T;
    --           F    : access procedure (I : Age));
 
-   function Cast_Annotation (This : Annotation) return Annotation is
-     (This);
+   function Cast_Annotation (This : Annotation) return Annotation is (This);
    pragma Inline (Cast_Annotation);
 
-   package Sub_Pools is new Pools.Sub (Skill_Object, Annotation
-                                       , Cast_Annotation);
+   package Sub_Pools is new Pools.Sub
+     (Skill_Object,
+      Annotation,
+      Cast_Annotation);
 
    function Make_Sub_Pool
      (This : access Pool_T;
       ID   : Natural;
       Name : String_Access) return Skill.Types.Pools.Pool is
-      (Sub_Pools.Make(This.To_Pool, ID, Name));
+     (Sub_Pools.Make (This.To_Pool, ID, Name));
+
+      procedure Do_For_Static_Instances (This : access Pool_T;
+                               F : access procedure(I : Annotation)) is null;
+
+   procedure Update_After_Compress
+     (This     : access Pool_T;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
 
 private
 

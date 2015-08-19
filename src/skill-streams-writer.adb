@@ -244,23 +244,20 @@ package body Skill.Streams.Writer is
       end if;
    end Ensure_Size;
 
---
---     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
---        use C;
---        use Uchar;
---
---        function Convert is new Ada.Unchecked_Conversion
---          (Interfaces.C.unsigned_char,
---           Skill.Types.i8);
---        P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        R : Types.i8      := Convert (P.all);
---     begin
---        -- Increment (P);
---
---        This.Position := This.Position + 1;
---        return R;
---     end I8;
---
+   procedure I8 (This : access Output_Stream_T; V : Skill.Types.I8) is
+      function Cast is new Ada.Unchecked_Conversion (Types.I8, Unsigned_8);
+   begin
+      This.Ensure_Size(1);
+      This.Put_Byte(Cast(V));
+   end I8;
+
+   procedure I8 (This : access Sub_Stream_T; V : Skill.Types.I8) is
+      function Cast is new Ada.Unchecked_Conversion (Types.I8, Unsigned_8);
+   begin
+      This.Put_Byte(Cast(V));
+   end I8;
+
+
 --     function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16 is
 --        use C;
 --        use Uchar;

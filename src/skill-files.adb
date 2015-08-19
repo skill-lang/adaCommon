@@ -40,7 +40,13 @@ package body Skill.Files is
             Skill.Internal.File_Writers.Append
               (Cast (T (This)),
                Streams.Append (This.Path));
+
+         when Destroyed =>
+            raise Skill.Errors.Skill_Error
+            with "state gets destroyed after first flush. I could fix this if you gave me 1m$.";
       end case;
+
+      This.Mode := Destroyed;
    end Flush;
 
    procedure Finalize_Pools (This : access File_T'Class) is

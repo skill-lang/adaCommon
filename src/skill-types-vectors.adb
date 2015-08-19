@@ -56,6 +56,19 @@ package body Skill.Types.Vectors is
       This.Next_Index                          := This.Next_Index + 1;
    end Append_Unsafe;
 
+   procedure Append_All (This : access Vector_T; Other : Vector) is
+   begin
+      if Other.Is_Empty then
+         return;
+      end if;
+
+      This.Ensure_Index
+      (Index_Base (This.Next_Index) + Index_Base (Other.Length));
+      for I in Index_Type'First .. Other.Next_Index - 1 loop
+         This.Append_Unsafe (Other.Data (I));
+      end loop;
+   end Append_All;
+
    function Pop (This : access Vector_T) return Element_Type is
    begin
       This.Next_Index := This.Next_Index - 1;

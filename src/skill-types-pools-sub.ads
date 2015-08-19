@@ -58,8 +58,14 @@ package Skill.Types.Pools.Sub is
      (This : access Pool_T;
       ID   : Natural;
       Name : String_Access) return Skill.Types.Pools.Pool is
-      (Make (This.To_Pool, Id, Name));
+     (Make (This.To_Pool, Id, Name));
 
+      procedure Do_For_Static_Instances (This : access Pool_T;
+                               F : access procedure(I : Annotation)) is null;
+
+   procedure Update_After_Compress
+     (This     : access Pool_T;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
 private
 
    package A1 is new Vectors (Natural, P);

@@ -72,6 +72,19 @@ package body Skill.Types.Pools is
       return Size;
    end Size;
 
+
+   procedure Do_In_Type_Order (This : access Pool_T'Class;
+                               F : access procedure(I : Annotation)) is
+
+      procedure Closure (This : Sub_Pool) is
+      begin
+         This.Do_In_Type_Order(F);
+      end Closure;
+   begin
+      This.Do_For_Static_Instances(F);
+      This.Sub_Pools.Foreach(Closure'Access);
+   end;
+
    function Blocks
      (This : access Pool_T) return Skill.Internal.Parts.Blocks is
      (This.Blocks);
@@ -138,12 +151,40 @@ package body Skill.Types.Pools is
       return Convert (P (This)).Add_Field (ID, T, Name);
    end Add_Field;
 
+   function Pool_Offset (This : access Pool_T'Class) return Integer is
+   begin
+      return This.Type_Id;
+   end Pool_Offset;
+
+   function Sub_Pools
+     (This : access Pool_T'Class) return Sub_Pool_Vector is
+     (This.Sub_Pools);
+
    -- base pool properties
 
    -- internal use only
    function Data
      (This : access Base_Pool_T) return Skill.Types.Annotation_Array is
      (This.Data);
+
+   procedure Compress (This : access Base_Pool_T'Class; Lbpo_Map : Skill.Internal.Lbpo_Map_T) is
+      D : Annotation_Array := new Annotation_Array_T(1 .. This.Size);
+      P : Skill_ID_T := 0;
+
+      procedure Update(I : Annotation) is
+      begin
+         D(P) := I;
+         P := P + 1;
+         I.Skill_Id := P;
+      end update;
+   begin
+      This.Do_In_Type_Order(Update'Access);
+
+      This.Data := D;
+      This.Update_After_Compress(Lbpo_Map);
+   end Compress;
+
+
 
    -- invoked by resize pool (from base pool implementation)
    procedure Resize_Data (This : access Base_Pool_T) is

@@ -5,16 +5,51 @@
 --                                                                            --
 with Skill.String_Pools;
 with Skill.Types.Pools;
+with Skill.Field_Types.Builtin;
+with Skill.Types.Vectors;
+with Skill.Field_Declarations; use Skill.Field_Declarations;
+with Interfaces;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
 package body Skill.Internal.File_Writers is
+
+   function Make_LBPO_Map(P : Types.Pools.Pool; Lbpo_Map : in out Lbpo_Map_T; Next : Integer) return Integer is
+      Result : Integer := Next + P.Dynamic.Static_Size;
+
+      procedure Children (sub : Types.Pools.Sub_Pool) is
+      begin
+         Result := Make_LBPO_Map(Sub.To_Pool, LBPO_Map, Result);
+      end Children;
+   begin
+      Lbpo_Map(P.Pool_Offset) := Next;
+      p.Sub_Pools.Foreach(Children'Access);
+      return result;
+   end Make_LBPO_Map;
 
    -- write a file to disk
    procedure Write
      (State  : Skill.Files.File;
       Output : Skill.Streams.Writer.Output_Stream)
    is
+      String_Type : Skill.Field_Types.Builtin.String_Type_T.Field_Type := State.String_Type;
+
+      procedure String (S : Types.String_Access) is
+      begin
+         Output.V64(Types.V64(String_Type.String_IDs.Element(S)));
+      end String;
+
+      procedure Restrictions (S : Types.Pools.Pool) is
+      begin
+         -- todo
+         Output.V64(0);
+      end Restrictions;
+
+      -- index → bpo
+      --  @note pools.par would not be possible if it were an actual
+      Lbpo_Map : Lbpo_Map_T (0 .. State.Types.Length - 1);
    begin
       ----------------------
       -- PHASE 1: Collect --
@@ -28,7 +63,7 @@ package body Skill.Internal.File_Writers is
       declare
          Strings : Skill.String_Pools.Pool := State.Strings;
 
-         procedure Add (This :      Skill.Types.Pools.Pool) is
+         procedure Add (This : Skill.Types.Pools.Pool) is
          begin
             Strings.Add (This.Skill_Name);
             --              for (FieldDeclaration<?, ?> f : p.dataFields) {
@@ -40,11 +75,10 @@ package body Skill.Internal.File_Writers is
             --                  }
             --              }
 
-         end;
+         end Add;
       begin
-         State.Types.Foreach(Add'Access);
+         State.Types.Foreach (Add'Access);
       end;
-
 
       ------------------------------
       -- PHASE 2: Check & Reorder --
@@ -53,33 +87,36 @@ package body Skill.Internal.File_Writers is
       --  check consistency of the state, now that we aggregated all instances
       -- TODO State.Check;
 
---          stringIDs = state.stringType.resetIDs();
 
---                // make lbpo map, update data map to contain dynamic instances and create skill IDs for serialization
---          // index → bpo
---        // @note pools.par would not be possible if it were an actual map:)
---          final int[] lbpoMap = new int[state.types.size()];
---          state.types.stream().parallel().forEach(p -> {
---              if (p instanceof BasePool<?>) {
---                  makeLBPOMap(p, lbpoMap, 0);
---                  ((BasePool<?>) p).compress(lbpoMap);
+      -- make lbpo map, update data map to contain dynamic instances and create skill IDs for serialization
+      declare
+         procedure Make (This : Types.Pools.Pool) is
+            function Cast is new Ada.Unchecked_Conversion(Types.Pools.Pool, Types.Pools.Base_Pool);
+            R : Integer;
+         begin
+            if This.Dynamic.all in Types.Pools.Base_Pool_T'Class then
+               R := Make_LBPO_Map(This, Lbpo_Map, 0);
+               Cast(This).Compress(Lbpo_Map);
 --                  p.fixed(true);
---              }
---          });
---
+               end if;
+         end Make;
+      begin
+         State.Types.Foreach(Make'Access);
+      end;
 
       --------------------
       -- PHASE 3: Write --
       --------------------
 
       --  write string block
-      State.Strings.Prepare_And_Write (Output, State.String_Type.String_IDs'access);
+      State.Strings.Prepare_And_Write
+      (Output, State.String_Type.String_IDs'Access);
 
---
---          // write count of the type block
---          out.v64(state.types.size());
---
---          // calculate offsets
+
+      -- write count of the type block
+      Output.V64(Types.V64(State.Types.Length));
+
+--        // Calculate Offsets
 --          HashMap<StoragePool<?, ?>, HashMap<FieldDeclaration<?, ?>, Future<Long>>> offsets = new HashMap<>();
 --          for (final StoragePool<?, ?> p : state.types) {
 --              HashMap<FieldDeclaration<?, ?>, Future<Long>> vs = new HashMap<>();
@@ -93,13 +130,18 @@ package body Skill.Internal.File_Writers is
 --              offsets.put(p, vs);
 --          }
 --
---          // write types
---          ArrayList<FieldDeclaration<?, ?>> fieldQueue = new ArrayList<>();
---          for (StoragePool<?, ?> p : state.types) {
---              string(p.name, out);
---              long LCount = p.blocks.getLast().count;
---              out.v64(LCount);
---              restrictions(p, out);
+
+      -- write types
+      declare
+         use type Types.Pools.Pool;
+         use type Interfaces.Integer_64;
+
+         package A1 renames Field_Declarations.Field_Vector_P;
+         Field_Queue : A1.Vector := A1.Empty_Vector;
+
+         procedure Write_Type (This : Types.Pools.Pool) is
+
+            Lcount : Types.V64 := This.Blocks.Last_Element.Count;
 --              if (null == p.superPool)
 --                  out.i8((byte) 0);
 --              else {
@@ -110,7 +152,27 @@ package body Skill.Internal.File_Writers is
 --
 --              out.v64(p.dataFields.size());
 --              fieldQueue.addAll(p.dataFields);
---          }
+         begin
+            String(This.Skill_Name);
+            Output.V64(Lcount);
+            Restrictions(This);
+            if null = This.Super then
+               Output.I8 (0);
+            else
+               Output.V64(Types.V64(This.Super.ID - 31));
+               if 0 /= Lcount then
+                  -- TODO
+                  Output.V64(-1);
+               end if;
+            end if;
+
+            Output.V64(Types.V64(This.Data_Fields.Length));
+            Field_Queue.Append_All(This.Data_Fields);
+         end;
+
+      begin
+         State.Types.Foreach(Write_Type'Access);
+      end;
 --
 --          // write fields
 --          ArrayList<Task> data = new ArrayList<>();
@@ -170,7 +232,7 @@ package body Skill.Internal.File_Writers is
 --              });
 --          }
 --          barrier.acquire(data.size());
-        Output.Close;
+      Output.Close;
 --
 --          // report errors
 --          for (SkillException e : writeErrors) {

@@ -17,7 +17,7 @@ with Skill.Field_Types.Builtin;
 package Skill.Files is
 
    type Read_Mode is (Create, Read);
-   type Write_Mode is (Write, Append);
+   type Write_Mode is (Write, Append, Destroyed);
 
    use type Skill.Types.Pools.Pool;
    package P_Type_Map is new Ada.Containers.Hashed_Maps

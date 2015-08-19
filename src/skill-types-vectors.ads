@@ -33,6 +33,9 @@ package Skill.Types.Vectors is
      (This        : access Vector_T;
       New_Element : Element_Type);
 
+   -- apppends all elements stored in argument vector
+   procedure Append_All (This : access Vector_T; Other : Vector);
+
    -- remove the last element
    function Pop (This : access Vector_T) return Element_Type;
 

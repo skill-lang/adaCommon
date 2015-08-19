@@ -11,6 +11,8 @@ with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
 with Skill.Types.Vectors;
+with Skill.Internal;
+with Skill.Types.Iterators;
 
 -- TODO push down:
 --  type A2 is not null access T;
@@ -80,6 +82,15 @@ package Skill.Types.Pools is
 
    function Size (This : access Pool_T'Class) return Natural;
 
+   procedure Do_In_Type_Order (This : access Pool_T'Class;
+                               F : access procedure(I : Annotation));
+   procedure Do_For_Static_Instances (This : access Pool_T;
+                               F : access procedure(I : Annotation)) is abstract;
+   procedure Do_For_Static_Instances (This : access Base_Pool_T;
+                               F : access procedure(I : Annotation)) is abstract;
+   procedure Do_For_Static_Instances (This : access Sub_Pool_T;
+                               F : access procedure(I : Annotation)) is abstract;
+
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes
    function Static_Size (This : access Pool_T) return Natural is abstract;
@@ -147,6 +158,27 @@ package Skill.Types.Pools is
      (This       : access Sub_Pool_T;
       Targets    : Type_Vector;
       Self_Index : Natural) is abstract;
+
+   -- internal use only
+   -- type_ID - 32
+   function Pool_Offset (This : access Pool_T'Class) return Integer;
+
+   -- internal use only
+   function Sub_Pools (This : access Pool_T'Class) return Sub_Pool_Vector;
+
+   -- internal use only
+   procedure Compress
+     (This     : access Base_Pool_T'Class;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T);
+   procedure Update_After_Compress
+     (This     : access Pool_T;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
+   procedure Update_After_Compress
+     (This     : access Base_Pool_T;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
+   procedure Update_After_Compress
+     (This     : access Sub_Pool_T;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
 
    -- internal use only
    procedure Resize_Data (This : access Base_Pool_T);

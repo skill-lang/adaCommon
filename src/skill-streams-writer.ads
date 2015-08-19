@@ -49,9 +49,10 @@ package Skill.Streams.Writer is
    function Position
      (This : access Sub_Stream_T) return Skill.Types.V64;
 
---     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
---     pragma Inline (I8);
---
+   procedure I8 (This : access Abstract_Stream; V : Skill.Types.I8) is abstract;
+   procedure I8 (This : access Output_Stream_T; V : Skill.Types.I8);
+   procedure I8 (This : access Sub_Stream_T; V : Skill.Types.I8);
+
 --     use type Interfaces.Integer_8;
 --     function Bool
 --       (This : access Abstract_Stream'Class) return Boolean is
