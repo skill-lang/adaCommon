@@ -30,7 +30,7 @@ package body Skill.Streams.Writer is
    is
 
       F : Interfaces.C_Streams.FILEs :=
-        C_Streams.fopen (C.To_C(Path.all)'Address, Mode'Address);
+        C_Streams.fopen (C.To_C (Path.all)'Address, Mode'Address);
 
       R : Output_Stream;
 
@@ -70,16 +70,31 @@ package body Skill.Streams.Writer is
       use type Uchar.Pointer;
       use type Interfaces.Integer_64;
 
-      Map : Uchar.Pointer :=
-        MMap_Write_Map (This.File, C.size_t (This.Position), C.size_t (Size));
+      Map : Uchar.Pointer;
+
    begin
+      if 0 = Size then
+         return new Sub_Stream_T'
+             (Map  => Invalid_Pointer,
+              Base => Invalid_Pointer,
+              EOF  => Invalid_Pointer);
+      end if;
+
+      -- Save Our Buffer To Disk
+      This.Flush_Buffer;
+
+      Map := MMap_Write_Map (This.File, Size) + C.Ptrdiff_T(This.Position);
       if null = Map then
          raise Skill.Errors.Skill_Error
-           with "failed to create map of size " &
+           with "failed to create map of size" &
            Long_Long_Integer'Image (Long_Long_Integer (Size)) &
-           "in file: " &
+           " in file: " &
            This.Path.all;
       end if;
+
+      -- Advance File Pointer
+      -- @Note: File Position Was Updated By C Code
+      This.Bytes_Written := This.Bytes_Written + Size;
 
       return new Sub_Stream_T'
           (Map  => Map_Pointer (Map),
@@ -150,9 +165,13 @@ package body Skill.Streams.Writer is
 --        return This.Path;
 --     end Path;
 --
-   function Position
-     (This : access Abstract_Stream'Class) return Skill.Types.v64
-   is
+   function Position (This : access Output_Stream_T) return Skill.Types.v64 is
+      use type Map_Pointer;
+   begin
+      return This.Bytes_Written + Types.v64 (This.Map - This.Base);
+   end Position;
+
+   function Position (This : access Sub_Stream_T) return Skill.Types.v64 is
       use type Map_Pointer;
    begin
       return Types.v64 (This.Map - This.Base);

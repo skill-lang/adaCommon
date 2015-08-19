@@ -1,9 +1,10 @@
-with Skill.String_Pools;
 --  ___ _  ___ _ _                                                            --
 -- / __| |/ (_) | |       Common SKilL implementation                         --
 -- \__ \ ' <| | | |__     file writer implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+with Skill.String_Pools;
+with Skill.Types.Pools;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
@@ -26,21 +27,22 @@ package body Skill.Internal.File_Writers is
    -- generic fields as well
       declare
          Strings : Skill.String_Pools.Pool := State.Strings;
-      begin
-         null;
-         -- TODO
---          for (StoragePool<?, ?> p : state.types) {
---              strings.add(p.name);
---              for (FieldDeclaration<?, ?> f : p.dataFields) {
---
---                  strings.add(f.name);
---                  if (f.type instanceof StringType) {
---                      for (SkillObject i : p)
---                          strings.add((String) i.get(f));
---                  }
---              }
-         --          }
 
+         procedure Add (This :      Skill.Types.Pools.Pool) is
+         begin
+            Strings.Add (This.Skill_Name);
+            --              for (FieldDeclaration<?, ?> f : p.dataFields) {
+            --
+            --                  strings.add(f.name);
+            --                  if (f.type instanceof StringType) {
+            --                      for (SkillObject i : p)
+            --                          strings.add((String) i.get(f));
+            --                  }
+            --              }
+
+         end;
+      begin
+         State.Types.Foreach(Add'Access);
       end;
 
 
@@ -71,7 +73,7 @@ package body Skill.Internal.File_Writers is
       --------------------
 
       --  write string block
-      State.Strings.Prepare_And_Write (Output);
+      State.Strings.Prepare_And_Write (Output, State.String_Type.String_IDs'access);
 
 --
 --          // write count of the type block
@@ -168,7 +170,7 @@ package body Skill.Internal.File_Writers is
 --              });
 --          }
 --          barrier.acquire(data.size());
---          out.close();
+        Output.Close;
 --
 --          // report errors
 --          for (SkillException e : writeErrors) {

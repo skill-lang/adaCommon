@@ -17,6 +17,7 @@ with Skill.Synchronization;
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
+limited with Skill.Field_Types.Builtin;
 
 package Skill.String_Pools is
 
@@ -39,6 +40,10 @@ package Skill.String_Pools is
      (This  : access Pool_T;
       Index : Types.v64) return Skill.Types.String_Access;
 
+
+   -- adds a string to the pool
+   procedure Add (This : access Pool_T; S : Types.String_Access);
+
    -- internal use only
    function InvalidPoolIndexException
      (Idx       : Natural;
@@ -58,7 +63,8 @@ package Skill.String_Pools is
    -- internal use only
    procedure Prepare_And_Write
      (This   : access Pool_T;
-      Output : Skill.Streams.Writer.Output_Stream);
+      Output : Skill.Streams.Writer.Output_Stream;
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_T.ID_Map);
 private
 
    use type Skill.Types.String_Access;

@@ -12,6 +12,7 @@ with Skill.Types.Vectors;
 with Skill.String_Pools;
 with Skill.Hashes;
 with Skill.Equals;
+with Skill.Field_Types.Builtin;
 
 package Skill.Files is
 
@@ -36,6 +37,9 @@ package Skill.Files is
       -- strings stored in this file
       Strings : Skill.String_Pools.Pool;
 
+      -- string type used for string RTTI
+      String_Type : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
+
       -- types stored in this file
       Types : Skill.Types.Pools.Type_Vector;
 
@@ -49,6 +53,8 @@ package Skill.Files is
 
    -- write changes to disk
    procedure Flush (This : access File_T'Class);
+
+   procedure Free (This : access File_T) is abstract;
 
    -- internal use only
    procedure Finalize_Pools (This : access File_T'Class);

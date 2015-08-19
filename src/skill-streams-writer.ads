@@ -43,7 +43,11 @@ package Skill.Streams.Writer is
 --       (This : access Output_Stream_T) return Skill.Types.String_Access;
 --
    function Position
-     (This : access Abstract_Stream'Class) return Skill.Types.v64;
+     (This : access Abstract_Stream) return Skill.Types.V64 is abstract;
+   function Position
+     (This : access Output_Stream_T) return Skill.Types.V64;
+   function Position
+     (This : access Sub_Stream_T) return Skill.Types.V64;
 
 --     function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;
 --     pragma Inline (I8);
@@ -105,8 +109,7 @@ private
 
    function MMap_Write_Map
      (F      : Interfaces.C_Streams.FILEs;
-      Length : C.size_t;
-      Offset : C.size_t) return Uchar.Pointer;
+      Length : Types.V64) return Uchar.Pointer;
    pragma Import (C, MMap_Write_Map, "mmap_write_map");
 
    type Output_Stream_T is new Abstract_Stream with record

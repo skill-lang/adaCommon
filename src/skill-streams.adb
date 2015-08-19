@@ -25,12 +25,12 @@ package body Skill.Streams is
    function Write
      (Path : Skill.Types.String_Access)
       return Skill.Streams.Writer.Output_Stream is
-     (Streams.Writer.Open(Path, "w"));
+     (Streams.Writer.Open(Path, "w+"));
 
    function Append
      (Path : Skill.Types.String_Access)
       return Skill.Streams.Writer.Output_Stream is
-     (Streams.Writer.Open (Path, "a"));
+     (Streams.Writer.Open (Path, "a+"));
 
    function Invalid_Pointer return Map_Pointer is
       pragma Warnings (Off);

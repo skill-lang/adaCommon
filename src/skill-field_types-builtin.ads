@@ -11,6 +11,10 @@ with Ada.Containers.Vectors;
 
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
+with Skill.Equals; use Skill.Equals;
+with Skill.String_Pools;
+with Skill.Streams;
+with Skill.Streams.Writer;
 
 package Skill.Field_Types.Builtin is
 --     pragma Preelaborate;
@@ -88,8 +92,56 @@ package Skill.Field_Types.Builtin is
    F64 : constant Field_Type := new A42.Field_Type;
 
 
-   package String_Type_T is new Plain_Types (T.String_Access, 14, "string");
-   String_Type : constant Field_Type := new String_Type_T.Field_Type;
+   package String_Type_T is
+      package A1 is new Field_Types (Types.String_Access, 14);
+      package IDs is new Ada.Containers.Hashed_Maps (Key_Type        => Types.String_Access,
+                                                     Element_Type    => Types.Skill_ID_T,
+                                                     Hash            => Hash,
+                                                     Equivalent_Keys => Skill.Equals.Equals,
+                                                     "="             => "=");
+
+      -- we need to pass a pointer to the map around
+      type ID_Map is not null access IDs.Map;
+
+      type Field_Type_T is new A1.Field_Type with record
+         Strings : Skill.String_Pools.Pool;
+         String_IDs : aliased IDs.Map;
+      end record;
+
+      type Field_Type is access Field_Type_T;
+
+--  	@Override
+--  	public String readSingleField(InStream in) {
+--  		return strings.get(in.v64());
+--  	}
+
+--  	@Override
+--  	public long calculateOffset(Collection<String> xs) {
+--  		// shortcut for small string pools
+--  		if (stringIDs.size() < 128)
+--  			return xs.size();
+--
+--  		long result = 0L;
+--  		for (String s : xs) {
+--  			result += V64.singleV64Offset(stringIDs.get(s));
+--  		}
+--
+--  		return result;
+--  	}
+
+--      public long singleOffset(String name) {
+--  		return V64.singleV64Offset(stringIDs.get(name));
+--  	}
+
+--        @Override
+      procedure Clear_IDs (THis : access Field_Type_T; V : Types.String_Access; Output : Skill.Streams.Writer.Output_Stream);
+
+      overriding function To_String (This : Field_Type_T) return String is
+        ("string");
+   end String_Type_T;
+
+   function String_Type  (Strings : String_Pools.Pool) return String_Type_T.Field_Type is
+     (new String_Type_T.Field_Type_T'(Strings, String_Type_T.Ids.Empty_Map));
 
 
    generic

@@ -9,7 +9,7 @@ package Skill.Field_Types is
 
 
    type Field_Type_Base is abstract tagged null record;
-   type Field_Type is access Field_Type_Base'Class;
+   type Field_Type is access all Field_Type_Base'Class;
 
    function ID (This : access Field_Type_Base) return Natural is abstract;
    function To_String (This : Field_Type_Base) return String is abstract;

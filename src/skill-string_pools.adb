@@ -13,6 +13,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
 with Skill.Synchronization;
 with Ada.Unchecked_Deallocation;
+with Skill.Field_Types.Builtin;
 
 package body Skill.String_Pools is
 
@@ -152,46 +153,54 @@ package body Skill.String_Pools is
               E);
    end Get;
 
+   procedure Add (This : access Pool_T; S : Types.String_Access) is
+   begin
+      if null /= S then
+         This.New_Strings.Insert (S);
+      end if;
+   end Add;
+
    procedure Prepare_And_Write
-     (This   : access Pool_T;
-      Output : Skill.Streams.Writer.Output_Stream)
+     (This              : access Pool_T;
+      Output            : Skill.Streams.Writer.Output_Stream;
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_T.ID_Map)
    is
       S : Types.String_Access;
 
-      Count : Types.V64;
+      Count : Types.v64;
 
       use type Types.v64;
+      use type Skill.Field_Types.Builtin.String_Type_T.ID_Map;
    begin
---        Das Hier Typmäßig Benennen
---            HashMap<String, Integer> serializationIDs = ws.stringIDs;
 
       -- ensure all strings are present
       for I in 1 .. This.String_Positions.Length - 1 loop
          S := This.Get (Types.v64 (I));
       end loop;
---
---          // create inverse map
---          for (int i = 1; i < idMap.size(); i++) {
---              serializationIDs.put(idMap.get(i), i);
---          }
---
---          // instert new strings to the map;
---          // this is the place where duplications with lazy strings will be detected and eliminated
---          for (String s : newStrings) {
---              if (!serializationIDs.containsKey(s)) {
---                  serializationIDs.put(s, idMap.size());
---                  idMap.add(s);
---              }
---          }
---
 
-      Count := Types.V64(This.Id_Map.Length - 1);
+      -- create inverse map
+      for I in 1 .. Types.Skill_ID_T (This.Id_Map.Length - 1) loop
+         Serialization_IDs.Insert
+         (Key => This.Id_Map.Element (I), New_Item => I);
+      end loop;
+
+   -- instert new strings to the map;
+   -- this is the place where duplications with lazy strings will be detected
+   -- and eliminated
+      for S of This.New_Strings loop
+         if not Serialization_IDs.Contains (S) then
+            Serialization_IDs.Insert (S, This.Id_Map.Length);
+            This.Id_Map.Append (S);
+         end if;
+      end loop;
+
+      Count := Types.v64 (This.Id_Map.Length - 1);
       Output.V64 (Count);
       declare
-         Off : Types.I32 := 0;
+         Off : Types.i32 := 0;
 
          -- map offsets
-         Offsets : Streams.Writer.Sub_Stream := Output.Map(4 * Count);
+         Offsets : Streams.Writer.Sub_Stream := Output.Map (4 * Count);
 
          procedure Put (S : Types.String_Access) is
          begin
@@ -200,12 +209,12 @@ package body Skill.String_Pools is
                return;
             end if;
 
-            Off := Off + S.all'Size;
-            Output.Put_Plain_String(S);
+            Off := Off + S.all'Size / 8;
+            Output.Put_Plain_String (S);
             Offsets.I32 (Off);
-         end;
+         end Put;
       begin
-         This.Id_Map.Foreach(Put'Access);
+         This.Id_Map.Foreach (Put'Access);
       end;
    end Prepare_And_Write;
 end Skill.String_Pools;

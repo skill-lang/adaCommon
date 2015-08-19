@@ -55,15 +55,23 @@ mmap_read_record mmap_read(char const *filename)
   return rval;
 }
 
-char const* mmap_write_map(FILE *stream, size_t length, size_t offset)
+char const* mmap_write_map(FILE *stream, size_t length)
 {
-  void *rval = mmap(NULL, length, PROT_WRITE, MAP_SHARED, fileno(stream), offset);
+  // advance file position
+  fseek(stream, length, SEEK_CUR);
 
-  if(MAP_FAILED == rval)
-    return NULL;
+  // create map
+  void *rval = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(stream), 0);
 
-  if (-1 == madvise(rval, length, MADV_WILLNEED))
+  if(MAP_FAILED == rval){
+    fprintf(stderr, "mmap.c: %s\n errno was: %s\n", "failed to create write map", strerror(errno));
     return NULL;
+  }
+
+  if (-1 == madvise(rval, length, MADV_WILLNEED)){
+    fprintf(stderr, "mmap.c: %s\n errno was: %s\n", "failed to advise write map", strerror(errno));
+    return NULL;
+  }
 
   return rval;
 }

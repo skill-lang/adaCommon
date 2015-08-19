@@ -11,6 +11,7 @@ with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Field_Types;
 with Skill.Streams.Reader;
+with Skill.Field_Types.Builtin;
 
 -- documentation can be found in java common
 package Skill.Internal.File_Parsers is
@@ -28,6 +29,7 @@ package Skill.Internal.File_Parsers is
         (Path          : Types.String_Access;
          Mode          : Files.Write_Mode;
          Strings       : String_Pools.Pool;
+         String_Type   : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
          Types         : Skill.Types.Pools.Type_Vector;
          Types_By_Name : Files.Type_Map) return Result is <>;
 
