@@ -22,6 +22,13 @@ package body Skill.Streams.Reader is
    use Skill;
    use type Uchar.Pointer;
 
+   function Invalid_Pointer return Map_Pointer is
+      pragma Warnings (Off);
+      function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
+   begin
+      return Cast (-1);
+   end;
+
    -- type used to represent empty input streams
    -- @note(TF) this is used to keep stream & map pointers not null
    function Empty_Stream return Input_Stream is
@@ -95,6 +102,13 @@ package body Skill.Streams.Reader is
            Base => This.Base + C.ptrdiff_t (Base + First),
            EOF  => This.Base + C.ptrdiff_t (Base + Last));
    end Map;
+
+   The_Empty_Sub_Stream : Sub_Stream :=
+     new Sub_Stream_T'
+       (Map  => Invalid_Pointer,
+        Base => Invalid_Pointer,
+        EOF  => Invalid_Pointer);
+   function Empty_Sub_Stream return Sub_Stream is (The_Empty_Sub_Stream);
 
    procedure Close (This : access Input_Stream_T) is
 

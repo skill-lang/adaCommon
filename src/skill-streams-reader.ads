@@ -31,6 +31,8 @@ package Skill.Streams.Reader is
       First : Types.v64;
       Last  : Types.v64) return Sub_Stream;
 
+   function Empty_Sub_Stream return Sub_Stream;
+
    -- destroy a map and close the file
    procedure Close (This : access Input_Stream_T);
    -- destroy a sub map
@@ -87,6 +89,10 @@ package Skill.Streams.Reader is
 
 private
    package C renames Interfaces.C;
+
+   -- returns an invalid map pointer, that can be used in empty maps
+   function Invalid_Pointer return Map_Pointer;
+   pragma Inline (Invalid_Pointer);
 
    -- mmap_c_array mmap_open (char const * filename)
    function MMap_Open (Path : Interfaces.C.Strings.chars_ptr) return Mmap;
