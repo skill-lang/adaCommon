@@ -108,7 +108,7 @@ package body Skill.Files is
          -- ensure existence of known fields
          for N of P.Known_Fields.all loop
             if not Field_Names.Contains(N) then
-               P.Dynamic.Add_Known_Field(N, This.String_Type);
+               P.Dynamic.Add_Known_Field(N, This.String_Type, This.Annotation_Type);
             end if;
          end loop;
 

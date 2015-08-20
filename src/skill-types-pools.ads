@@ -14,6 +14,9 @@ limited with Skill.Files;
 with Skill.Types.Vectors;
 with Skill.Internal;
 with Skill.Types.Iterators;
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings;
+with Ada.Strings.Hash;
 
 -- TODO push down:
 --  type A2 is not null access T;
@@ -55,13 +58,29 @@ package Skill.Types.Pools is
    type Base_Pool_T is abstract new Pool_T with private;
    type Base_Pool is access Base_Pool_T;
 
+   -- clone some general purpose code to make ada compile it...dafuq
+   function Hash
+     (Element : Skill.Types.String_Access) return Ada.Containers.Hash_Type is
+     (Ada.Strings.Hash (Element.all));
+   function Equals
+     (A, B : Skill.Types.String_Access) return Boolean is
+     (A = B or else ((null /= A and null /= B) and then A.all = B.all));
+
    -- data structures using pools
    package P_Type_Vector is new Skill.Types.Vectors
      (Natural,
       Skill.Types.Pools.Pool);
    subtype Type_Vector is P_Type_Vector.Vector;
+
    package Sub_Pool_Vector_P is new Types.Vectors (Natural, Sub_Pool);
    subtype Sub_Pool_Vector is Sub_Pool_Vector_P.Vector;
+
+   package P_Type_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Skill.Types.String_Access,
+      Element_Type    => Skill.Types.Pools.Pool,
+      Hash            => Hash,
+      Equivalent_Keys => Equals);
+   subtype Type_Map is P_Type_Map.Map;
 
    -- pointer conversions
    function Dynamic (This : access Pool_T) return Pool_Dyn;
@@ -130,17 +149,23 @@ package Skill.Types.Pools is
      (This : access Pool_T'Class) return String_Access_Array_Access;
 
    procedure Add_Known_Field
-     (This        : access Pool_T;
-      Name        : String_Access;
-      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
+     (This            : access Pool_T;
+      Name            : String_Access;
+      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P
+        .Field_Type) is abstract;
    procedure Add_Known_Field
-     (This        : access Sub_Pool_T;
-      Name        : String_Access;
-      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
+     (This            : access Sub_Pool_T;
+      Name            : String_Access;
+      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P
+        .Field_Type) is abstract;
    procedure Add_Known_Field
-     (This        : access Base_Pool_T;
-      Name        : String_Access;
-      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is abstract;
+     (This            : access Base_Pool_T;
+      Name            : String_Access;
+      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P
+        .Field_Type) is abstract;
 
    function Make_Sub_Pool
      (This : access Pool_T;

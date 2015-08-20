@@ -51,8 +51,9 @@ package body Skill.Internal.File_Parsers is
       -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
       String_Type : Field_Types.Builtin.String_Type_T.Field_Type := Field_Types.Builtin.String_Type(Strings);
-        Type_Vector   : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
-      Types_By_Name : Files.Type_Map    := Files.P_Type_Map.Empty_Map;
+      Type_Vector   : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
+      Types_By_Name : Skill.Types.Pools.Type_Map    := Skill.Types.Pools.P_Type_Map.Empty_Map;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P.Field_Type := Field_Types.Builtin.Annotation(Type_Vector);
 
       -- parser state --
 
@@ -276,7 +277,7 @@ package body Skill.Internal.File_Parsers is
                return new Field_Types.Builtin.Constant_V64.Field_Type'
                  (Value => Input.V64);
             when 5 =>
-               return Field_Types.Builtin.Annotation;
+               return Field_Types.Field_Type(Annotation_Type);
             when 6 =>
                return Field_Types.Builtin.Bool;
             when 7 =>
@@ -574,7 +575,7 @@ package body Skill.Internal.File_Parsers is
 
       Free_State;
 
-      return Make_State (Input.Path, Mode, Strings, String_Type, Type_Vector, Types_By_Name);
+      return Make_State (Input.Path, Mode, Strings, String_Type, Annotation_Type, Type_Vector, Types_By_Name);
 
    exception
       when E : Storage_Error =>

@@ -26,12 +26,14 @@ package Skill.Internal.File_Parsers is
          Super   : Skill.Types.Pools.Pool) return Skill.Types.Pools.Pool is <>;
 
       with function Make_State
-        (Path          : Types.String_Access;
-         Mode          : Files.Write_Mode;
-         Strings       : String_Pools.Pool;
-         String_Type   : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
+        (Path            : Types.String_Access;
+         Mode            : Files.Write_Mode;
+         Strings         : String_Pools.Pool;
+         String_Type     : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
+         Annotation_Type : Skill.Field_Types.Builtin.Annotation_Type_P
+           .Field_Type;
          Types         : Skill.Types.Pools.Type_Vector;
-         Types_By_Name : Files.Type_Map) return Result is <>;
+         Types_By_Name : Skill.Types.Pools.Type_Map) return Result is <>;
 
       -- type factories are generic arguments because of the way that Ada works
       with function Constant_Length_Array

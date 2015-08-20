@@ -242,6 +242,30 @@ package body Skill.Streams.Writer is
       P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + 1));
    end Advance;
 
+   procedure Advance
+     (P    : in out Map_Pointer;
+      Diff :        System.Storage_Elements.Storage_Offset)
+   is
+      use C;
+      use Uchar;
+      use System.Storage_Elements;
+
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Interfaces.C.unsigned_char,
+         Skill.Types.i8);
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+   begin
+      P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + Diff));
+   end Advance;
+
    procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t) is
       use type Map_Pointer;
       use type C.ptrdiff_t;
@@ -264,20 +288,27 @@ package body Skill.Streams.Writer is
       This.Put_Byte (Cast (V));
    end I8;
 
---     function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16 is
---        use C;
---        use Uchar;
---
---        subtype Bytes is Unsigned_Char_Array (1 .. 2);
---        function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i16);
---        P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        P1 : Uchar.Pointer := P + 1;
---        R  : Types.i16     := Convert (Bytes'(P1.all, P.all));
---     begin
---        This.Position := This.Position + 2;
---        return R;
---     end I16;
---
+   procedure Bool (This : access Sub_Stream_T; V : Boolean) is
+   begin
+      if V then
+         This.Put_Byte (16#ff#);
+      else
+         This.Put_Byte (0);
+      end if;
+   end Bool;
+
+   procedure I16 (This : access Sub_Stream_T; V : Skill.Types.i16) is
+      pragma Warnings (Off);
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion (Unsigned_16, Unsigned_8);
+      function Cast is new Ada.Unchecked_Conversion (Types.i16, Unsigned_16);
+   begin
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 0)));
+   end I16;
+
    procedure I32 (This : access Output_Stream_T; V : Skill.Types.i32) is
       pragma Warnings (Off);
       use C;
@@ -304,56 +335,49 @@ package body Skill.Streams.Writer is
       This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 8)));
       This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 0)));
    end I32;
---
---     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64 is
---        use C;
---        use Uchar;
---
---        subtype Bytes is Unsigned_Char_Array (1 .. 8);
---        function Convert is new Ada.Unchecked_Conversion (Bytes, Types.i64);
---        P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        P1 : Uchar.Pointer := P + 1;
---        P2 : Uchar.Pointer := P + 2;
---        P3 : Uchar.Pointer := P + 3;
---        P4 : Uchar.Pointer := P + 4;
---        P5 : Uchar.Pointer := P + 5;
---        P6 : Uchar.Pointer := P + 6;
---        P7 : Uchar.Pointer := P + 7;
---        R  : Types.i64     :=
---          Convert
---            (Bytes'
---               (P7.all, P6.all, P5.all, P4.all, P3.all, P2.all, P1.all, P.all));
---     begin
---        This.Position := This.Position + 8;
---        return R;
---     end I64;
---
---     function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32 is
---        use C;
---        use Uchar;
---
---        R  : Types.F32;
---        P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        for R'Address use P.all'Address;
---        pragma Import (Ada, R);
---     begin
---        This.Position := This.Position + 4;
---        return R;
---     end F32;
---
---     function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64 is
---        use C;
---        use Uchar;
---
---        R : Types.F64;
---        P  : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
---        for R'Address use P.all'Address;
---        pragma Import (Ada, R);
---     begin
---        This.Position := This.Position + 8;
---        return R;
---     end F64;
---
+
+   procedure I64 (This : access Sub_Stream_T; V : Skill.Types.i64) is
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion (Unsigned_64, Unsigned_8);
+      function Cast is new Ada.Unchecked_Conversion (Types.i64, Unsigned_64);
+   begin
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 56)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 48)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 40)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 32)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 24)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 16)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 8)));
+      This.Put_Byte (Cast (Interfaces.Shift_Right (Cast (V), 0)));
+   end I64;
+
+   procedure F32 (This : access Sub_Stream_T; V : Skill.Types.F32) is
+      use C;
+      use Uchar;
+
+      R : Types.F32;
+      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      for R'Address use P.all'Address;
+      pragma Import (Ada, R);
+   begin
+      R := V;
+      Advance (This.Map, 4);
+   end F32;
+
+   procedure F64 (This : access Sub_Stream_T; V : Skill.Types.F64) is
+      use C;
+      use Uchar;
+
+      R : Types.F64;
+      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
+      for R'Address use P.all'Address;
+      pragma Import (Ada, R);
+   begin
+      R := V;
+      Advance (This.Map, 8);
+   end F64;
 
    -- TODO unroll this loop and try to enable inlining somehow
    procedure V64 (This : access Output_Stream_T; Value : Skill.Types.v64) is

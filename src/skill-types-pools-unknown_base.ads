@@ -37,9 +37,11 @@ package Skill.Types.Pools.Unknown_Base is
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
    procedure Add_Known_Field
-     (This : access Pool_T;
-      Name : String_Access;
-      String_Type : Field_Types.Builtin.String_Type_T.Field_Type) is null;
+     (This            : access Pool_T;
+      Name            : String_Access;
+      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P
+        .Field_Type) is null;
 
    overriding procedure Resize_Pool
      (This       : access Pool_T;
@@ -67,8 +69,9 @@ package Skill.Types.Pools.Unknown_Base is
       Name : String_Access) return Skill.Types.Pools.Pool is
      (Sub_Pools.Make (This.To_Pool, ID, Name));
 
-      procedure Do_For_Static_Instances (This : access Pool_T;
-                               F : access procedure(I : Annotation)) is null;
+   procedure Do_For_Static_Instances
+     (This : access Pool_T;
+      F    : access procedure (I : Annotation)) is null;
 
    procedure Update_After_Compress
      (This     : access Pool_T;

@@ -53,31 +53,28 @@ package Skill.Streams.Writer is
    procedure I8 (This : access Output_Stream_T; V : Skill.Types.i8);
    procedure I8 (This : access Sub_Stream_T; V : Skill.Types.i8);
 
---     use type Interfaces.Integer_8;
---     function Bool
---       (This : access Abstract_Stream'Class) return Boolean is
---       (This.I8 /= 0);
---     pragma Inline (Bool);
---
---     function I16 (This : access Abstract_Stream'Class) return Skill.Types.i16;
---     pragma Inline (I16);
---
+   procedure Bool (This : access Sub_Stream_T; V : Boolean);
+   pragma Inline (Bool);
+
+   procedure I16 (This : access Sub_Stream_T; V : Skill.Types.i16);
+   pragma Inline (I16);
+
    procedure I32
      (This : access Abstract_Stream;
       V    : Skill.Types.i32) is abstract;
    pragma Inline (I32);
    procedure I32 (This : access Output_Stream_T; V : Skill.Types.i32);
    procedure I32 (This : access Sub_Stream_T; V : Skill.Types.i32);
---
---     function I64 (This : access Abstract_Stream'Class) return Skill.Types.i64;
---     pragma Inline (I64);
---
---     function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32;
---     pragma Inline (F32);
---
---     function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64;
---     pragma Inline (F64);
---
+
+   procedure I64 (This : access Sub_Stream_T; V : Skill.Types.i64);
+   pragma Inline (I64);
+
+   procedure F32 (This : access Sub_Stream_T; V : Skill.Types.F32);
+   pragma Inline (F32);
+
+   procedure F64 (This : access Sub_Stream_T; V : Skill.Types.F64);
+   pragma Inline (F64);
+
    procedure V64
      (This : access Abstract_Stream;
       V    : Skill.Types.v64) is abstract;

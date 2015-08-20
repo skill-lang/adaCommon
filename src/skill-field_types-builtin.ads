@@ -15,9 +15,9 @@ with Skill.Equals; use Skill.Equals;
 with Skill.String_Pools;
 with Skill.Streams;
 with Skill.Streams.Writer;
+with Skill.Types.Pools;
 
 package Skill.Field_Types.Builtin is
---     pragma Preelaborate;
 
    generic
       type T is private;
@@ -52,18 +52,117 @@ package Skill.Field_Types.Builtin is
    package T renames Skill.Types;
 
    package Constant_I8 is new Constant_Types (T.I8, 0, "constant i8");
+   function Const_I8 (V : T.I8) return Field_Type is
+     (new Constant_I8.Field_Type'(Value => V));
 
    package Constant_I16 is new Constant_Types (T.I16, 1, "constant i16");
+   function Const_I16 (V : T.I16) return Field_Type is
+     (new Constant_I16.Field_Type'(Value => V));
 
    package Constant_I32 is new Constant_Types (T.I32, 2, "constant i32");
+   function Const_I32 (V : T.I32) return Field_Type is
+     (new Constant_I32.Field_Type'(Value => V));
 
    package Constant_I64 is new Constant_Types (T.I64, 3, "constant i64");
+   function Const_I64 (V : T.I64) return Field_Type is
+     (new Constant_I64.Field_Type'(Value => V));
 
    package Constant_V64 is new Constant_Types (T.V64, 4, "constant v64");
+   function Const_V64 (V : T.V64) return Field_Type is
+     (new Constant_V64.Field_Type'(Value => V));
 
 
-   package A8 is new Plain_Types (T.Annotation, 5, "annotation");
-   Annotation : constant Field_Type := new A8.Field_Type;
+   package Annotation_Type_P is
+      package A1 is new Field_Types (Types.Annotation, 5);
+      package IDs is new Ada.Containers.Hashed_Maps (Key_Type        => Types.String_Access,
+                                                     Element_Type    => Types.Skill_ID_T,
+                                                     Hash            => Hash,
+                                                     Equivalent_Keys => Skill.Equals.Equals,
+                                                     "="             => "=");
+
+      -- we need to pass a pointer to the map around
+      type ID_Map is not null access IDs.Map;
+
+      type Field_Type_T is new A1.Field_Type with record
+         Types : Skill.Types.Pools.Type_Vector;
+         Types_By_Name : Skill.Types.Pools.Type_Map;
+      end record;
+
+      type Field_Type is access Field_Type_T;
+
+      procedure Fix_Types (This : access Field_Type_T; Tbn : Types.Pools.Type_Map);
+
+
+--      @Override
+--      public SkillObject readSingleField(InStream in) {
+--          final int t = (int) in.v64();
+--          final long f = in.v64();
+--          if (0 == t)
+--              return null;
+--          return types.get(t - 1).getByID(f);
+--      }
+--
+--      @Override
+--      public long calculateOffset(Collection<SkillObject> xs) {
+--          long result = 0L;
+--          for (SkillObject ref : xs) {
+--              if (null == ref)
+--                  result += 2;
+--              else {
+--                  if (ref instanceof NamedType)
+--                      result += V64.singleV64Offset(((NamedType) ref).τPool().typeID() - 31);
+--                 else
+--                      result += V64
+--                              .singleV64Offset(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
+--
+--                  result += V64.singleV64Offset(ref.getSkillID());
+--              }
+--          }
+--
+--          return result;
+--      }
+--
+--      /**
+--       * used for simple offset calculation
+--       */
+--      public long singleOffset(SkillObject ref) {
+--          if (null == ref)
+--              return 2L;
+--
+--          final long name;
+--          if (ref instanceof NamedType)
+--              name = V64.singleV64Offset(((NamedType) ref).τPool().typeID() - 31);
+--         else
+--              name = V64.singleV64Offset(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
+--
+--          return name + V64.singleV64Offset(ref.getSkillID());
+--      }
+--
+--      @Override
+--      public void writeSingleField(SkillObject ref, OutStream out) throws IOException {
+--          if (null == ref) {
+--              // magic trick!
+--              out.i16((short) 0);
+--              return;
+--          }
+--
+--          if (ref instanceof NamedType)
+--              out.v64(((NamedType) ref).τPool().typeID() - 31);
+--         else
+--              out.v64(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
+--          out.v64(ref.getSkillID());
+--
+--      }
+
+      overriding
+      function To_String(This : Field_Type_T) return String is
+         ("annotation");
+
+   end Annotation_Type_P;
+
+   function Annotation (Types : Skill.Types.Pools.Type_Vector) return Annotation_Type_P.Field_Type is
+     (new Annotation_Type_P.Field_Type_T'(Types         => types,
+                                          Types_By_Name => <>));
 
    package A9 is new Plain_Types (Boolean, 6, "bool");
    Bool : constant Field_Type := new A9.Field_Type;
