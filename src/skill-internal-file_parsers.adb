@@ -4,6 +4,7 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
+with Ada.Text_IO;
 with Ada.Containers.Vectors;
 with Skill.Files;
 with Skill.Types;
@@ -24,7 +25,6 @@ with Skill.Types.Vectors;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
-with Ada.Text_IO;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is

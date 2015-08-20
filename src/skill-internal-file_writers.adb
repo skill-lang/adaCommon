@@ -113,10 +113,10 @@ package body Skill.Internal.File_Writers is
                Types.Pools.Base_Pool);
             R : Integer;
          begin
+            This.Fixed (True);
             if This.Dynamic.all in Types.Pools.Base_Pool_T'Class then
                R := Make_LBPO_Map (This, Lbpo_Map, 0);
                Cast (This).Compress (Lbpo_Map);
---                  p.fixed(true);
             end if;
          end Make;
       begin
@@ -160,16 +160,7 @@ package body Skill.Internal.File_Writers is
          procedure Write_Type (This : Types.Pools.Pool) is
 
             Lcount : Types.v64 := This.Blocks.Last_Element.Count;
---              if (null == p.superPool)
---                  out.i8((byte) 0);
---              else {
---                  out.v64(p.superPool.typeID - 31);
---                  if (0L != LCount)
---                      out.v64(lbpoMap[p.typeID - 32]);
---              }
---
---              out.v64(p.dataFields.size());
---              fieldQueue.addAll(p.dataFields);
+
          begin
             String (This.Skill_Name);
             Output.V64 (Lcount);
@@ -179,8 +170,7 @@ package body Skill.Internal.File_Writers is
             else
                Output.V64 (Types.v64 (This.Super.ID - 31));
                if 0 /= Lcount then
-                  -- TODO
-                  Output.V64 (-1);
+                  Output.V64 (Types.v64 (Lbpo_Map (This.ID - 32)));
                end if;
             end if;
 
@@ -208,7 +198,7 @@ package body Skill.Internal.File_Writers is
                -- TODO
                --                 Long end = Offset + Vs.Get(F).Get();
                --              out.V64(end);
-               Output.V64 (0);
+               Output.V64 (7);
 
                -- update chunks and prepare write data
                F.Data_Chunks.Clear;
@@ -220,6 +210,10 @@ package body Skill.Internal.File_Writers is
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
                --              data.add(new Task(f, offset, end));
                --              offset = end;
+
+               for I in Types.v64 (1) .. 7 loop
+                  Output.V64 (I);
+               end loop;
             end Write_Field;
          begin
             Field_Queue.Foreach (Write_Field'Access);
@@ -271,12 +265,14 @@ package body Skill.Internal.File_Writers is
 --          if (!writeErrors.isEmpty())
 --              throw writeErrors.peek();
 --
---          /**
---           * **************** PHASE 4: CLEANING * ****************
---           */
---          -- release data structures
---          state.stringType.clearIDs();
---          -- unfix pools
+
+      -----------------------
+      -- PHASE 4: Cleaning --
+      -----------------------
+
+      -- release data structures
+      State.String_Type.String_IDs.Clear;
+      -- unfix pools
 --          for (StoragePool<?, ?> p : state.types) {
 --              p.fixed(false);
 --          }

@@ -9,6 +9,7 @@ with Ada.Containers.Vectors;
 with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Ada.Unchecked_Conversion;
+with Ada.Text_IO;
 
 -- TODO push down:
 --  type A2 is not null access T;
@@ -71,6 +72,18 @@ package body Skill.Types.Pools is
 
       return Size;
    end Size;
+
+   procedure Fixed (This : access Pool_T'Class; Fix : Boolean) is
+   begin
+      if This.Fixed = Fix then
+         return;
+      end if;
+
+      if Fix then
+         This.Cached_Size := This.Size;
+      end if;
+      This.Fixed := Fix;
+   end Fixed;
 
 
    procedure Do_In_Type_Order (This : access Pool_T'Class;

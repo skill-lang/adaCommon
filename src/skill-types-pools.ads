@@ -188,6 +188,9 @@ package Skill.Types.Pools is
    function Sub_Pools (This : access Pool_T'Class) return Sub_Pool_Vector;
 
    -- internal use only
+   procedure Fixed (This : access Pool_T'Class; Fix : Boolean);
+
+   -- internal use only
    procedure Compress
      (This     : access Base_Pool_T'Class;
       Lbpo_Map : Skill.Internal.Lbpo_Map_T);
