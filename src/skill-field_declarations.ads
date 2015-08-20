@@ -7,6 +7,7 @@
 with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Skill.Streams.Reader;
+with Skill.Streams.Writer;
 with Ada.Containers.Doubly_Linked_Lists;
 with Skill.Types.Vectors;
 limited with Skill.Types.Pools;
@@ -31,6 +32,11 @@ package Skill.Field_Declarations is
       Name        : Types.String_Access;
       Index       : Natural;
       Owner       : Owner_T;
+
+   -- used for offset calculation
+   -- note: ada has no futures, thus we will store the value in the field and
+   -- synchronize over a barrier
+      Future_Offset : Types.v64;
    end record;
    -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
@@ -54,9 +60,31 @@ package Skill.Field_Declarations is
    function Owner
      (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
 
-   procedure Read (This : access Field_Declaration_T; CE : Chunk_Entry) is abstract;
+   procedure Read
+     (This : access Field_Declaration_T;
+      CE   : Chunk_Entry) is abstract;
    procedure Read (This : access Lazy_Field_T; CE : Chunk_Entry) is null;
    procedure Read (This : access Auto_Field_T; CE : Chunk_Entry) is null;
+
+   -- offset calculation as preparation of writing data belonging to the
+   -- owners last block
+   procedure Offset (This : access Field_Declaration_T) is abstract;
+   procedure Offset (This : access Lazy_Field_T) is null;
+   procedure Offset (This : access Auto_Field_T) is null;
+
+   -- write data into a map at the end of a write/append operation
+   -- @note this will always write the last chunk, as, in contrast to read, it is impossible to write to fields in
+   --       parallel
+   -- @note only called, if there actually is field data to be written
+   procedure Write
+     (This   : access Field_Declaration_T;
+      Output : Streams.Writer.Sub_Stream) is abstract;
+   procedure Write
+     (This   : access Lazy_Field_T;
+      Output : Streams.Writer.Sub_Stream) is null;
+   procedure Write
+     (This   : access Auto_Field_T;
+      Output : Streams.Writer.Sub_Stream) is null;
 
    -- internal use only
    function Field_ID (This : access Field_Declaration_T'Class) return Natural;
@@ -80,10 +108,6 @@ package Skill.Field_Declarations is
       T     : Field_Types.Field_Type;
       Name  : Skill.Types.String_Access) return Lazy_Field;
 
-   -- internal use only
-   -- Read data from a mapped input stream and set it accordingly. This is invoked at the very end of state
-   -- construction and done massively in parallel.
---      procedure Read (This : access Field_Declaration_T; Input : Sub_Stream; Last : Chunk) is abstract;
 
    procedure Free (This : access Field_Declaration_T) is abstract;
    procedure Free (This : access Lazy_Field_T);

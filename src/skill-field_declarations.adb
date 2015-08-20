@@ -79,7 +79,8 @@ package body Skill.Field_Declarations is
            T           => T,
            Name        => Name,
            Index       => ID,
-           Owner       => Owner);
+           Owner       => Owner,
+           Future_Offset => 0);
    end Make_Lazy_Field;
 
    procedure Free (This : access Lazy_Field_T) is
