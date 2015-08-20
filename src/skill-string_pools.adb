@@ -66,7 +66,8 @@ package body Skill.String_Pools is
          This.Input.Close;
       end if;
 
-      This.Id_Map.Foreach (Free'Access);
+      -- not true, because some strings are global constants
+      --        This.Id_Map.Foreach (Free'Access);
       This.Id_Map.Free;
 
       Delete (D);
