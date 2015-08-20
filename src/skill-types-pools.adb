@@ -5,18 +5,11 @@
 --                                                                            --
 
 with Ada.Containers.Vectors;
+with Ada.Unchecked_Conversion;
 
 with Skill.Field_Types;
 with Skill.Internal.Parts;
-with Ada.Unchecked_Conversion;
-with Ada.Text_IO;
 
--- TODO push down:
---  type A2 is not null access T;
---  package New_Objects_T is new Ada.Containers.Vectors (Natural, A2);
---
---  -- objects that have not yet been written to disk
---  New_Objects : New_Objects_T.Vector;
 
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
@@ -185,7 +178,7 @@ package body Skill.Types.Pools is
 
    procedure Compress (This : access Base_Pool_T'Class; Lbpo_Map : Skill.Internal.Lbpo_Map_T) is
       D : Annotation_Array := new Annotation_Array_T(1 .. This.Size);
-      P : Skill_ID_T := 0;
+      P : Skill_ID_T := 1;
 
       procedure Update(I : Annotation) is
       begin

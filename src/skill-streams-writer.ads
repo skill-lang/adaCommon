@@ -36,22 +36,22 @@ package Skill.Streams.Writer is
 
    -- destroy a map and close the file
    procedure Close (This : access Output_Stream_T);
---     -- destroy a sub map
---     procedure Free (This : access Sub_Stream_T);
+   -- destroy a sub map
+   procedure Close (This : access Sub_Stream_T);
 --
 --     function Path
 --       (This : access Output_Stream_T) return Skill.Types.String_Access;
 --
    function Position
-     (This : access Abstract_Stream) return Skill.Types.V64 is abstract;
-   function Position
-     (This : access Output_Stream_T) return Skill.Types.V64;
-   function Position
-     (This : access Sub_Stream_T) return Skill.Types.V64;
+     (This : access Abstract_Stream) return Skill.Types.v64 is abstract;
+   function Position (This : access Output_Stream_T) return Skill.Types.v64;
+   function Position (This : access Sub_Stream_T) return Skill.Types.v64;
 
-   procedure I8 (This : access Abstract_Stream; V : Skill.Types.I8) is abstract;
-   procedure I8 (This : access Output_Stream_T; V : Skill.Types.I8);
-   procedure I8 (This : access Sub_Stream_T; V : Skill.Types.I8);
+   procedure I8
+     (This : access Abstract_Stream;
+      V    : Skill.Types.i8) is abstract;
+   procedure I8 (This : access Output_Stream_T; V : Skill.Types.i8);
+   procedure I8 (This : access Sub_Stream_T; V : Skill.Types.i8);
 
 --     use type Interfaces.Integer_8;
 --     function Bool
@@ -82,7 +82,7 @@ package Skill.Streams.Writer is
      (This : access Abstract_Stream;
       V    : Skill.Types.v64) is abstract;
    procedure V64 (This : access Output_Stream_T; Value : Skill.Types.v64);
-   procedure V64 (This : access Sub_Stream_T; V : Skill.Types.v64);
+   procedure V64 (This : access Sub_Stream_T; Value : Skill.Types.v64);
 
    -- write the image of a string into a file
    procedure Put_Plain_String
@@ -110,14 +110,24 @@ private
 
    function MMap_Write_Map
      (F      : Interfaces.C_Streams.FILEs;
-      Length : Types.V64) return Uchar.Pointer;
+      Length : Types.v64) return Uchar.Pointer;
    pragma Import (C, MMap_Write_Map, "mmap_write_map");
+
+   procedure MMap_Unmap (Base : Map_Pointer; Eof : Map_Pointer);
+   pragma Import (C, MMap_Unmap, "mmap_write_unmap");
+
+   procedure MMap_Flush (F : Interfaces.C_Streams.FILEs; Last : Map_Pointer);
+   pragma Import (C, MMap_Flush, "mmap_write_ensure_size");
 
    type Output_Stream_T is new Abstract_Stream with record
       Path          : Skill.Types.String_Access; -- shared string!
       File          : Interfaces.C_Streams.FILEs;
       Bytes_Written : Types.v64;
       Buffer        : Uchar_Array (1 .. 1024);
+
+      -- safe a pointer to the last map we created to ensure that we can make
+      -- the file size right
+      Last_Byte : Map_Pointer;
    end record;
 
    -- a part that is a sub section of an input stream

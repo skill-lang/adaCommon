@@ -3,16 +3,19 @@
 -- \__ \ ' <| | | |__     file writer implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+with Ada.Unchecked_Conversion;
+
+with Interfaces;
+
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Field_Types.Builtin;
 with Skill.Types.Vectors;
 with Skill.Field_Declarations; use Skill.Field_Declarations;
-with Interfaces;
-with Ada.Unchecked_Conversion;
-with Ada.Text_IO;
 with Skill.Internal.Parts;
 with Skill.Streams.Reader;
+with Skill.Synchronization;
+with Skill.Tasks;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
@@ -68,6 +71,9 @@ package body Skill.Internal.File_Writers is
       -- index → bpo
       --  @note pools.par would not be possible if it were an actual
       Lbpo_Map : Lbpo_Map_T (0 .. State.Types.Length - 1);
+
+      -- barrier used for parallel processing
+      Write_Barrier : Skill.Synchronization.Barrier;
    begin
       ----------------------
       -- PHASE 1: Collect --
@@ -123,6 +129,29 @@ package body Skill.Internal.File_Writers is
          State.Types.Foreach (Make'Access);
       end;
 
+      -- Calculate Offsets
+      declare
+
+         procedure Make (F : Field_Declaration) is
+            procedure Calculate is
+            begin
+               F.Offset;
+               Write_Barrier.Complete;
+            end Calculate;
+            T : Skill.Tasks.Run (Calculate'Access);
+         begin
+            Write_Barrier.Start;
+            T.Start;
+         end Make;
+
+         procedure Off (This : Types.Pools.Pool) is
+         begin
+            This.Data_Fields.Foreach (Make'Access);
+         end Off;
+      begin
+         State.Types.Foreach (Off'Access);
+      end;
+
       --------------------
       -- PHASE 3: Write --
       --------------------
@@ -133,21 +162,6 @@ package body Skill.Internal.File_Writers is
 
       -- write count of the type block
       Output.V64 (Types.v64 (State.Types.Length));
-
---        -- Calculate Offsets
---          HashMap<StoragePool<?, ?>, HashMap<FieldDeclaration<?, ?>, Future<Long>>> offsets = new HashMap<>();
---          for (final StoragePool<?, ?> p : state.types) {
---              HashMap<FieldDeclaration<?, ?>, Future<Long>> vs = new HashMap<>();
---              for (final FieldDeclaration<?, ?> f : p.dataFields)
---                  vs.put(f, SkillState.pool.submit(new Callable<Long>() {
---                      @Override
---                      public Long call() throws Exception {
---                          return f.offset(p.blocks.getLast());
---                      }
---                  }));
---              offsets.put(p, vs);
---          }
---
 
       -- write types
       declare
@@ -181,24 +195,24 @@ package body Skill.Internal.File_Writers is
       begin
          State.Types.Foreach (Write_Type'Access);
 
+         -- await offsets before we can write fields
+         Write_Barrier.Await;
+
          -- write fields
          declare
 --          ArrayList<Task> data = new ArrayList<>();
-            Offset : Types.v64 := 0;
+            Ende, Offset : Types.v64 := 0;
 
             procedure Write_Field (F : Field_Declaration) is
                P : Types.Pools.Pool := F.Owner.To_Pool;
---              HashMap<FieldDeclaration<?, ?>, Future<Long>> vs = offsets.get(p);
             begin
                -- write info
                Output.V64 (Types.v64 (F.Index));
                String (F.Name);
                Write_Type (F.T);
                Restrictions (F);
-               -- TODO
-               --                 Long end = Offset + Vs.Get(F).Get();
-               --              out.V64(end);
-               Output.V64 (7);
+               Ende := Offset + F.Future_Offset;
+               Output.V64 (Ende);
 
                -- update chunks and prepare write data
                F.Data_Chunks.Clear;
@@ -208,63 +222,42 @@ package body Skill.Internal.File_Writers is
                      new Skill.Internal.Parts.Bulk_Chunk'
                        (Offset, 0, Types.v64 (P.Size)),
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
-               --              data.add(new Task(f, offset, end));
-               --              offset = end;
 
-               for I in Types.v64 (1) .. 7 loop
-                  Output.V64 (I);
-               end loop;
+               --              data.add(new Task(f, offset, end));
+               Offset := Ende;
             end Write_Field;
          begin
             Field_Queue.Foreach (Write_Field'Access);
          end;
-      end;
---
---          writeFieldData(state, out, data);
 
---  protected final static void writeFieldData(SkillState state, FileOutputStream out, ArrayList<Task> data)
---              throws IOException, InterruptedException {
---
---          final Semaphore barrier = new Semaphore(0);
---          -- async reads will post their errors in this queue
---          final ConcurrentLinkedQueue<SkillException> writeErrors = new ConcurrentLinkedQueue<SkillException>();
---
---          long baseOffset = out.position();
---          for (Task t : data) {
---              final FieldDeclaration<?, ?> f = t.f;
---              final MappedOutStream outMap = out.map(baseOffset, t.begin, t.end);
---              -- @note use semaphore instead of data.par, because map is not thread-safe
---              SkillState.pool.execute(new Runnable() {
---
---                  @Override
---                  public void run() {
---                      try {
---                          f.write(outMap);
---                      } catch (SkillException e) {
---                          writeErrors.add(e);
---                      } catch (IOException e) {
---                          writeErrors.add(new SkillException("failed to write field " + f.toString(), e));
---                      } catch (Throwable e) {
---                          writeErrors.add(new SkillException("unexpected failure while writing field " + f.toString(), e));
---                      } finally {
---                          -- ensure that writer can terminate, errors will be printed to command line anyway, and we wont
---                          -- be able to recover, because errors can only happen if the skill implementation itself is
---                          -- broken
---                          barrier.release(1);
---                      }
---                  }
---              });
---          }
---          barrier.acquire(data.size());
+         -- write field data
+         declare
+            procedure Write_Field (F : Field_Declarations.Field_Declaration) is
+
+               Map : Streams.Writer.Sub_Stream := Output.Map (F.Future_Offset);
+
+               procedure Job is
+               begin
+                  F.Write (Map);
+                  Map.Close;
+                  Write_Barrier.Complete;
+               end Job;
+
+               T : Skill.Tasks.Run (Job'Access);
+            begin
+               Write_Barrier.Start;
+               T.Start;
+            end Write_Field;
+         begin
+            Field_Queue.Foreach (Write_Field'Access);
+
+            -- await writing of actual field data
+            Write_Barrier.Await;
+         end;
+      end;
+
+      -- we are done
       Output.Close;
---
---          -- report errors
---          for (SkillException e : writeErrors) {
---              e.printStackTrace();
---          }
---          if (!writeErrors.isEmpty())
---              throw writeErrors.peek();
---
 
       -----------------------
       -- PHASE 4: Cleaning --

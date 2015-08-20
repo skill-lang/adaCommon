@@ -27,7 +27,7 @@ package body Skill.Streams.Reader is
       function Cast is new Ada.Unchecked_Conversion (Integer, Map_Pointer);
    begin
       return Cast (-1);
-   end;
+   end Invalid_Pointer;
 
    -- type used to represent empty input streams
    -- @note(TF) this is used to keep stream & map pointers not null
@@ -130,7 +130,9 @@ package body Skill.Streams.Reader is
       procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
       D : S := S (This);
    begin
-      Delete (D);
+      if S (This) /= S (The_Empty_Sub_Stream) then
+         Delete (D);
+      end if;
    end Free;
 
    function Path
