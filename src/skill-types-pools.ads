@@ -96,7 +96,7 @@ package Skill.Types.Pools is
 
    function ID (This : access Pool_T) return Natural;
 
-   function Base (This : access Pool_T) return Base_Pool;
+   function Base (This : access Pool_T'Class) return Base_Pool;
 
    function Super (This : access Pool_T) return Pool;
 

@@ -39,7 +39,7 @@ package body Skill.Types.Pools is
 
    function ID (This : access Pool_T) return Natural is (This.Type_Id);
 
-   function Base (This : access Pool_T) return Base_Pool is (This.Base);
+   function Base (This : access Pool_T'Class) return Base_Pool is (This.Base);
 
    function Super (This : access Pool_T) return Pool is (This.Super);
 
