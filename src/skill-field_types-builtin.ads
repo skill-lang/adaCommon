@@ -200,14 +200,14 @@ package Skill.Field_Types.Builtin is
                                                      "="             => "=");
 
       -- we need to pass a pointer to the map around
-      type ID_Map is not null access IDs.Map;
+      type ID_Map is not null access all IDs.Map;
 
       type Field_Type_T is new A1.Field_Type with record
          Strings : Skill.String_Pools.Pool;
          String_IDs : aliased IDs.Map;
       end record;
 
-      type Field_Type is access Field_Type_T;
+      type Field_Type is access all Field_Type_T;
 
 --  	@Override
 --  	public String readSingleField(InStream in) {
@@ -232,8 +232,9 @@ package Skill.Field_Types.Builtin is
 --  		return V64.singleV64Offset(stringIDs.get(name));
 --  	}
 
---        @Override
-      procedure Clear_IDs (THis : access Field_Type_T; V : Types.String_Access; Output : Skill.Streams.Writer.Output_Stream);
+      procedure Write_Single_Field (THis : access Field_Type_T; V : Types.String_Access; Output : Skill.Streams.Writer.Sub_Stream);
+
+      function Get_Id_Map (THis : access Field_Type_T) return ID_Map;
 
       overriding function To_String (This : Field_Type_T) return String is
         ("string");

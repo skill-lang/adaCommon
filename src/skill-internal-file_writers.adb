@@ -16,6 +16,8 @@ with Skill.Internal.Parts;
 with Skill.Streams.Reader;
 with Skill.Synchronization;
 with Skill.Tasks;
+with Skill.Errors;
+with Ada.Text_IO;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
@@ -137,6 +139,11 @@ package body Skill.Internal.File_Writers is
             begin
                F.Offset;
                Write_Barrier.Complete;
+            exception
+               when E : others =>
+                  Skill.Errors.Print_Stacktrace (E);
+                  Ada.Text_IO.Put_Line(Ada.Text_IO.Current_Error, "A task crashed during offset calculation: " & F.Name.all);
+                  Write_Barrier.Complete;
             end Calculate;
             T : Skill.Tasks.Run (Calculate'Access);
          begin
@@ -240,6 +247,11 @@ package body Skill.Internal.File_Writers is
                begin
                   F.Write (Map);
                   Map.Close;
+                  Write_Barrier.Complete;
+            exception
+               when E : others =>
+                  Skill.Errors.Print_Stacktrace (E);
+                  Ada.Text_IO.Put_Line(Ada.Text_IO.Current_Error, "A task crashed during write data: " & F.Name.all);
                   Write_Barrier.Complete;
                end Job;
 

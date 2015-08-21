@@ -25,14 +25,19 @@ package body Skill.Field_Types.Builtin is
 
    package body String_Type_T is
 
-      procedure Clear_IDs
+      function Get_Id_Map (THis : access Field_Type_T) return ID_Map is
+      Begin
+         return This.String_IDs'access;
+      end Get_Id_Map;
+
+      procedure Write_Single_Field
         (THis   : access Field_Type_T;
          V      : Types.String_Access;
-         Output : Skill.Streams.Writer.Output_Stream)
+         Output : Skill.Streams.Writer.Sub_Stream)
       is
       begin
-         Output.V64 (Types.v64 (THis.String_IDs.Element (V)));
-      end Clear_IDs;
+         Output.V64 (Types.V64 (THis.String_IDs.Element (V)));
+      end Write_Single_Field;
 
    end String_Type_T;
 
