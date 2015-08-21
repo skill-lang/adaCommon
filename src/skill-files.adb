@@ -17,6 +17,7 @@ with Skill.Internal.File_Writers;
 with Skill.Equals;
 with Skill.Hashes;
 with Ada.Containers.Hashed_Sets;
+with Ada.Text_IO;
 
 package body Skill.Files is
 
@@ -65,6 +66,13 @@ package body Skill.Files is
                -- TODO error reporting? (see Java Field.finish)
 
                Read_Barrier.Complete;
+            exception
+               when E : others =>
+                  Skill.Errors.Print_Stacktrace (E);
+                  Ada.Text_IO.Put_Line
+                    (Ada.Text_IO.Current_Error,
+                     "A task crashed during read data: " & F.Name.all);
+                  Read_Barrier.Complete;
             end Read;
 
             T : Skill.Tasks.Run (Read'Access);
@@ -102,13 +110,14 @@ package body Skill.Files is
          -- add missing field declarations
          Field_Names := A1.Empty_Set;
          for I in 1 .. P.Data_Fields.Length loop
-            Field_Names.Insert(P.Data_Fields.Element(I).Name);
+            Field_Names.Insert (P.Data_Fields.Element (I).Name);
          end loop;
 
          -- ensure existence of known fields
          for N of P.Known_Fields.all loop
-            if not Field_Names.Contains(N) then
-               P.Dynamic.Add_Known_Field(N, This.String_Type, This.Annotation_Type);
+            if not Field_Names.Contains (N) then
+               P.Dynamic.Add_Known_Field
+               (N, This.String_Type, This.Annotation_Type);
             end if;
          end loop;
 

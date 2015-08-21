@@ -89,18 +89,23 @@ package body Skill.Internal.File_Writers is
       declare
          Strings : Skill.String_Pools.Pool := State.Strings;
 
+
          procedure Add (This : Skill.Types.Pools.Pool) is
-         begin
-            Strings.Add (This.Skill_Name);
-            --              for (FieldDeclaration<?, ?> f : p.dataFields) {
-            --
-            --                  strings.add(f.name);
+
+            procedure Add_Field(F : Field_Declarations.Field_Declaration) is
+            begin
+            Strings.Add (F.Name);
+               -- add string data
+--                 if F.T.ID = 14 then
             --                  if (f.type instanceof StringType) {
             --                      for (SkillObject i : p)
             --                          strings.add((String) i.get(f));
             --                  }
-            --              }
-
+--                 end if;
+            end Add_Field;
+         begin
+            Strings.Add (This.Skill_Name);
+            This.Data_Fields.Foreach(Add_Field'Access);
          end Add;
       begin
          State.Types.Foreach (Add'Access);

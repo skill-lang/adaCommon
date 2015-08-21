@@ -43,6 +43,8 @@ package Skill.String_Pools is
 
    -- adds a string to the pool
    procedure Add (This : access Pool_T; S : Types.String_Access);
+   -- adds a string to the pool
+   function Add (This : access Pool_T; S : String) return Types.String_Access;
 
    -- internal use only
    function InvalidPoolIndexException

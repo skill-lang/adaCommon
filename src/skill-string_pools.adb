@@ -44,17 +44,18 @@ package body Skill.String_Pools is
          raise Skill.Errors.Skill_Error;
    end Create;
 
-   procedure Free (This : access Pool_T) is
+   procedure Free (This : Skill.Types.String_Access) is
       procedure Delete is new Ada.Unchecked_Deallocation
         (String,
          Skill.Types.String_Access);
-      procedure Free (This : Skill.Types.String_Access) is
-         D : Skill.Types.String_Access := This;
-      begin
-         if null /= D then
-            Delete (D);
-         end if;
-      end Free;
+      D : Skill.Types.String_Access := This;
+   begin
+      if null /= D then
+         Delete (D);
+      end if;
+   end Free;
+
+   procedure Free (This : access Pool_T) is
 
       type P is access all Pool_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Pool_T, P);
@@ -157,7 +158,24 @@ package body Skill.String_Pools is
    procedure Add (This : access Pool_T; S : Types.String_Access) is
    begin
       if null /= S then
-         This.New_Strings.Insert (S);
+         This.New_Strings.Include (S);
+      end if;
+   end Add;
+
+   function Add
+     (This : access Pool_T;
+      S    : String) return Types.String_Access
+   is
+      Cursor   : A1.Cursor;
+      Inserted : Boolean;
+      Str      : Types.String_Access := new String'(S);
+   begin
+      This.New_Strings.Insert (Str, Cursor, Inserted);
+      if Inserted then
+         return Str;
+      else
+         Free (Str);
+         return A1.Element (Cursor);
       end if;
    end Add;
 

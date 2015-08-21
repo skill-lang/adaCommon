@@ -35,8 +35,13 @@ package body Skill.Field_Types.Builtin is
          V      : Types.String_Access;
          Output : Skill.Streams.Writer.Sub_Stream)
       is
+         use type Types.String_Access;
       begin
-         Output.V64 (Types.V64 (THis.String_IDs.Element (V)));
+         if null = V then
+            Output.I8(0);
+         else
+            Output.V64 (Types.V64 (THis.String_IDs.Element (V)));
+         end if;
       end Write_Single_Field;
 
    end String_Type_T;

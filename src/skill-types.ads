@@ -6,9 +6,14 @@
 
 with Interfaces;
 with Ada.Tags;
+with System;
 
 package Skill.Types is
    pragma Preelaborate;
+
+   -- this is a boxed object; it is required, because one can not mix generic
+   -- and object oriented polymorphism in ada
+   type Box is private;
 
    subtype i8 is Interfaces.Integer_8 range Interfaces.Integer_8'Range;
    subtype i16 is Interfaces.Integer_16 range Interfaces.Integer_16'Range;
@@ -55,5 +60,11 @@ package Skill.Types is
      (This'Tag);
    pragma Inline (Tag);
    pragma Pure_Function (Tag);
+
+private
+
+   -- we use size of pointer and store all regular object in it by just abusing
+   -- the space :-]
+   type Box is new System.Address;
 
 end Skill.Types;
