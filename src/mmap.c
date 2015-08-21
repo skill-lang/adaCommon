@@ -85,7 +85,7 @@ void mmap_write_unmap(void *base, void *eof)
 void mmap_write_ensure_size(FILE* stream, unsigned char *eof)
 {
   // write last byte to ensure that correct position is flushed to disk
-  if(-1 != (int)eof){
+  if((unsigned char *)-1L != eof){
     fseek(stream, -1, SEEK_CUR);
     fputc(*(eof-1), stream);
   }
