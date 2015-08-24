@@ -9,7 +9,7 @@ with Skill.Internal.Parts;
 with Skill.Streams.Reader;
 with Skill.Streams.Writer;
 with Ada.Containers.Doubly_Linked_Lists;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 limited with Skill.Types.Pools;
 with Skill.Types;
 
@@ -22,7 +22,7 @@ package Skill.Field_Declarations is
       Input : Skill.Streams.Reader.Sub_Stream;
    end record;
    type Chunk_Entry is access Chunk_Entry_T;
-   package Chunk_List_P is new Skill.Types.Vectors (Natural, Chunk_Entry);
+   package Chunk_List_P is new Skill.Containers.Vectors (Natural, Chunk_Entry);
 
    type Owner_T is not null access Skill.Types.Pools.Pool_T;
 
@@ -41,7 +41,7 @@ package Skill.Field_Declarations is
    -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
 
-   package Field_Vector_P is new Skill.Types.Vectors
+   package Field_Vector_P is new Skill.Containers.Vectors
      (Positive,
       Field_Declaration);
    subtype Field_Vector is Field_Vector_P.Vector;

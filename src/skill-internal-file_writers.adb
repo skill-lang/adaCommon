@@ -10,7 +10,7 @@ with Interfaces;
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Field_Types.Builtin;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.Field_Declarations; use Skill.Field_Declarations;
 with Skill.Internal.Parts;
 with Skill.Streams.Reader;

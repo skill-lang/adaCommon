@@ -17,7 +17,7 @@ with Skill.Streams;
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead

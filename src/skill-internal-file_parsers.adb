@@ -21,7 +21,7 @@ with Ada.Containers.Hashed_Maps;
 with Skill.Hashes;
 with Skill.Equals;
 with Ada.Containers.Hashed_Sets;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
@@ -65,7 +65,7 @@ package body Skill.Internal.File_Parsers is
          Pool : Types.Pools.Pool_Dyn;
          Count : Types.V64;
       end record;
-      package A2 is new Types.Vectors(Natural, LF_Entry);
+      package A2 is new Containers.Vectors(Natural, LF_Entry);
       -- pool -> local field count
       Local_Fields : A2.Vector := A2.Empty_Vector;
 
@@ -75,7 +75,7 @@ package body Skill.Internal.File_Parsers is
          Pool : Types.Pools.Pool_Dyn;
          ID   : Positive;
       end record;
-      package A4 is new Types.Vectors (Natural, FD_Entry);
+      package A4 is new Containers.Vectors (Natural, FD_Entry);
       -- field data updates: pool x fieldID
       Field_Data_Queue : A4.Vector := A4.Empty_Vector;
 

@@ -8,7 +8,7 @@ with Skill.Files;
 with Skill.Internal.File_Parsers;
 with Skill.Types.Pools;
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.Types.Pools.Sub;
 
 -- instantiated pool packages
@@ -79,7 +79,7 @@ package Skill.Types.Pools.Unknown_Base is
 
 private
 
-   package A1 is new Vectors (Natural, Annotation);
+   package A1 is new Containers.Vectors (Natural, Annotation);
    subtype Instance_Vector is A1.Vector;
 
    type Pool_T is new Base_Pool_T with record

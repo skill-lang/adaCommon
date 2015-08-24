@@ -10,8 +10,8 @@ with Ada.Finalization;
 generic
    type Index_Type is range <>;
    type Element_Type is private;
-package Skill.Types.Vectors is
-   pragma Preelaborate;
+package Skill.Containers.Vectors is
+   pragma Pure;
 
    type Vector_T is tagged limited private;
    type Vector is not null access Vector_T;
@@ -104,4 +104,4 @@ private
       Next_Index : Index_Base;
    end record;
 
-end Skill.Types.Vectors;
+end Skill.Containers.Vectors;

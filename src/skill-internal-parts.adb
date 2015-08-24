@@ -7,7 +7,7 @@
 with Ada.Containers.Vectors;
 
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 

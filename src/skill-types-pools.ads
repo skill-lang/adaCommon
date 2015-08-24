@@ -11,7 +11,7 @@ limited with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.Internal;
 with Skill.Types.Iterators;
 with Ada.Containers.Hashed_Maps;
@@ -67,12 +67,12 @@ package Skill.Types.Pools is
      (A = B or else ((null /= A and null /= B) and then A.all = B.all));
 
    -- data structures using pools
-   package P_Type_Vector is new Skill.Types.Vectors
+   package P_Type_Vector is new Skill.Containers.Vectors
      (Natural,
       Skill.Types.Pools.Pool);
    subtype Type_Vector is P_Type_Vector.Vector;
 
-   package Sub_Pool_Vector_P is new Types.Vectors (Natural, Sub_Pool);
+   package Sub_Pool_Vector_P is new Containers.Vectors (Natural, Sub_Pool);
    subtype Sub_Pool_Vector is Sub_Pool_Vector_P.Vector;
 
    package P_Type_Map is new Ada.Containers.Hashed_Maps

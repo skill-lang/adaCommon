@@ -12,7 +12,7 @@ with Skill.Hashes;
 with Skill.Streams.Reader;
 with Skill.Streams.Writer;
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.Synchronization;
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
@@ -83,8 +83,8 @@ private
       Length         : Types.i32 := -1;
    end record;
 
-   package A2 is new Skill.Types.Vectors (Natural, Position);
-   package A3 is new Skill.Types.Vectors (Natural, Skill.Types.String_Access);
+   package A2 is new Skill.Containers.Vectors (Natural, Position);
+   package A3 is new Skill.Containers.Vectors (Natural, Skill.Types.String_Access);
 
    type Pool_T is tagged limited record
       Input            : Skill.Streams.Reader.Input_Stream;

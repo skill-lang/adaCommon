@@ -6,7 +6,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body Skill.Types.Vectors is
+package body Skill.Containers.Vectors is
 
    function Empty_Vector return Vector is
    begin
@@ -168,4 +168,4 @@ package body Skill.Types.Vectors is
       Index : Index_Type) return Boolean is
      (Index < Index_Type (This.Next_Index));
 
-end Skill.Types.Vectors;
+end Skill.Containers.Vectors;

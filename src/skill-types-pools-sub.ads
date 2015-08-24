@@ -8,7 +8,8 @@ with Skill.Files;
 with Skill.Internal.File_Parsers;
 with Skill.Types.Pools;
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
+with Ada.Containers.Vectors;
 
 -- generic sub pool packages
 generic
@@ -76,7 +77,7 @@ package Skill.Types.Pools.Sub is
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
 private
 
-   package A1 is new Vectors (Natural, P);
+   package A1 is new Containers.Vectors (Natural, P);
    subtype Instance_Vector is A1.Vector;
 
    type Pool_T is new Sub_Pool_T with record

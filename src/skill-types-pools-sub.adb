@@ -17,7 +17,7 @@ with Skill.Streams;
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Types;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Ada.Text_IO;
 
 -- instantiated pool packages

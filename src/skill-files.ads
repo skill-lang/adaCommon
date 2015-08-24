@@ -8,7 +8,7 @@ with Ada.Containers.Hashed_Maps;
 
 with Skill.Types;
 with Skill.Types.Pools;
-with Skill.Types.Vectors;
+with Skill.Containers.Vectors;
 with Skill.String_Pools;
 with Skill.Hashes;
 with Skill.Equals;
