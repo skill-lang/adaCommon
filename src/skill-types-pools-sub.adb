@@ -125,4 +125,10 @@ package body Skill.Types.Pools.Sub is
       return This.Static_Data.Length + This.New_Objects.Length;
    end Static_Size;
 
+
+   function Offset_Box
+     (This : access Pool_T;
+      Target : Types.Box) return Types.V64 is
+     (Field_Types.Builtin.Offset_Single_V64(Types.V64(Unboxed(Target).Skill_ID)));
+
 end Skill.Types.Pools.Sub;

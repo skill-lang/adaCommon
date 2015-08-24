@@ -4,15 +4,29 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
-package Skill.Field_Types is
-   pragma Preelaborate;
+with Skill.Types;
+with Skill.Streams.Reader;
+with Skill.Streams.Writer;
 
+package Skill.Field_Types is
 
    type Field_Type_Base is abstract tagged null record;
    type Field_Type is access all Field_Type_Base'Class;
 
    function ID (This : access Field_Type_Base) return Natural is abstract;
    function To_String (This : Field_Type_Base) return String is abstract;
+
+   function Read_Box
+     (This : access Field_Type_Base;
+      Input : Streams.Reader.Sub_Stream) return Types.Box is abstract;
+
+   function Offset_Box
+     (This : access Field_Type_Base;
+      Target : Types.Box) return Types.V64 is abstract;
+
+   procedure Write_Box
+     (This : access Field_Type_Base;
+      Output : Streams.Writer.Sub_Stream; Target : Types.Box) is abstract;
 
    generic
       type T is private;
