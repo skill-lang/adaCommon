@@ -214,6 +214,7 @@ package body Skill.Internal.File_Parsers is
                            Integer'Image (Type_Vector.Length));
                      else
                         Super_Pool := Type_Vector.Element (Super_Id - 1);
+                        pragma Assert (null /= Super_Pool);
                      end if;
                   end if;
 
