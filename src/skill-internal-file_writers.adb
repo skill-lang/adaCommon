@@ -194,9 +194,10 @@ package body Skill.Internal.File_Writers is
             if null = This.Super then
                Output.I8 (0);
             else
-               Output.V64 (Types.v64 (This.Super.ID - 31));
+               Output.V64 (Types.v64 (This.Super.ID + 1));
                if 0 /= Lcount then
-                  Output.V64 (Types.v64 (Lbpo_Map (This.ID - 32)));
+                  Ada.Text_IO.Put_Line(Integer'Image(This.ID));
+                  Output.V64 (Types.v64 (Lbpo_Map (This.ID)));
                end if;
             end if;
 
