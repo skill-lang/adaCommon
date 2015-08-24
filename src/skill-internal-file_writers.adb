@@ -196,7 +196,6 @@ package body Skill.Internal.File_Writers is
             else
                Output.V64 (Types.v64 (This.Super.ID + 1));
                if 0 /= Lcount then
-                  Ada.Text_IO.Put_Line(Integer'Image(This.ID));
                   Output.V64 (Types.v64 (Lbpo_Map (This.ID)));
                end if;
             end if;
