@@ -14,7 +14,7 @@ package Skill.Containers.Vectors is
    pragma Pure;
 
    type Vector_T is tagged limited private;
-   type Vector is not null access Vector_T;
+   type Vector is access Vector_T;
 
    function Empty_Vector return Vector;
 
