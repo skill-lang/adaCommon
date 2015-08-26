@@ -4,24 +4,25 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
+with Ada.Characters.Latin_1;
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Hashed_Sets;
 with Ada.Text_IO;
-with Ada.Containers.Vectors;
+with Ada.Unchecked_Conversion;
+
+with Interfaces;
+
+with Skill.Containers.Vectors;
 with Skill.Files;
 with Skill.Types;
 with Skill.Streams.Reader;
-with Interfaces;
 with Skill.Errors;
-with Ada.Unchecked_Conversion;
 with Skill.String_Pools;
 with Skill.Types.Pools;
-with Ada.Characters.Latin_1;
 with Skill.Internal.Parts;
-with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Hashed_Maps;
 with Skill.Hashes;
 with Skill.Equals;
-with Ada.Containers.Hashed_Sets;
-with Skill.Containers.Vectors;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
 with Skill.Field_Declarations;
@@ -177,6 +178,7 @@ package body Skill.Internal.File_Parsers is
                  with Input.Parse_Exception
                  (Block_Counter, "corrupted file: nullptr in typename");
             end if;
+
             --  type duplication error detection
             if Seen_Types.Contains (Name) then
                raise Errors.Skill_Error
@@ -303,15 +305,25 @@ package body Skill.Internal.File_Parsers is
             when 14 =>
                return Field_Types.Field_Type(String_Type);
             when 15 =>
-               return Constant_Length_Array(Input.V64, Parse_Field_Type);
+               declare
+                  Length : Types.V64 := Input.V64;
+                  T : Field_Types.Field_Type := Parse_Field_Type;
+               begin
+                  return Field_Types.Builtin.Const_Array(Length, T);
+               end;
             when 17 =>
-               return Variable_Length_Array(Parse_Field_Type);
+               return Field_Types.Builtin.Var_Array (Parse_Field_Type);
             when 18 =>
-               return List_Type(Parse_Field_Type);
+               return Skill.Field_Types.Builtin.List_Type(Parse_Field_Type);
             when 19 =>
-               return Set_Type (Parse_Field_Type);
+               return Skill.Field_Types.Builtin.Set_Type (Parse_Field_Type);
             when 20 =>
-               return Map_Type (Parse_Field_Type, Parse_Field_Type);
+               declare
+                  K : Field_Types.Field_Type := Parse_Field_Type;
+                  V : Field_Types.Field_Type := Parse_Field_Type;
+               begin
+                  return Skill.Field_Types.Builtin.Map_Type (K, V);
+               end;
             when others =>
                if ID >= 32 and Id < Natural(Type_Vector.Length) + 32 then
                   return Convert (Type_Vector.Element (ID - 32));

@@ -3,11 +3,7 @@
 -- \__ \ ' <| | | |__     implementation of builtin field types               --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
-with Ada.Containers;
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
-with Ada.Containers.Hashed_Sets;
-with Ada.Containers.Vectors;
 with Ada.Tags;
 with Ada.Unchecked_Conversion;
 
@@ -15,9 +11,8 @@ with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Equals; use Skill.Equals;
 with Skill.String_Pools;
-with Skill.Streams;
+with Skill.Streams.Reader;
 with Skill.Streams.Writer;
-with Skill.Types.Pools;
 
 
 package Skill.Field_Types.Builtin.String_Type_P is
@@ -53,8 +48,8 @@ package Skill.Field_Types.Builtin.String_Type_P is
 
    function Read_Box
      (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
-     (Boxed(This.Strings.Get (Input.V64)));
+      Input : Streams.Reader.Sub_Stream) return Types.Box is
+      (Boxed (This.Strings.Get (Input.V64)));
 
    function Offset_Box
      (This : access Field_Type_T;
@@ -65,7 +60,10 @@ package Skill.Field_Types.Builtin.String_Type_P is
      (This : access Field_Type_T;
          Output : Streams.Writer.Sub_Stream; Target : Types.Box);
 
-      procedure Write_Single_Field (THis : access Field_Type_T; V : Types.String_Access; Output : Skill.Streams.Writer.Sub_Stream);
+   procedure Write_Single_Field
+     (THis : access Field_Type_T;
+      V : Types.String_Access;
+      Output : Skill.Streams.Writer.Sub_Stream);
 
    function Get_Id_Map (THis : access Field_Type_T) return ID_Map;
 

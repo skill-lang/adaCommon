@@ -36,24 +36,6 @@ package Skill.Internal.File_Parsers is
          Types         : Skill.Types.Pools.Type_Vector;
          Types_By_Name : Skill.Types.Pools.Type_Map) return Result is <>;
 
-      -- type factories are generic arguments because of the way that Ada works
-      with function Constant_Length_Array
-        (Length : Types.v64;
-         Base_T : Skill.Field_Types.Field_Type)
-         return Skill.Field_Types.Field_Type is <>;
-      with function Variable_Length_Array
-        (Base_T : Skill.Field_Types.Field_Type)
-         return Skill.Field_Types.Field_Type is <>;
-      with function List_Type
-        (Base_T : Skill.Field_Types.Field_Type)
-         return Skill.Field_Types.Field_Type is <>;
-      with function Set_Type
-        (Base_T : Skill.Field_Types.Field_Type)
-         return Skill.Field_Types.Field_Type is <>;
-      with function Map_Type
-        (Key_T   : Skill.Field_Types.Field_Type;
-         Value_T : Skill.Field_Types.Field_Type)
-         return Skill.Field_Types.Field_Type is <>;
    function Read
      (Input : Skill.Streams.Reader.Input_Stream;
       Mode  : Skill.Files.Write_Mode) return Result;

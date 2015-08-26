@@ -16,11 +16,10 @@ with Ada.Tags;
 
 package body Skill.Field_Types.Builtin is
 
-   use type Skill.Types.V64;
+   use type Skill.Types.v64;
    use type Skill.Types.Uv64;
 
-   function Offset_Single_V64
-     (Input : Types.V64) return Types.V64 is
+   function Offset_Single_V64 (Input : Types.v64) return Types.v64 is
       function Cast is new Ada.Unchecked_Conversion
         (Skill.Types.v64,
          Skill.Types.Uv64);
@@ -49,127 +48,341 @@ package body Skill.Field_Types.Builtin is
       end if;
    end Offset_Single_V64;
 
-   procedure Insert(This : in out Types.Boxed_Array; E : in Types.Box) is
+   procedure Insert (This : in out Types.Boxed_Array; E : in Types.Box) is
    begin
-      This.Append(E);
+      This.Append (E);
    end Insert;
-   procedure Insert(This : in out Types.Boxed_List; E : in Types.Box) is
+   procedure Insert (This : in out Types.Boxed_List; E : in Types.Box) is
    begin
-      This.Append(E);
+      This.Append (E);
    end Insert;
 
    package body Annotation_Type_P is
 
       use type Types.Annotation;
 
-      procedure Fix_Types
-        (This : access Field_Type_T) is
+      procedure Fix_Types (This : access Field_Type_T) is
 
-         procedure Add(P : Types.Pools.Pool) is
+         procedure Add (P : Types.Pools.Pool) is
          begin
-            This.Types_By_Tag.Insert(P.Dynamic.Content_Tag, P);
-         end;
+            This.Types_By_Tag.Insert (P.Dynamic.Content_Tag, P);
+         end Add;
       begin
-         This.Types.Foreach(Add'Access);
+         This.Types.Foreach (Add'Access);
       end Fix_Types;
 
-      overriding
-      function Read_Box
-        (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
-         T : Types.V64 := Input.V64;
-         Idx : Types.V64 := Input.V64;
+      overriding function Read_Box
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
+         T   : Types.v64 := Input.V64;
+         Idx : Types.v64 := Input.V64;
       begin
          if 0 = T then
-            return Boxed(null);
+            return Boxed (null);
          else
             declare
-               Data : Types.Annotation_Array := This.Types.Element(Integer(T - 1)).Base.Data;
+               Data : Types.Annotation_Array :=
+                 This.Types.Element (Integer (T - 1)).Base.Data;
             begin
-               return Boxed(Data(Integer(Idx)));
+               return Boxed (Data (Integer (Idx)));
             end;
          end if;
       end Read_Box;
 
-      overriding
-      function Offset_Box
-        (This : access Field_Type_T;
-         Target : Types.Box) return Types.V64 is
+      overriding function Offset_Box
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
 
-         Ref : Types.Annotation := Unboxed(Target);
+         Ref : Types.Annotation := Unboxed (Target);
       begin
          if null = Ref then
             return 2;
          else
-            return Offset_Single_V64(Types.V64
-                                     (This.Types_By_Tag.Element(Ref.Tag).Id))
-              +
-              Offset_Single_V64(Types.V64(Ref.Skill_ID));
+            return Offset_Single_V64
+                (Types.v64 (This.Types_By_Tag.Element (Ref.Tag).ID)) +
+              Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
          end if;
       end Offset_Box;
 
-      overriding
-      procedure Write_Box
-        (This : access Field_Type_T;
+      overriding procedure Write_Box
+        (This   : access Field_Type_T;
          Output : Streams.Writer.Sub_Stream;
-         Target : Types.Box) is
+         Target : Types.Box)
+      is
 
-         Ref : Types.Annotation := Unboxed(Target);
+         Ref : Types.Annotation := Unboxed (Target);
       begin
          if null = Ref then
-            Output.I16(0);
+            Output.I16 (0);
          else
-            Output.V64 (Types.V64(
-              (This.Types_By_Tag.Element(Ref.Tag).Id)));
+            Output.V64 (Types.v64 ((This.Types_By_Tag.Element (Ref.Tag).ID)));
 
-            Output.V64(Types.V64(Ref.Skill_ID));
+            Output.V64 (Types.v64 (Ref.Skill_ID));
          end if;
       end Write_Box;
 
    end Annotation_Type_P;
 
-   package body Var_Arrays_P is
+   package body Const_Arrays_P is
 
       function Read_Box
-        (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
 
-         Count : Types.V64 := Input.V64;
+         Count : Types.v64 := This.Length;
 
          Result : Types.Boxed_Array := Types.Arrays_P.Empty_Vector;
       begin
          for I in 1 .. Count loop
-            Insert(Result, This.Base.Read_Box(Input));
+            Insert (Result, This.Base.Read_Box (Input));
          end loop;
-         return Boxed(Result);
+         return Boxed (Result);
       end Read_Box;
 
       function Offset_Box
-        (This : access Field_Type_T;
-         Target : Types.Box) return Types.V64 is
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
 
-         Result : Types.V64;
-         Count : Natural := Natural(Unboxed(Target).Length);
+         Result : Types.v64 := 0;
+         Count  : Natural   := Natural (This.Length);
       begin
-         Result := Offset_Single_V64(Types.V64(Count));
          for I in 1 .. Count loop
-            Result := Result + This.Base.Offset_Box(Unboxed(Target).Element(I));
+            Result :=
+              Result + This.Base.Offset_Box (Unboxed (Target).Element (I));
          end loop;
          return Result;
       end Offset_Box;
 
       procedure Write_Box
-        (This : access Field_Type_T;
-         Output : Streams.Writer.Sub_Stream; Target : Types.Box) is
+        (This   : access Field_Type_T;
+         Output : Streams.Writer.Sub_Stream;
+         Target : Types.Box)
+      is
 
-         Length : Natural := Natural(Unboxed(Target).Length);
+         Length : Natural := Natural (This.Length);
       begin
-         Output.V64 (Types.V64(Length));
          for I in 1 .. Length loop
-            This.Base.Write_Box(Output, Unboxed(Target).Element(I));
+            This.Base.Write_Box (Output, Unboxed (Target).Element (I));
+         end loop;
+      end Write_Box;
+
+   end Const_Arrays_P;
+
+   package body Var_Arrays_P is
+
+      function Read_Box
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
+
+         Count : Types.v64 := Input.V64;
+
+         Result : Types.Boxed_Array := Types.Arrays_P.Empty_Vector;
+      begin
+         for I in 1 .. Count loop
+            Insert (Result, This.Base.Read_Box (Input));
+         end loop;
+         return Boxed (Result);
+      end Read_Box;
+
+      function Offset_Box
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
+
+         Result : Types.v64;
+         Count  : Natural := Natural (Unboxed (Target).Length);
+      begin
+         Result := Offset_Single_V64 (Types.v64 (Count));
+         for I in 1 .. Count loop
+            Result :=
+              Result + This.Base.Offset_Box (Unboxed (Target).Element (I));
+         end loop;
+         return Result;
+      end Offset_Box;
+
+      procedure Write_Box
+        (This   : access Field_Type_T;
+         Output : Streams.Writer.Sub_Stream;
+         Target : Types.Box)
+      is
+
+         Length : Natural := Natural (Unboxed (Target).Length);
+      begin
+         Output.V64 (Types.v64 (Length));
+         for I in 1 .. Length loop
+            This.Base.Write_Box (Output, Unboxed (Target).Element (I));
          end loop;
       end Write_Box;
 
    end Var_Arrays_P;
+
+   package body List_Type_P is
+
+      function Read_Box
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
+
+         Count : Types.v64 := Input.V64;
+
+         Result : Types.Boxed_List := new Types.Lists_P.List;
+      begin
+         for I in 1 .. Count loop
+            Insert (Result, This.Base.Read_Box (Input));
+         end loop;
+         return Boxed (Result);
+      end Read_Box;
+
+      function Offset_Box
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
+
+         Result : Types.v64;
+         List   : Types.Boxed_List := Unboxed (Target);
+         Count  : Natural          := Natural (List.Length);
+      begin
+         Result := Offset_Single_V64 (Types.v64 (Count));
+         for I of List.all loop
+            Result := Result + This.Base.Offset_Box (I);
+         end loop;
+         return Result;
+      end Offset_Box;
+
+      procedure Write_Box
+        (This   : access Field_Type_T;
+         Output : Streams.Writer.Sub_Stream;
+         Target : Types.Box)
+      is
+
+         List   : Types.Boxed_List := Unboxed (Target);
+         Length : Natural          := Natural (List.Length);
+      begin
+         Output.V64 (Types.v64 (Length));
+         for I of List.all loop
+            This.Base.Write_Box (Output, I);
+         end loop;
+      end Write_Box;
+
+   end List_Type_P;
+
+   package body Set_Type_P is
+
+      function Read_Box
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
+
+         Count : Types.v64 := Input.V64;
+
+         Result : Types.Boxed_Set := new Types.Sets_P.Set;
+      begin
+         for I in 1 .. Count loop
+            Result.Include (This.Base.Read_Box (Input));
+         end loop;
+         return Boxed (Result);
+      end Read_Box;
+
+      function Offset_Box
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
+
+         Result : Types.v64;
+         Set    : Types.Boxed_Set := Unboxed (Target);
+         Count  : Natural         := Natural (Set.Length);
+      begin
+         Result := Offset_Single_V64 (Types.v64 (Count));
+         for I of Set.all loop
+            Result := Result + This.Base.Offset_Box (I);
+         end loop;
+         return Result;
+      end Offset_Box;
+
+      procedure Write_Box
+        (This   : access Field_Type_T;
+         Output : Streams.Writer.Sub_Stream;
+         Target : Types.Box)
+      is
+
+         Set    : Types.Boxed_Set := Unboxed (Target);
+         Length : Natural         := Natural (Set.Length);
+      begin
+         Output.V64 (Types.v64 (Length));
+         for I of Set.all loop
+            This.Base.Write_Box (Output, I);
+         end loop;
+      end Write_Box;
+
+   end Set_Type_P;
+
+   package body Map_Type_P is
+
+      function Read_Box
+        (This  : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box
+      is
+
+         Count : Types.v64 := Input.V64;
+
+         Result : Types.Boxed_Map := new Types.Maps_P.Map;
+         K, V   : Types.Box;
+      begin
+         for I in 1 .. Count loop
+            K := This.Key.Read_Box (Input);
+            V := This.Value.Read_Box (Input);
+            Result.Include (K, V);
+         end loop;
+         return Boxed (Result);
+      end Read_Box;
+
+      function Offset_Box
+        (This   : access Field_Type_T;
+         Target : Types.Box) return Types.v64
+      is
+
+         Map : Types.Boxed_Map := Unboxed (Target);
+
+         Result : Types.v64;
+         Count  : Natural := Natural (Map.Length);
+
+         procedure Offset (I : Types.Maps_P.Cursor) is
+         begin
+            Result := Result + This.Key.Offset_Box (Types.Maps_P.Key (I));
+            Result :=
+              Result + This.Value.Offset_Box (Types.Maps_P.Element (I));
+         end Offset;
+
+      begin
+         Result := Offset_Single_V64 (Types.v64 (Count));
+         Map.Iterate (Offset'Access);
+         return Result;
+      end Offset_Box;
+
+      procedure Write_Box
+        (This   : access Field_Type_T;
+         Output : Streams.Writer.Sub_Stream;
+         Target : Types.Box)
+      is
+
+         Map    : Types.Boxed_Map := Unboxed (Target);
+         Length : Natural         := Natural (Map.Length);
+
+         procedure Offset (I : Types.Maps_P.Cursor) is
+         begin
+            This.Key.Write_Box (Output, Types.Maps_P.Key (I));
+            This.Value.Write_Box (Output, Types.Maps_P.Element (I));
+         end Offset;
+      begin
+         Output.V64 (Types.v64 (Length));
+         Map.Iterate (Offset'Access);
+      end Write_Box;
+
+   end Map_Type_P;
 
 end Skill.Field_Types.Builtin;

@@ -91,36 +91,40 @@ package body Skill.String_Pools is
       This.Id_Map.Append (null);
    end AddPosition;
 
+   -- should be synchronized now
+   function Read_Result
+     (This  : access Pool_T;
+      Index : Types.v64) return Types.String_Access
+   is
+      Off   : Position := This.String_Positions.Element (Natural (Index));
+      Input : Skill.Streams.Reader.Input_Stream := This.Input;
+      Last  : Types.v64                         := Input.Position;
+
+      use type Skill.Streams.Reader.Input_Stream;
+
+      function Convert is new Ada.Unchecked_Conversion (Types.i8, Character);
+
+      Result : Skill.Types.String_Access;
+   begin
+      Input.Jump (Off.AbsoluteOffset);
+      -- range shifted by 1 to allow for empty ranges
+      Result := new String (2 .. Positive (Off.Length + 1));
+
+      for P in Result'Range loop
+         Result (P) := Convert (Input.I8);
+      end loop;
+
+      Input.Jump (Last);
+      This.Id_Map.Replace_Element (Natural (Index), Result);
+
+      return Result;
+   end Read_Result;
+
    function Get
      (This  : access Pool_T;
       Index : Types.v64) return Skill.Types.String_Access
    is
       Result : Skill.Types.String_Access;
-
-      use type Skill.Streams.Reader.Input_Stream;
-
-      -- should be synchronized now
-      procedure Read_Result is
-         Off   : Position := This.String_Positions.Element (Natural (Index));
-         Input : Skill.Streams.Reader.Input_Stream := This.Input;
-         Last  : Types.v64                         := Input.Position;
-
-         function Convert is new Ada.Unchecked_Conversion
-           (Types.i8,
-            Character);
-      begin
-         Input.Jump (Off.AbsoluteOffset);
-         -- range shifted by 1 to allow for empty ranges
-         Result := new String (2 .. Positive (Off.Length + 1));
-
-         for P in Result'Range loop
-            Result (P) := Convert (Input.I8);
-         end loop;
-
-         Input.Jump (Last);
-         This.Id_Map.Replace_Element (Natural (Index), Result);
-      end Read_Result;
-
    begin
 
       if Index <= 0 then
@@ -138,7 +142,7 @@ package body Skill.String_Pools is
       -- @note this is correct, because string pool is the only one who can do
       -- parallel operations on input!
       This.Mutex.Lock;
-      Read_Result;
+      Result := Read_Result (This, Index);
       This.Mutex.Unlock;
 
       return Result;
@@ -191,7 +195,7 @@ package body Skill.String_Pools is
    begin
 
       -- ensure all strings are present
-      for I in 1 .. Types.V64(This.String_Positions.Length - 1) loop
+      for I in 1 .. Types.v64 (This.String_Positions.Length - 1) loop
          S := This.Get (I);
       end loop;
 
