@@ -17,7 +17,7 @@ with Skill.Synchronization;
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
-limited with Skill.Field_Types.Builtin;
+limited with Skill.Field_Types.Builtin.String_Type_P;
 
 package Skill.String_Pools is
 
@@ -66,7 +66,7 @@ package Skill.String_Pools is
    procedure Prepare_And_Write
      (This   : access Pool_T;
       Output : Skill.Streams.Writer.Output_Stream;
-      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_T.ID_Map);
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_P.ID_Map);
 private
 
    use type Skill.Types.String_Access;

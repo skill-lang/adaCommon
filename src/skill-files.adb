@@ -109,7 +109,7 @@ package body Skill.Files is
 
          -- add missing field declarations
          Field_Names := A1.Empty_Set;
-         for I in 1 .. P.Data_Fields.Length loop
+         for I in 1 .. Natural(P.Data_Fields.Length) loop
             Field_Names.Insert (P.Data_Fields.Element (I).Name);
          end loop;
 

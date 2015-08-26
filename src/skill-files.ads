@@ -13,6 +13,7 @@ with Skill.String_Pools;
 with Skill.Hashes;
 with Skill.Equals;
 with Skill.Field_Types.Builtin;
+with Skill.Field_Types.Builtin.String_Type_P;
 
 package Skill.Files is
 
@@ -30,7 +31,7 @@ package Skill.Files is
       Strings : Skill.String_Pools.Pool;
 
       -- string type used for string RTTI
-      String_Type : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
+      String_Type : Skill.Field_Types.Builtin.String_Type_P.Field_Type;
       -- annotation type used for annotations RTTI
       Annotation_Type : Skill.Field_Types.Builtin.Annotation_Type_P.Field_Type;
 

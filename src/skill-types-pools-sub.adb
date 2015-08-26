@@ -10,6 +10,7 @@ with Ada.Unchecked_Deallocation;
 with Skill.Equals;
 with Skill.Errors;
 with Skill.Field_Types;
+with Skill.Field_Types.Builtin;
 with Skill.Files;
 with Skill.Internal.File_Parsers;
 with Skill.Internal.Parts;
@@ -64,11 +65,11 @@ package body Skill.Types.Pools.Sub is
            Data_Fields_F =>
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
            Known_Fields => No_Known_Fields,
-           Blocks      => Skill.Internal.Parts.Blocks_P.Empty_Vector,
-           Fixed       => False,
-           Cached_Size => 0,
-           Static_Data => A1.Empty_Vector,
-           New_Objects => A1.Empty_Vector);
+           Blocks       => Skill.Internal.Parts.Blocks_P.Empty_Vector,
+           Fixed        => False,
+           Cached_Size  => 0,
+           Static_Data  => A1.Empty_Vector,
+           New_Objects  => A1.Empty_Vector);
 
       return Convert (This);
    exception
@@ -110,25 +111,38 @@ package body Skill.Types.Pools.Sub is
       return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
 
-
-   overriding
-   procedure Resize_Pool
+   overriding procedure Resize_Pool
      (This       : access Pool_T;
       Targets    : Type_Vector;
-      Self_Index : Natural) is
+      Self_Index : Natural)
+   is
    begin
       null;
-   end;
+   end Resize_Pool;
 
    overriding function Static_Size (This : access Pool_T) return Natural is
    begin
-      return This.Static_Data.Length + This.New_Objects.Length;
+      return Natural (This.Static_Data.Length) +
+        Natural (This.New_Objects.Length);
    end Static_Size;
 
-
    function Offset_Box
-     (This : access Pool_T;
-      Target : Types.Box) return Types.V64 is
-     (Field_Types.Builtin.Offset_Single_V64(Types.V64(Unboxed(Target).Skill_ID)));
+     (This   : access Pool_T;
+      Target : Types.Box) return Types.v64 is
+     (Field_Types.Builtin.Offset_Single_V64
+        (Types.v64 (Unboxed (Target).Skill_ID)));
+
+   procedure Write_Box
+     (This   : access Pool_T;
+      Output : Streams.Writer.Sub_Stream;
+      Target : Types.Box)
+   is
+   begin
+      if null = Unboxed (Target) then
+         Output.I8 (0);
+      else
+         Output.V64 (Types.v64 (Unboxed (Target).Skill_ID));
+      end if;
+   end Write_Box;
 
 end Skill.Types.Pools.Sub;

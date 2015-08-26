@@ -10,6 +10,9 @@ with Skill.Types.Pools;
 with Skill.Types;
 with Skill.Containers.Vectors;
 with Skill.Types.Pools.Sub;
+with Ada.Unchecked_Conversion;
+with Skill.Streams.Reader;
+with Skill.Streams.Writer;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(Annotation...)" instead
@@ -39,7 +42,7 @@ package Skill.Types.Pools.Unknown_Base is
    procedure Add_Known_Field
      (This            : access Pool_T;
       Name            : String_Access;
-      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      String_Type     : Field_Types.Builtin.String_Type_P.Field_Type;
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is null;
 
@@ -77,6 +80,29 @@ package Skill.Types.Pools.Unknown_Base is
      (This     : access Pool_T;
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
 
+   -- RTTI implementation
+   function Boxed is new Ada.Unchecked_Conversion (Types.Annotation, Types.Box);
+   function Unboxed is new Ada.Unchecked_Conversion (Types.Box, Types.Annotation);
+
+   function Read_Box
+     (This  : access Pool_T;
+      Input : Skill.Streams.Reader.Sub_Stream) return Types.Box is
+     (Boxed (This.Get (Skill_ID_T (Input.V64))));
+
+   function Offset_Box
+     (This   : access Pool_T;
+      Target : Types.Box) return Types.V64 is
+     (Field_Types.Builtin.Offset_Single_V64
+        (Types.v64 (Unboxed (Target).Skill_ID)));
+
+   procedure Write_Box
+     (This   : access Pool_T;
+      Output : Streams.Writer.Sub_Stream;
+      Target : Types.Box);
+
+   function Content_Tag
+     (This : access Pool_T) return Ada.Tags.Tag is
+     (Skill_Object'Tag);
 private
 
    package A1 is new Containers.Vectors (Natural, Annotation);

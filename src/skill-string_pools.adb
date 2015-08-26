@@ -4,16 +4,14 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
+with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
+with Ada.Text_IO;
+
 with Interfaces;
 
 with Skill.Errors;
-with Skill.Types;
-with Skill.Streams.Reader;
-with Ada.Unchecked_Conversion;
-with Ada.Text_IO;
-with Skill.Synchronization;
-with Ada.Unchecked_Deallocation;
-with Skill.Field_Types.Builtin;
+with Skill.Field_Types.Builtin.String_Type_P;
 
 package body Skill.String_Pools is
 
@@ -182,19 +180,19 @@ package body Skill.String_Pools is
    procedure Prepare_And_Write
      (This              : access Pool_T;
       Output            : Skill.Streams.Writer.Output_Stream;
-      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_T.ID_Map)
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_P.ID_Map)
    is
       S : Types.String_Access;
 
       Count : Types.v64;
 
       use type Types.v64;
-      use type Skill.Field_Types.Builtin.String_Type_T.ID_Map;
+      use type Skill.Field_Types.Builtin.String_Type_P.ID_Map;
    begin
 
       -- ensure all strings are present
-      for I in 1 .. This.String_Positions.Length - 1 loop
-         S := This.Get (Types.v64 (I));
+      for I in 1 .. Types.V64(This.String_Positions.Length - 1) loop
+         S := This.Get (I);
       end loop;
 
       -- create inverse map

@@ -9,6 +9,7 @@ with Ada.Unchecked_Conversion;
 package body Skill.Types is
 
    function Hash(This : Box) return Ada.Containers.Hash_Type is
+      pragma Warnings (Off);
       function Convert is new Ada.Unchecked_Conversion(Box, Ada.Containers.Hash_Type);
    begin
       return Ada.Containers.Hash_Type'Mod(Convert (This));

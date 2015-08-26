@@ -50,15 +50,20 @@ package body Skill.Internal.File_Parsers is
 
       -- preliminary file
       Strings       : String_Pools.Pool := String_Pools.Create (Input);
-      String_Type : Field_Types.Builtin.String_Type_T.Field_Type := Field_Types.Builtin.String_Type(Strings);
-      Type_Vector   : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
-      Types_By_Name : Skill.Types.Pools.Type_Map    := Skill.Types.Pools.P_Type_Map.Empty_Map;
-      Annotation_Type : Field_Types.Builtin.Annotation_Type_P.Field_Type := Field_Types.Builtin.Annotation(Type_Vector);
+      String_Type : Field_Types.Builtin.String_Type_P.Field_Type :=
+                      Field_Types.Builtin.String_Type_P.Make(Strings);
+      Type_Vector   : Types.Pools.Type_Vector :=
+                        Types.Pools.P_Type_Vector.Empty_Vector;
+      Types_By_Name : Skill.Types.Pools.Type_Map :=
+                        Skill.Types.Pools.P_Type_Map.Empty_Map;
+      Annotation_Type : Field_Types.Builtin.Annotation_Type_P.Field_Type :=
+                          Field_Types.Builtin.Annotation(Type_Vector);
 
       -- parser state --
 
       -- deferred pool resize requests
-      Resize_Queue : Types.Pools.Type_Vector := Types.Pools.P_Type_Vector.Empty_Vector;
+      Resize_Queue : Types.Pools.Type_Vector :=
+                       Types.Pools.P_Type_Vector.Empty_Vector;
 
       -- entries of local fields
       type LF_Entry is record
@@ -201,7 +206,7 @@ package body Skill.Internal.File_Parsers is
                   if 0 = Super_Id then
                      Super_Pool := null;
                   else
-                     if Super_Id > Type_Vector.Length then
+                     if Super_Id > Natural(Type_Vector.Length) then
                         raise Errors.Skill_Error
                           with Input.Parse_Exception
                           (Block_Counter, "Type " &
@@ -211,7 +216,7 @@ package body Skill.Internal.File_Parsers is
                            "          found: " &
                            Integer'Image (Super_Id) &
                            "; current number of other types " &
-                           Integer'Image (Type_Vector.Length));
+                           Integer'Image (Natural(Type_Vector.Length)));
                      else
                         Super_Pool := Type_Vector.Element (Super_Id - 1);
                         pragma Assert (null /= Super_Pool);
@@ -222,7 +227,7 @@ package body Skill.Internal.File_Parsers is
                   -- TODO add restrictions as parameter
                   --     definition = newPool(name, superDef, rest);
                   Definition := New_Pool
-                    (Type_Vector.Length + 32, Name, Super_Pool);
+                    (Natural(Type_Vector.Length) + 32, Name, Super_Pool);
 
                   Type_Vector.Append (Definition);
                   Types_By_Name.Include (Name, Definition);
@@ -308,7 +313,7 @@ package body Skill.Internal.File_Parsers is
             when 20 =>
                return Map_Type (Parse_Field_Type, Parse_Field_Type);
             when others =>
-               if ID >= 32 and Id < Type_Vector.Length + 32 then
+               if ID >= 32 and Id < Natural(Type_Vector.Length) + 32 then
                   return Convert (Type_Vector.Element (ID - 32));
                end if;
 
@@ -316,13 +321,13 @@ package body Skill.Internal.File_Parsers is
                with Input.Parse_Exception
                  (Block_Counter,
                   "Invalid type ID: " & Natural'Image (ID) & " largest is: "
-                  & Natural'Image (Type_Vector.Length + 32));
+                  & Natural'Image (Natural(Type_Vector.Length) + 32));
             end case;
          end Parse_Field_Type;
 
          procedure Parse_Fields (E : LF_Entry) is
             Legal_Field_ID_Barrier : Positive :=
-                                       1 + E.Pool.Data_Fields.Length;
+                                       1 + Natural(E.Pool.Data_Fields.Length);
             Last_Block             : Skill.Internal.Parts.Block :=
                                        E.Pool.Blocks.Last_Element;
             End_Offset             : Types.V64;
@@ -501,7 +506,8 @@ package body Skill.Internal.File_Parsers is
                   pragma Assert (F /= null);
 
                   -- make begin/end absolute
-                  End_Offset : Types.V64 := F.Add_Offset_To_Last_Chunk (Input, File_Offset);
+                  End_Offset : Types.V64 :=
+                                 F.Add_Offset_To_Last_Chunk (Input, File_Offset);
                begin
                   if Data_End < End_Offset then
                      Data_End := End_Offset;
@@ -528,7 +534,14 @@ package body Skill.Internal.File_Parsers is
 
       Free_State;
 
-      return Make_State (Input.Path, Mode, Strings, String_Type, Annotation_Type, Type_Vector, Types_By_Name);
+      return Make_State
+        (Input.Path,
+         Mode,
+         Strings,
+         String_Type,
+         Annotation_Type,
+         Type_Vector,
+         Types_By_Name);
 
    exception
       when E : Storage_Error =>

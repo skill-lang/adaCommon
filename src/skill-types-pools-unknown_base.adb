@@ -126,4 +126,17 @@ package body Skill.Types.Pools.Unknown_Base is
       return This.Static_Data.Length + This.New_Objects.Length;
    end Static_Size;
 
+   procedure Write_Box
+     (This   : access Pool_T;
+      Output : Streams.Writer.Sub_Stream;
+      Target : Types.Box)
+   is
+   begin
+      if null = Unboxed (Target) then
+         Output.I8 (0);
+      else
+         Output.V64 (Types.v64 (Unboxed (Target).Skill_ID));
+      end if;
+   end Write_Box;
+
 end Skill.Types.Pools.Unknown_Base;

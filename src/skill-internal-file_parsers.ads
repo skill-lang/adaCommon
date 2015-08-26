@@ -12,6 +12,7 @@ with Skill.Types.Pools;
 with Skill.Field_Types;
 with Skill.Streams.Reader;
 with Skill.Field_Types.Builtin;
+with Skill.Field_Types.Builtin.String_Type_P;
 
 -- documentation can be found in java common
 package Skill.Internal.File_Parsers is
@@ -29,7 +30,7 @@ package Skill.Internal.File_Parsers is
         (Path            : Types.String_Access;
          Mode            : Files.Write_Mode;
          Strings         : String_Pools.Pool;
-         String_Type     : Skill.Field_Types.Builtin.String_Type_T.Field_Type;
+         String_Type     : Skill.Field_Types.Builtin.String_Type_P.Field_Type;
          Annotation_Type : Skill.Field_Types.Builtin.Annotation_Type_P
            .Field_Type;
          Types         : Skill.Types.Pools.Type_Vector;

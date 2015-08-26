@@ -20,7 +20,7 @@ package Skill.Types is
    -- and object oriented polymorphism in ada.
    -- we use size of pointer and store all regular object in it by just abusing
    -- the space :-]
-   type Box is new System.Address;
+   type Box is new Interfaces.Unsigned_64;
 
    function Hash(This : Box) return Ada.Containers.Hash_Type;
 
@@ -36,7 +36,7 @@ package Skill.Types is
    subtype F32 is Interfaces.IEEE_Float_32;
    subtype F64 is Interfaces.IEEE_Float_64;
 
-   type String_Access is access String;
+   type String_Access is access all String;
    type String_Access_Array is
      array (Integer range <>) of not null String_Access;
    type String_Access_Array_Access is access all String_Access_Array;

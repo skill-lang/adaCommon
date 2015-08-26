@@ -8,6 +8,8 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
+with Ada.Tags;
+with Ada.Unchecked_Conversion;
 
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
@@ -16,86 +18,13 @@ with Skill.String_Pools;
 with Skill.Streams;
 with Skill.Streams.Writer;
 with Skill.Types.Pools;
-with Ada.Unchecked_Conversion;
+
+with Skill.Field_Types.Constant_Types;
+with Skill.Field_Types.Plain_Types;
 
 package Skill.Field_Types.Builtin is
 
-   generic
-      type T is private;
-      Type_Id : Natural;
-      Image : String;
-   package Constant_Types is
-
-      package A1 is new Field_Types (T, Type_Id);
-
-      type Field_Type is new A1.Field_Type with record
-         Value : T;
-      end record;
-
-      overriding function To_String (This : Field_Type) return String is
-        (Image);
-
-      overriding
-      function Read_Box
-        (This : access Field_Type;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
-         (raise Constraint_Error with "can not read a constant!");
-
-      overriding
-      function Offset_Box
-        (This : access Field_Type;
-         Target : Types.Box) return Types.V64 is
-        (0);
-
-      overriding
-      procedure Write_Box
-        (This : access Field_Type;
-         Output : Streams.Writer.Sub_Stream;
-         Target : Types.Box) is null;
-
-   end Constant_Types;
-
-   generic
-      type T is private;
-      Type_Id : Natural;
-      Image : String;
-      with function Read_Single
-        (Input : access Streams.Reader.Abstract_Stream'Class) return T;
-      with procedure Write_Single
-        (This : access Streams.Writer.Sub_Stream_T; V : T);
-      with function Offset_Single
-        (Input : T) return Types.v64 is <>;
-   package Plain_Types is
-      package A1 is new Field_Types (T, Type_Id);
-
-      type Field_Type is new A1.Field_Type with null record;
-
-      overriding function To_String (This : Field_Type) return String is
-        (Image);
-
-
-      function Boxed is new Ada.Unchecked_Conversion(T, Types.Box);
-      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, T);
-
-      overriding
-      function Read_Box
-        (This : access Field_Type;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
-        (Boxed(Read_Single(Input)));
-
-      overriding
-      function Offset_Box
-        (This : access Field_Type;
-         Target : Types.Box) return Types.V64 is
-        (Offset_Single(Unboxed(Target)));
-
-      overriding
-      procedure Write_Box
-        (This : access Field_Type;
-         Output : Streams.Writer.Sub_Stream;
-         Target : Types.Box);
-
-   end Plain_Types;
+   use type Types.Box;
 
    package T renames Skill.Types;
 
@@ -121,24 +50,38 @@ package Skill.Field_Types.Builtin is
 
 
    package Annotation_Type_P is
+      pragma Warnings (Off);
+
       package A1 is new Field_Types (Types.Annotation, 5);
-      package IDs is new Ada.Containers.Hashed_Maps (Key_Type        => Types.String_Access,
-                                                     Element_Type    => Types.Skill_ID_T,
-                                                     Hash            => Hash,
-                                                     Equivalent_Keys => Skill.Equals.Equals,
-                                                     "="             => "=");
+      package IDs is new Ada.Containers.Hashed_Maps
+        (Key_Type        => Types.String_Access,
+         Element_Type    => Types.Skill_ID_T,
+         Hash            => Hash,
+         Equivalent_Keys => Skill.Equals.Equals,
+         "="             => "=");
+
+      function Hash_Tag is new Ada.Unchecked_Conversion(Ada.Tags.Tag, Ada.Containers.Hash_Type);
+      use type Ada.Tags.Tag;
+      use type Types.Pools.Pool;
+
+      package Type_Maps is new Ada.Containers.Hashed_Maps
+        (Key_Type        => Ada.Tags.Tag,
+         Element_Type    => Types.Pools.Pool,
+         Hash            => Hash_Tag,
+         Equivalent_Keys => "=",
+         "="             => "=");
 
       -- we need to pass a pointer to the map around
       type ID_Map is not null access IDs.Map;
 
       type Field_Type_T is new A1.Field_Type with record
          Types : Skill.Types.Pools.Type_Vector;
-         Types_By_Name : Skill.Types.Pools.Type_Map;
+         Types_By_Tag : Type_Maps.Map;
       end record;
 
       type Field_Type is access Field_Type_T;
 
-      procedure Fix_Types (This : access Field_Type_T; Tbn : Types.Pools.Type_Map);
+      procedure Fix_Types (This : access Field_Type_T);
 
       function Boxed is new Ada.Unchecked_Conversion(Types.Annotation, Types.Box);
       function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.Annotation);
@@ -161,7 +104,7 @@ package Skill.Field_Types.Builtin is
 
    function Annotation (Types : Skill.Types.Pools.Type_Vector) return Annotation_Type_P.Field_Type is
      (new Annotation_Type_P.Field_Type_T'(Types         => types,
-                                          Types_By_Name => <>));
+                                          Types_By_Tag => <>));
 
    function Offset_Single
      (Input : Boolean) return Types.V64 is
@@ -212,62 +155,53 @@ package Skill.Field_Types.Builtin is
    package A42 is new Plain_Types (T.F64, 13, "f64", Streams.Reader.F64, Streams.Writer.F64);
    F64 : constant Field_Type := new A42.Field_Type;
 
-
-   package String_Type_T is
-      package A1 is new Field_Types (Types.String_Access, 14);
-      package IDs is new Ada.Containers.Hashed_Maps (Key_Type        => Types.String_Access,
-                                                     Element_Type    => Types.Skill_ID_T,
-                                                     Hash            => Hash,
-                                                     Equivalent_Keys => Skill.Equals.Equals,
-                                                     "="             => "=");
-
-      -- we need to pass a pointer to the map around
-      type ID_Map is not null access all IDs.Map;
-
-      type Field_Type_T is new A1.Field_Type with record
-         Strings : Skill.String_Pools.Pool;
-         String_IDs : aliased IDs.Map;
-      end record;
-
-      type Field_Type is access all Field_Type_T;
-
-
-      function Boxed is new Ada.Unchecked_Conversion(Types.String_Access, Types.Box);
-      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.String_Access);
-
-
-      function Read_Box
-        (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
-        (Boxed(This.Strings.Get (Input.V64)));
-
-      function Offset_Box
-        (This : access Field_Type_T;
-         Target : Types.Box) return Types.V64 is
-         (Offset_Single_V64(Types.V64(This.String_Ids.Element(Unboxed(Target)))));
-
-      procedure Write_Box
-        (This : access Field_Type_T;
-         Output : Streams.Writer.Sub_Stream; Target : Types.Box);
-
-      procedure Write_Single_Field (THis : access Field_Type_T; V : Types.String_Access; Output : Skill.Streams.Writer.Sub_Stream);
-
-      function Get_Id_Map (THis : access Field_Type_T) return ID_Map;
-
-      overriding function To_String (This : Field_Type_T) return String is
-        ("string");
-   end String_Type_T;
-
-   function String_Type  (Strings : String_Pools.Pool) return String_Type_T.Field_Type is
-     (new String_Type_T.Field_Type_T'(Strings, String_Type_T.Ids.Empty_Map));
+--     generic
+--        type Collection is private;
+--        Id : Natural;
+--        Collection_Name : String;
+--
+--        with function New_Collection return Collection is <>;
+--        with procedure Insert(This : in out Collection; E : in Types.Box) is <>;
+--        with function Length (This : Collection) return Ada.Containers.Count_Type is <>;
+--        with function Element (This : Collection; Idx : Ada.Containers.Count_Type) return Types.Box is <>;
+--     package Single_Argument_Type_P is
+--        package A1 is new Skill.Field_Types.Field_Types (Collection, Id);
+--
+--
+--        type Field_Type_T is new A1.Field_Type with record
+--           Base : SKill.Field_Types.Field_Type;
+--        end record;
+--        type Field_Type is access all Field_Type_T;
+--
+--        function Make (Base : Skill.Field_Types.Field_Type) return Field_Type is
+--           (new Field_Type_T'(Base => Base));
+--
+--
+--        function Boxed is new Ada.Unchecked_Conversion(Collection, Types.Box);
+--        function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Collection);
+--
+--
+--        function Read_Box
+--          (This : access Field_Type_T;
+--           Input : Streams.Reader.Sub_Stream) return Types.Box;
+--
+--        function Offset_Box
+--          (This : access Field_Type_T;
+--           Target : Types.Box) return Types.V64;
+--
+--        procedure Write_Box
+--          (This : access Field_Type_T;
+--           Output : Streams.Writer.Sub_Stream; Target : Types.Box);
+--
+--        overriding
+--        function To_String (This : Field_Type_T) return String is
+--          (Collection_Name & "(" & This.Base.To_String & ")");
+--     end Single_Argument_Type_P;
 
 
-   generic
-      type Collection is private;
-      Id : Natural;
-      Collection_Name : String;
-   package Single_Argument_Type_P is
-      package A1 is new Skill.Field_Types.Field_Types (Collection, Id);
+   package Var_Arrays_P is
+      use type Types.Boxed_Array;
+      package A1 is new Skill.Field_Types.Field_Types (Types.Boxed_Array, 17);
 
 
       type Field_Type_T is new A1.Field_Type with record
@@ -276,33 +210,57 @@ package Skill.Field_Types.Builtin is
       type Field_Type is access all Field_Type_T;
 
       function Make (Base : Skill.Field_Types.Field_Type) return Field_Type is
-         (new Field_Type_T'(Base => Base));
+        (new Field_Type_T'(Base => Base));
 
 
-      function Boxed is new Ada.Unchecked_Conversion(Collection, Types.Box);
-      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Collection);
+      function Boxed is new Ada.Unchecked_Conversion(Types.Boxed_Array, Types.Box);
+      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.Boxed_Array);
 
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+            Input : Streams.Reader.Sub_Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;
-         Target : Types.Box) return Types.V64;
+            Target : Types.Box) return Types.V64;
 
       procedure Write_Box
         (This : access Field_Type_T;
-         Output : Streams.Writer.Sub_Stream; Target : Types.Box);
+            Output : Streams.Writer.Sub_Stream; Target : Types.Box);
 
       overriding
       function To_String (This : Field_Type_T) return String is
-        (Collection_Name & "(" & This.Base.To_String & ")");
-   end Single_Argument_Type_P;
+        (This.Base.To_String & "[]");
+   end Var_Arrays_P;
 
-   package Var_Arrays_P is new Single_Argument_Type_P(Types.Boxed_Array, 17, "array");
-   function Var_Array (Base : Skill.Field_Types.Field_Type) return Skill.Field_Types.Field_Type is
-      (Skill.Field_Types.Field_Type(Var_Arrays_P.Make(Base => Base)));
+
+   function Var_Array
+     (Base : Skill.Field_Types.Field_Type)
+      return Skill.Field_Types.Field_Type is
+     (Skill.Field_Types.Field_Type(Var_Arrays_P.Make(Base => Base)));
+
+
+   -- single container function for lists
+--     use type Types.Boxed_List;
+--     function New_Collection return Types.Boxed_List is
+--       (Types.Lists_P.Empty_List);
+--     procedure Insert(This : in out Types.Boxed_List; E : in Types.Box);
+--     function Length (This : Types.Boxed_List) return Ada.Containers.Count_Type is
+--       (This.Length);
+--     function Element (This : Types.Boxed_List; Idx : Ada.Containers.Count_Type) return Types.Box is
+--       (This.
+--        .Element(Integer(Idx)));
+--
+--     package List_Type_P is new Single_Argument_Type_P
+--       (Collection => Types.Boxed_List,
+--        Id => 18,
+--        Collection_Name => "list"
+--       );
+--     function List_Type
+--       (Base : Skill.Field_Types.Field_Type)
+--        return Skill.Field_Types.Field_Type is
+--       (Skill.Field_Types.Field_Type(List_Type_P.Make(Base => Base)));
 
 --     function String_Type  (Strings : String_Pools.Pool) return String_Type_T.Field_Type is
 --       (new String_Type_T.Field_Type_T'(Strings, String_Type_T.Ids.Empty_Map));

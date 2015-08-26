@@ -10,6 +10,7 @@ with Interfaces;
 with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Field_Types.Builtin;
+with Skill.Field_Types.Builtin.String_Type_P;
 with Skill.Containers.Vectors;
 with Skill.Field_Declarations; use Skill.Field_Declarations;
 with Skill.Internal.Parts;
@@ -45,7 +46,7 @@ package body Skill.Internal.File_Writers is
      (State  : Skill.Files.File;
       Output : Skill.Streams.Writer.Output_Stream)
    is
-      String_Type : Skill.Field_Types.Builtin.String_Type_T.Field_Type :=
+      String_Type : Skill.Field_Types.Builtin.String_Type_P.Field_Type :=
         State.String_Type;
 
       procedure String (S : Types.String_Access) is
@@ -72,7 +73,7 @@ package body Skill.Internal.File_Writers is
 
       -- index → bpo
       --  @note pools.par would not be possible if it were an actual
-      Lbpo_Map : Lbpo_Map_T (0 .. State.Types.Length - 1);
+      Lbpo_Map : Lbpo_Map_T (0 .. Natural(State.Types.Length) - 1);
 
       -- barrier used for parallel processing
       Write_Barrier : Skill.Synchronization.Barrier;

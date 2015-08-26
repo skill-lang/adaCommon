@@ -8,6 +8,7 @@ with Ada.Containers.Vectors;
 
 with Skill.Field_Types;
 limited with Skill.Field_Types.Builtin;
+limited with Skill.Field_Types.Builtin.String_Type_P;
 with Skill.Field_Declarations;
 with Skill.Internal.Parts;
 limited with Skill.Files;
@@ -18,28 +19,6 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings;
 with Ada.Strings.Hash;
 
--- TODO push down:
---  type A2 is not null access T;
---  package New_Objects_T is new Ada.Containers.Vectors (Natural, A2);
---
---  -- objects that have not yet been written to disk
---  New_Objects : New_Objects_T.Vector;
---        generic
---     -- type of values stored in a pool
---        type T is tagged private;
---
---
---
---        -- the fields known to the pool (set of strings)
---        Known_Fields : String_Access_Array;
---
---        -- auto fields are a generic parameter as well
---        -- range is allways -XX to 0.
---           Auto_Fields : Skill.Field_Types.Auto_Field_Array;
---     package Sub_Pool
---     is
---        type Pool_T is new T with null record;
---        end Sub_Pool;
 
 -- in contrast to a solution in c++ or java, we will represent data and most of
 -- the internal implementation in a type erasure version of the java
@@ -151,19 +130,19 @@ package Skill.Types.Pools is
    procedure Add_Known_Field
      (This            : access Pool_T;
       Name            : String_Access;
-      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      String_Type     : Field_Types.Builtin.String_Type_P.Field_Type;
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is abstract;
    procedure Add_Known_Field
      (This            : access Sub_Pool_T;
       Name            : String_Access;
-      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      String_Type     : Field_Types.Builtin.String_Type_P.Field_Type;
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is abstract;
    procedure Add_Known_Field
      (This            : access Base_Pool_T;
       Name            : String_Access;
-      String_Type     : Field_Types.Builtin.String_Type_T.Field_Type;
+      String_Type     : Field_Types.Builtin.String_Type_P.Field_Type;
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is abstract;
 
@@ -184,6 +163,12 @@ package Skill.Types.Pools is
    procedure Free (This : access Pool_T) is abstract;
    procedure Free (This : access Sub_Pool_T) is abstract;
    procedure Free (This : access Base_Pool_T) is abstract;
+
+   -- internal use only
+   -- return the tag of content stored in this pool (=static type)
+   function Content_Tag (This : access Pool_T) return Ada.Tags.Tag is abstract;
+   function Content_Tag (This : access Sub_Pool_T) return Ada.Tags.Tag is abstract;
+   function Content_Tag (This : access Base_Pool_T) return Ada.Tags.Tag is abstract;
 
    -- internal use only
    function Data

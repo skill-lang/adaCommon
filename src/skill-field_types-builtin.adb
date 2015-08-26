@@ -12,128 +12,164 @@ with Ada.Containers.Vectors;
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
+with Ada.Tags;
 
 package body Skill.Field_Types.Builtin is
 
-   package body Plain_Types is
+   use type Skill.Types.V64;
+   use type Skill.Types.Uv64;
 
+   function Offset_Single_V64
+     (Input : Types.V64) return Types.V64 is
+      function Cast is new Ada.Unchecked_Conversion
+        (Skill.Types.v64,
+         Skill.Types.Uv64);
+
+      V : constant Skill.Types.Uv64 := Cast (Input);
+
+   begin
+      if 0 = (V and 16#FFFFFFFFFFFFFF80#) then
+         return 1;
+      elsif 0 = (V and 16#FFFFFFFFFFFFC000#) then
+         return 2;
+      elsif 0 = (V and 16#FFFFFFFFFFE00000#) then
+         return 3;
+      elsif 0 = (V and 16#FFFFFFFFF0000000#) then
+         return 4;
+      elsif 0 = (V and 16#FFFFFFF800000000#) then
+         return 5;
+      elsif 0 = (V and 16#FFFFFC0000000000#) then
+         return 6;
+      elsif 0 = (V and 16#FFFE000000000000#) then
+         return 7;
+      elsif 0 = (V and 16#FF00000000000000#) then
+         return 8;
+      else
+         return 9;
+      end if;
+   end Offset_Single_V64;
+
+   procedure Insert(This : in out Types.Boxed_Array; E : in Types.Box) is
+   begin
+      This.Append(E);
+   end Insert;
+   procedure Insert(This : in out Types.Boxed_List; E : in Types.Box) is
+   begin
+      This.Append(E);
+   end Insert;
+
+   package body Annotation_Type_P is
+
+      use type Types.Annotation;
+
+      procedure Fix_Types
+        (This : access Field_Type_T) is
+
+         procedure Add(P : Types.Pools.Pool) is
+         begin
+            This.Types_By_Tag.Insert(P.Dynamic.Content_Tag, P);
+         end;
+      begin
+         This.Types.Foreach(Add'Access);
+      end Fix_Types;
+
+      overriding
+      function Read_Box
+        (This : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box is
+         T : Types.V64 := Input.V64;
+         Idx : Types.V64 := Input.V64;
+      begin
+         if 0 = T then
+            return Boxed(null);
+         else
+            declare
+               Data : Types.Annotation_Array := This.Types.Element(Integer(T - 1)).Base.Data;
+            begin
+               return Boxed(Data(Integer(Idx)));
+            end;
+         end if;
+      end Read_Box;
+
+      overriding
+      function Offset_Box
+        (This : access Field_Type_T;
+         Target : Types.Box) return Types.V64 is
+
+         Ref : Types.Annotation := Unboxed(Target);
+      begin
+         if null = Ref then
+            return 2;
+         else
+            return Offset_Single_V64(Types.V64
+                                     (This.Types_By_Tag.Element(Ref.Tag).Id))
+              +
+              Offset_Single_V64(Types.V64(Ref.Skill_ID));
+         end if;
+      end Offset_Box;
+
+      overriding
       procedure Write_Box
         (This : access Field_Type_T;
          Output : Streams.Writer.Sub_Stream;
          Target : Types.Box) is
+
+         Ref : Types.Annotation := Unboxed(Target);
       begin
-         Write_Single(Output, Unboxed(Target));
+         if null = Ref then
+            Output.I16(0);
+         else
+            Output.V64 (Types.V64(
+              (This.Types_By_Tag.Element(Ref.Tag).Id)));
+
+            Output.V64(Types.V64(Ref.Skill_ID));
+         end if;
       end Write_Box;
-
-   end Plain_Types;
-
-
-   package body Annotation_Type_P is
-
-   procedure Fix_Types (This : access Field_Type_T; Tbn : Skill.Types.Pools.Type_Map) is
-      begin
-         This.Types_By_Name := Tbn;
-      end Fix_Types;
-
-
-
---      @Override
---      public SkillObject readSingleField(InStream in) {
---          final int t = (int) in.v64();
---          final long f = in.v64();
---          if (0 == t)
---              return null;
---          return types.get(t - 1).getByID(f);
---      }
---
---      @Override
---      public long calculateOffset(Collection<SkillObject> xs) {
---          long result = 0L;
---          for (SkillObject ref : xs) {
---              if (null == ref)
---                  result += 2;
---              else {
---                  if (ref instanceof NamedType)
---                      result += V64.singleV64Offset(((NamedType) ref).τPool().typeID() - 31);
---                 else
---                      result += V64
---                              .singleV64Offset(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
---
---                  result += V64.singleV64Offset(ref.getSkillID());
---              }
---          }
---
---          return result;
---      }
---
---      /**
---       * used for simple offset calculation
---       */
---      public long singleOffset(SkillObject ref) {
---          if (null == ref)
---              return 2L;
---
---          final long name;
---          if (ref instanceof NamedType)
---              name = V64.singleV64Offset(((NamedType) ref).τPool().typeID() - 31);
---         else
---              name = V64.singleV64Offset(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
---
---          return name + V64.singleV64Offset(ref.getSkillID());
---      }
---
---      @Override
---      public void writeSingleField(SkillObject ref, OutStream out) throws IOException {
---          if (null == ref) {
---              // magic trick!
---              out.i16((short) 0);
---              return;
---          }
---
---          if (ref instanceof NamedType)
---              out.v64(((NamedType) ref).τPool().typeID() - 31);
---         else
---              out.v64(typeByName.get(ref.getClass().getSimpleName().toLowerCase()).typeID() - 31);
---          out.v64(ref.getSkillID());
---
---      }
 
    end Annotation_Type_P;
 
-   package body String_Type_T is
+   package body Var_Arrays_P is
 
-      function Get_Id_Map (THis : access Field_Type_T) return ID_Map is
-      Begin
-         return This.String_IDs'access;
-      end Get_Id_Map;
+      function Read_Box
+        (This : access Field_Type_T;
+         Input : Streams.Reader.Sub_Stream) return Types.Box is
+
+         Count : Types.V64 := Input.V64;
+
+         Result : Types.Boxed_Array := Types.Arrays_P.Empty_Vector;
+      begin
+         for I in 1 .. Count loop
+            Insert(Result, This.Base.Read_Box(Input));
+         end loop;
+         return Boxed(Result);
+      end Read_Box;
+
+      function Offset_Box
+        (This : access Field_Type_T;
+         Target : Types.Box) return Types.V64 is
+
+         Result : Types.V64;
+         Count : Natural := Natural(Unboxed(Target).Length);
+      begin
+         Result := Offset_Single_V64(Types.V64(Count));
+         for I in 1 .. Count loop
+            Result := Result + This.Base.Offset_Box(Unboxed(Target).Element(I));
+         end loop;
+         return Result;
+      end Offset_Box;
 
       procedure Write_Box
         (This : access Field_Type_T;
          Output : Streams.Writer.Sub_Stream; Target : Types.Box) is
-         V      : Types.String_Access := Unboxed(Target);
-         use type Types.String_Access;
+
+         Length : Natural := Natural(Unboxed(Target).Length);
       begin
-         if null = V then
-            Output.I8(0);
-         else
-            Output.V64 (Types.V64 (THis.String_IDs.Element (V)));
-         end if;
+         Output.V64 (Types.V64(Length));
+         for I in 1 .. Length loop
+            This.Base.Write_Box(Output, Unboxed(Target).Element(I));
+         end loop;
       end Write_Box;
 
-      procedure Write_Single_Field
-        (THis   : access Field_Type_T;
-         V      : Types.String_Access;
-         Output : Skill.Streams.Writer.Sub_Stream)
-      is
-         use type Types.String_Access;
-      begin
-         if null = V then
-            Output.I8(0);
-         else
-            Output.V64 (Types.V64 (THis.String_IDs.Element (V)));
-         end if;
-      end Write_Single_Field;
-
-   end String_Type_T;
+   end Var_Arrays_P;
 
 end Skill.Field_Types.Builtin;
