@@ -17,6 +17,7 @@ with Skill.Streams.Writer;
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(Annotation...)" instead
 package Skill.Types.Pools.Unknown_Base is
+   pragma Warnings (Off);
 
    type Pool_T is new Base_Pool_T with private;
    type Pool is access Pool_T;

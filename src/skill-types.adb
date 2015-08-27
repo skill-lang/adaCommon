@@ -33,4 +33,23 @@ package body Skill.Types is
       return Cast (T (This));
    end Dynamic;
 
+   -- reflective getter
+   function Reflective_Get
+     (This : access Skill_Object;
+      F : Skill.Field_Declarations.Field_Declaration) return Box is
+      function Cast is new Ada.Unchecked_Conversion(Annotation, Box);
+   begin
+      raise Constraint_Error with "reflective get not implemented for skill objects";
+      return Cast(null);
+   end Reflective_Get;
+
+   -- reflective setter
+   procedure Reflective_Set
+     (This : access Skill_Object;
+      F : Field_Declarations.Field_Declaration;
+      V : Box) is
+   begin
+      raise Constraint_Error with "reflective set not implemented for skill objects";
+   end Reflective_Set;
+
 end Skill.Types;

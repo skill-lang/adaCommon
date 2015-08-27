@@ -9,6 +9,7 @@ with Ada.Unchecked_Deallocation;
 
 with Skill.Equals;
 with Skill.Errors;
+with Skill.Field_Declarations;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
 with Skill.Files;

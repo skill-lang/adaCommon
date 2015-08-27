@@ -12,6 +12,7 @@ with Ada.Tags;
 with Interfaces;
 with System;
 with Skill.Containers.Vectors;
+limited with Skill.Field_Declarations;
 
 package Skill.Types is
    pragma Preelaborate;
@@ -84,5 +85,16 @@ package Skill.Types is
      (This'Tag);
    pragma Inline (Tag);
    pragma Pure_Function (Tag);
+
+   -- reflective getter
+   function Reflective_Get
+     (This : access Skill_Object;
+      F : Skill.Field_Declarations.Field_Declaration) return Box;
+
+   -- reflective setter
+   procedure Reflective_Set
+     (This : access Skill_Object;
+      F : Field_Declarations.Field_Declaration;
+      V : Box);
 
 end Skill.Types;

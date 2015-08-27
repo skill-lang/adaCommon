@@ -15,6 +15,7 @@ with Skill.Types.Pools;
 with Ada.Tags;
 
 package body Skill.Field_Types.Constant_Types is
+   pragma Warnings (Off);
 
    function Read_Box
      (This : access Field_Type;
