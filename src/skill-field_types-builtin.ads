@@ -109,51 +109,51 @@ package Skill.Field_Types.Builtin is
    function Offset_Single
      (Input : Boolean) return Types.V64 is
       (1);
-   package A9 is new Plain_Types (Boolean, 6, "bool", Streams.Reader.Bool, Streams.Writer.Bool);
-   Bool : constant Field_Type := new A9.Field_Type;
+   package Bool_Type_P is new Plain_Types (Boolean, 6, "bool", Streams.Reader.Bool, Streams.Writer.Bool);
+   Bool : constant Field_Type := new Bool_Type_P.Field_Type;
 
    function Offset_Single
      (Input : Types.i8) return Types.V64 is
       (1);
-   package A11 is new Plain_Types (T.I8, 7, "i8", Streams.Reader.I8, Streams.Writer.I8);
-   I8 : constant Field_Type := new A11.Field_Type;
+   package I8_Type_P is new Plain_Types (T.I8, 7, "i8", Streams.Reader.I8, Streams.Writer.I8);
+   I8 : constant Field_Type := new I8_Type_P.Field_Type;
 
    function Offset_Single
      (Input : Types.I16) return Types.V64 is
       (2);
-   package A21 is new Plain_Types (T.I16, 8, "i16", Streams.Reader.I16, Streams.Writer.I16);
-   I16 : constant Field_Type := new A21.Field_Type;
+   package I16_Type_P is new Plain_Types (T.I16, 8, "i16", Streams.Reader.I16, Streams.Writer.I16);
+   I16 : constant Field_Type := new I16_Type_P.Field_Type;
 
    function Offset_Single
      (Input : Types.I32) return Types.V64 is
       (4);
-   package A31 is new Plain_Types (T.I32, 9, "i32", Streams.Reader.I32, Streams.Writer.I32);
-   I32 : constant Field_Type := new A31.Field_Type;
+   package I32_Type_P is new Plain_Types (T.I32, 9, "i32", Streams.Reader.I32, Streams.Writer.I32);
+   I32 : constant Field_Type := new I32_Type_P.Field_Type;
 
    function Offset_Single
      (Input : Types.I64) return Types.V64 is
       (8);
-   package A41 is new Plain_Types (T.I64, 10, "i64", Streams.Reader.I64, Streams.Writer.I64);
-   I64 : constant Field_Type := new A41.Field_Type;
+   package I64_Type_P is new Plain_Types (T.I64, 10, "i64", Streams.Reader.I64, Streams.Writer.I64);
+   I64 : constant Field_Type := new I64_Type_P.Field_Type;
 
 
    function Offset_Single_V64
      (Input : Types.V64) return Types.V64;
-   package A51 is new Plain_Types (T.V64, 11, "v64", Streams.Reader.V64, Streams.Writer.V64, Offset_Single_V64);
-   V64 : constant Field_Type := new A51.Field_Type;
+   package V64_Type_P is new Plain_Types (T.V64, 11, "v64", Streams.Reader.V64, Streams.Writer.V64, Offset_Single_V64);
+   V64 : constant Field_Type := new V64_Type_P.Field_Type;
 
 
    function Offset_Single
      (Input : Types.F32) return Types.V64 is
       (4);
-   package A32 is new Plain_Types (T.F32, 12, "f32", Streams.Reader.F32, Streams.Writer.F32);
-   F32 : constant Field_Type := new A32.Field_Type;
+   package F32_Type_P is new Plain_Types (T.F32, 12, "f32", Streams.Reader.F32, Streams.Writer.F32);
+   F32 : constant Field_Type := new F32_Type_P.Field_Type;
 
    function Offset_Single
      (Input : Types.F64) return Types.V64 is
       (8);
-   package A42 is new Plain_Types (T.F64, 13, "f64", Streams.Reader.F64, Streams.Writer.F64);
-   F64 : constant Field_Type := new A42.Field_Type;
+   package F64_Type_P is new Plain_Types (T.F64, 13, "f64", Streams.Reader.F64, Streams.Writer.F64);
+   F64 : constant Field_Type := new F64_Type_P.Field_Type;
 
 
    package Const_Arrays_P is
