@@ -96,7 +96,13 @@ package body Skill.Streams.Reader is
    is
       use type Uchar.Pointer;
       use type Interfaces.Integer_64;
+
+      function Cast is new Ada.Unchecked_Conversion (Map_Pointer, Types.V64);
    begin
+      if Cast (This.EOF) < Cast (This.Base + C.ptrdiff_t (Base + Last)) then
+         raise Constraint_Error with "Tried to read behind end of file.";
+      end if;
+
       return new Sub_Stream_T'
           (Map  => This.Base + C.ptrdiff_t (Base + First),
            Base => This.Base + C.ptrdiff_t (Base + First),
@@ -148,6 +154,16 @@ package body Skill.Streams.Reader is
    begin
       return Types.v64 (This.Map - This.Base);
    end Position;
+
+   procedure Check_Offset
+     (This : access Abstract_Stream'Class;
+      Pos  : Skill.Types.v64) is
+      use type Types.V64;
+   begin
+      if Types.v64 (This.Eof - This.Base) <= Pos then
+         raise Constraint_Error with "Offset check failed, argument position is behind end of file.";
+      end if;
+   end Check_Offset;
 
    procedure Jump
      (This : access Abstract_Stream'Class;

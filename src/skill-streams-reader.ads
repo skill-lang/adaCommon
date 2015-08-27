@@ -46,6 +46,12 @@ package Skill.Streams.Reader is
    function Position
      (This : access Abstract_Stream'Class) return Skill.Types.v64;
 
+   -- checks validity of argument position for this stream,
+   -- if invalid, raise constraint error
+   procedure Check_Offset
+     (This : access Abstract_Stream'Class;
+      Pos  : Skill.Types.v64);
+
    procedure Jump (This : access Abstract_Stream'Class; Pos : Skill.Types.v64);
 
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8;

@@ -103,7 +103,9 @@ package body Skill.Internal.File_Parsers is
             Offsets : Offset_Array;
          begin
             for I in Offset_Array'Range loop
-               Offsets (I) := Input.I32;
+               Off := Input.I32;
+               Offsets (I) := Off;
+               Input.Check_Offset(Types.V64(Off));
             end loop;
 
             for I in Offset_Array'Range loop
