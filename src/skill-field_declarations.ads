@@ -108,7 +108,6 @@ package Skill.Field_Declarations is
       T     : Field_Types.Field_Type;
       Name  : Skill.Types.String_Access) return Lazy_Field;
 
-
    procedure Free (This : access Field_Declaration_T) is abstract;
    procedure Free (This : access Lazy_Field_T);
    procedure Free (This : access Auto_Field_T) is null;
