@@ -84,9 +84,13 @@ package body Skill.Field_Declarations is
    end Make_Lazy_Field;
 
    procedure Free (This : access Lazy_Field_T) is
+      type T is access all Lazy_Field_T;
+      procedure Delete is new Ada.Unchecked_Deallocation(Lazy_Field_T, T);
+      D : T := T(This);
    begin
       This.Data_Chunks.Foreach (Delete_Chunk'Access);
       This.Data_Chunks.Free;
+      Delete (D);
    end Free;
 
 end Skill.Field_Declarations;
