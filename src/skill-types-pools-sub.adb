@@ -112,11 +112,7 @@ package body Skill.Types.Pools.Sub is
       return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
 
-   overriding procedure Resize_Pool
-     (This       : access Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural)
-   is
+   overriding procedure Resize_Pool (This : access Pool_T) is
    begin
       null;
    end Resize_Pool;

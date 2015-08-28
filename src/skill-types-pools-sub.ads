@@ -53,10 +53,7 @@ package Skill.Types.Pools.Sub is
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is null;
 
-   overriding procedure Resize_Pool
-     (This       : access Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural);
+   overriding procedure Resize_Pool (This : access Pool_T);
 
    overriding function Static_Size (This : access Pool_T) return Natural;
 

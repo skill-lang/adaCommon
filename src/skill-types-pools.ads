@@ -19,7 +19,6 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings;
 with Ada.Strings.Hash;
 
-
 -- in contrast to a solution in c++ or java, we will represent data and most of
 -- the internal implementation in a type erasure version of the java
 -- implementation. The Facade will use the generic type system to create methods
@@ -167,8 +166,10 @@ package Skill.Types.Pools is
    -- internal use only
    -- return the tag of content stored in this pool (=static type)
    function Content_Tag (This : access Pool_T) return Ada.Tags.Tag is abstract;
-   function Content_Tag (This : access Sub_Pool_T) return Ada.Tags.Tag is abstract;
-   function Content_Tag (This : access Base_Pool_T) return Ada.Tags.Tag is abstract;
+   function Content_Tag
+     (This : access Sub_Pool_T) return Ada.Tags.Tag is abstract;
+   function Content_Tag
+     (This : access Base_Pool_T) return Ada.Tags.Tag is abstract;
 
    -- internal use only
    function Data
@@ -177,18 +178,9 @@ package Skill.Types.Pools is
    -- internal use only
    -- @note: this method is invoked in type order on exactly the pools that
    -- ought to be rized
-   procedure Resize_Pool
-     (This       : access Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural) is abstract;
-   procedure Resize_Pool
-     (This       : access Base_Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural) is abstract;
-   procedure Resize_Pool
-     (This       : access Sub_Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural) is abstract;
+   procedure Resize_Pool (This : access Pool_T) is abstract;
+   procedure Resize_Pool (This : access Base_Pool_T) is abstract;
+   procedure Resize_Pool (This : access Sub_Pool_T) is abstract;
 
    -- internal use only
    -- type_ID - 32

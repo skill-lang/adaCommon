@@ -491,8 +491,7 @@ package body Skill.Internal.File_Parsers is
             Index : Natural := Natural'First;
             procedure Resize (E : Skill.Types.Pools.Pool) is
             begin
-               E.Dynamic.Resize_Pool (Resize_Queue, Index);
-               Index := Index + 1;
+               E.Dynamic.Resize_Pool;
             end;
          begin
             Resize_Queue.Foreach (Resize'Access);

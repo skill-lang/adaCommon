@@ -47,10 +47,7 @@ package Skill.Types.Pools.Unknown_Base is
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is null;
 
-   overriding procedure Resize_Pool
-     (This       : access Pool_T;
-      Targets    : Type_Vector;
-      Self_Index : Natural) is null;
+   overriding procedure Resize_Pool (This : access Pool_T) is null;
 
    overriding function Static_Size (This : access Pool_T) return Natural;
 
@@ -82,8 +79,12 @@ package Skill.Types.Pools.Unknown_Base is
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
 
    -- RTTI implementation
-   function Boxed is new Ada.Unchecked_Conversion (Types.Annotation, Types.Box);
-   function Unboxed is new Ada.Unchecked_Conversion (Types.Box, Types.Annotation);
+   function Boxed is new Ada.Unchecked_Conversion
+     (Types.Annotation,
+      Types.Box);
+   function Unboxed is new Ada.Unchecked_Conversion
+     (Types.Box,
+      Types.Annotation);
 
    function Read_Box
      (This  : access Pool_T;
@@ -92,7 +93,7 @@ package Skill.Types.Pools.Unknown_Base is
 
    function Offset_Box
      (This   : access Pool_T;
-      Target : Types.Box) return Types.V64 is
+      Target : Types.Box) return Types.v64 is
      (Field_Types.Builtin.Offset_Single_V64
         (Types.v64 (Unboxed (Target).Skill_ID)));
 
