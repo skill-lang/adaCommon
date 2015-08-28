@@ -66,7 +66,8 @@ package body Skill.Field_Types.Builtin is
 
          procedure Add (P : Types.Pools.Pool) is
          begin
-            This.Types_By_Tag.Insert (P.Dynamic.Content_Tag, P);
+            -- note: this trick wont work for unknown types!!!
+            This.Types_By_Tag.Include (P.Dynamic.Content_Tag, P);
          end Add;
       begin
          This.Types.Foreach (Add'Access);
@@ -102,7 +103,8 @@ package body Skill.Field_Types.Builtin is
             return 2;
          else
             return Offset_Single_V64
-                (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset)) +
+                (Types.v64
+                   (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset)) +
               Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
          end if;
       exception
@@ -112,7 +114,8 @@ package body Skill.Field_Types.Builtin is
             Ada.Text_IO.Put_Line (Integer'Image (Ref.Skill_ID));
 
             Ada.Text_IO.Put_Line ("map:");
-            Ada.Text_Io.Put_Line (Integer'Image(Integer(This.Types_By_Tag.Length)));
+            Ada.Text_IO.Put_Line
+              (Integer'Image (Integer (This.Types_By_Tag.Length)));
 --              for I of
 
             return 0;
@@ -129,7 +132,8 @@ package body Skill.Field_Types.Builtin is
          if null = Ref then
             Output.I16 (0);
          else
-            Output.V64 (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset));
+            Output.V64
+            (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset));
 
             Output.V64 (Types.v64 (Ref.Skill_ID));
          end if;

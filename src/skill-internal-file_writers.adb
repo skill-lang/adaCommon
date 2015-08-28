@@ -201,7 +201,7 @@ package body Skill.Internal.File_Writers is
             else
                Output.V64 (Types.v64 (This.Super.ID + 1));
                if 0 /= Lcount then
-                  Output.V64 (Types.v64 (Lbpo_Map (This.ID)));
+                  Output.V64 (Types.v64 (Lbpo_Map (This.Pool_Offset)));
                end if;
             end if;
 
