@@ -5,7 +5,6 @@
 --                                                                            --
 with Ada.Containers.Hashed_Maps;
 with Ada.Tags;
-with Ada.Unchecked_Conversion;
 
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
@@ -13,6 +12,7 @@ with Skill.Equals; use Skill.Equals;
 with Skill.String_Pools;
 with Skill.Streams.Reader;
 with Skill.Streams.Writer;
+with Ada.Unchecked_Deallocation;
 
 
 package Skill.Field_Types.Builtin.String_Type_P is
@@ -40,7 +40,6 @@ package Skill.Field_Types.Builtin.String_Type_P is
    function Make
      (Strings : String_Pools.Pool) return String_Type_P.Field_Type is
      (new Field_Type_T'(Strings, String_Type_P.Ids.Empty_Map));
-
 
    function Boxed is new Ada.Unchecked_Conversion(Types.String_Access, Types.Box);
    function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.String_Access);

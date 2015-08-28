@@ -215,7 +215,7 @@ package Skill.Types.Pools is
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
 
    -- internal use only
-   procedure Resize_Data (This : access Base_Pool_T);
+   procedure Resize_Data (This : access Base_Pool_T'Class);
 
    -- internal use only
    procedure Set_Owner

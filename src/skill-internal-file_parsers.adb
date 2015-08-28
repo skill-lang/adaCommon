@@ -32,6 +32,7 @@ package body Skill.Internal.File_Parsers is
 
    use type Interfaces.Integer_32;
    use type Interfaces.Integer_64;
+   use type Types.Annotation;
 
    use Skill;
    use type Types.String_Access;
@@ -438,7 +439,9 @@ package body Skill.Internal.File_Parsers is
                              (new Internal.Parts.Bulk_Chunk'
                                 (Offset,
                                  End_Offset,
-                                 Types.V64 (E.Pool.Size)));
+                                 Types.V64 (E.Pool.Size),
+                                 E.Pool.Blocks.Length)
+                             );
 
                         exception
                            when E : Errors.Skill_Error =>

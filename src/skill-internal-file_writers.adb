@@ -237,7 +237,7 @@ package body Skill.Internal.File_Writers is
                (new Chunk_Entry_T'
                   (C =>
                      new Skill.Internal.Parts.Bulk_Chunk'
-                       (Offset, 0, Types.v64 (P.Size)),
+                       (Offset, 0, Types.v64 (P.Size), 1),
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
 
                --              data.add(new Task(f, offset, end));

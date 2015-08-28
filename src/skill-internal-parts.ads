@@ -37,7 +37,12 @@ package Skill.Internal.Parts is
 
    function To_Simple (This : access Chunk_T'Class) return Simple_Chunk_X;
 
-   type Bulk_Chunk is new Chunk_T with null record;
+   type Bulk_Chunk is new Chunk_T with record
+      -- The Number of Blocks, Starting From The First That Have To Be Updated
+      Block_Count : Natural;
+   end record;
+   type Bulk_Chunk_X is not null access Bulk_Chunk;
+   function To_Bulk (This : access Chunk_T'Class) return Bulk_Chunk_X;
 
    package Chunks is new Ada.Containers.Vectors (Natural, Chunk);
 

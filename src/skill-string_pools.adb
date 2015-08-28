@@ -68,6 +68,7 @@ package body Skill.String_Pools is
       -- not true, because some strings are global constants
       --        This.Id_Map.Foreach (Free'Access);
       This.Id_Map.Free;
+      This.String_Positions.Free;
 
       Delete (D);
    end Free;

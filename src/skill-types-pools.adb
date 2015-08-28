@@ -9,6 +9,7 @@ with Ada.Unchecked_Conversion;
 
 with Skill.Field_Types;
 with Skill.Internal.Parts;
+with Ada.Unchecked_Deallocation;
 
 
 -- pool realizations are moved to the pools.adb, because this way we can work
@@ -194,18 +195,18 @@ package body Skill.Types.Pools is
    end Compress;
 
 
-
    -- invoked by resize pool (from base pool implementation)
-   procedure Resize_Data (This : access Base_Pool_T) is
-   -- data = Arrays.copyOf(data, data.length + (int) blocks.getLast().count);
+   procedure Resize_Data (This : access Base_Pool_T'Class) is
       Count : Types.v64        := This.Blocks.Last_Element.Count;
       D     : Annotation_Array :=
         new Annotation_Array_T
-        (This.Data'First .. (This.Data'Last + Natural (Count)));
+                  (This.Data'First .. (This.Data'Last + Natural (Count)));
+
+      procedure Free is new Ada.Unchecked_Deallocation(Object => Annotation_Array_T,
+                                                       Name   => Annotation_Array);
    begin
-      for I in This.Data'First .. This.Data'Last loop
-         D (I) := This.Data (I);
-      end loop;
+      D (This.Data'First .. This.Data'Last) := This.Data.all;
+      Free (This.Data);
       This.Data := D;
    end Resize_Data;
 

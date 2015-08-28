@@ -21,6 +21,13 @@ package body Skill.Internal.Parts is
       return Cast (This);
    end To_Simple;
 
+   function To_Bulk (This : access Chunk_T'Class) return Bulk_Chunk_X is
+      type P is access all Chunk_T'Class;
+      function Cast is new Ada.Unchecked_Conversion (P, Bulk_Chunk_X);
+   begin
+      return Cast (This);
+   end To_Bulk;
+
    procedure Free (This : access Simple_Chunk) is
       type T is access all Simple_Chunk;
       procedure Delete is new Ada.Unchecked_Deallocation (Simple_Chunk, T);
