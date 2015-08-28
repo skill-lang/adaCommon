@@ -160,7 +160,7 @@ package body Skill.Types.Pools is
 
    function Pool_Offset (This : access Pool_T'Class) return Integer is
    begin
-      return This.Type_Id;
+      return This.Type_Id - 32;
    end Pool_Offset;
 
    function Sub_Pools
@@ -188,8 +188,8 @@ package body Skill.Types.Pools is
       procedure Update (I : Annotation) is
       begin
          D (P)      := I;
-         P          := P + 1;
          I.Skill_ID := P;
+         P          := P + 1;
       end Update;
    begin
       This.Do_In_Type_Order (Update'Access);

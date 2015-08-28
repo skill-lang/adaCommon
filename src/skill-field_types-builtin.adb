@@ -13,6 +13,7 @@ with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
 with Ada.Tags;
+with Ada.Text_IO;
 
 package body Skill.Field_Types.Builtin is
 
@@ -101,9 +102,20 @@ package body Skill.Field_Types.Builtin is
             return 2;
          else
             return Offset_Single_V64
-                (Types.v64 (This.Types_By_Tag.Element (Ref.Tag).ID)) +
+                (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset)) +
               Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
          end if;
+      exception
+         when E : others =>
+            Ada.Text_IO.Put_Line ("ref:");
+            Ada.Text_IO.Put_Line (Ada.Tags.Expanded_Name (Ref.Tag));
+            Ada.Text_IO.Put_Line (Integer'Image (Ref.Skill_ID));
+
+            Ada.Text_IO.Put_Line ("map:");
+            Ada.Text_Io.Put_Line (Integer'Image(Integer(This.Types_By_Tag.Length)));
+--              for I of
+
+            return 0;
       end Offset_Box;
 
       overriding procedure Write_Box
@@ -117,7 +129,7 @@ package body Skill.Field_Types.Builtin is
          if null = Ref then
             Output.I16 (0);
          else
-            Output.V64 (Types.v64 ((This.Types_By_Tag.Element (Ref.Tag).ID)));
+            Output.V64 (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset));
 
             Output.V64 (Types.v64 (Ref.Skill_ID));
          end if;

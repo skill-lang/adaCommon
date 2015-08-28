@@ -30,6 +30,12 @@ package body Skill.Files is
       return This.Strings;
    end Strings;
 
+   procedure Change_Path (This : access File_T'Class; New_Path : String) is
+   begin
+      pragma Assert (This.Mode = Write);
+      This.Path := new String'(New_Path);
+   end Change_Path;
+
    procedure Flush (This : access File_T'Class) is
       type T is access all File_T;
       function Cast is new Ada.Unchecked_Conversion (T, File);
@@ -109,7 +115,7 @@ package body Skill.Files is
 
          -- add missing field declarations
          Field_Names := A1.Empty_Set;
-         for I in 1 .. Natural(P.Data_Fields.Length) loop
+         for I in 1 .. Natural (P.Data_Fields.Length) loop
             Field_Names.Insert (P.Data_Fields.Element (I).Name);
          end loop;
 
@@ -128,8 +134,8 @@ package body Skill.Files is
    begin
       This.Types.Foreach (Start_Read'Access);
 
--- fix types in the Annotation-runtime type, because we need it in offset calculation
--- TODO         this.annotationType.fixTypes(this.poolByName());
+      -- fix types in the Annotation-runtime type, because we need it in offset calculation
+      This.Annotation_Type.Fix_Types;
 
       -- await async reads
       Read_Barrier.Await;

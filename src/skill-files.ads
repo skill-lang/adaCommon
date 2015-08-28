@@ -46,6 +46,10 @@ package Skill.Files is
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool;
 
+   -- change the output path
+   -- @note can currently only be used in write mode
+   procedure Change_Path (This : access File_T'Class; New_Path : String);
+
    -- write changes to disk
    procedure Flush (This : access File_T'Class);
 
