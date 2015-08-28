@@ -11,7 +11,6 @@ with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Ada.Unchecked_Deallocation;
 
-
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
 package body Skill.Types.Pools is
@@ -79,18 +78,19 @@ package body Skill.Types.Pools is
       This.Fixed := Fix;
    end Fixed;
 
-
-   procedure Do_In_Type_Order (This : access Pool_T'Class;
-                               F : access procedure(I : Annotation)) is
+   procedure Do_In_Type_Order
+     (This : access Pool_T'Class;
+      F    : access procedure (I : Annotation))
+   is
 
       procedure Closure (This : Sub_Pool) is
       begin
-         This.Do_In_Type_Order(F);
+         This.Do_In_Type_Order (F);
       end Closure;
    begin
-      This.Do_For_Static_Instances(F);
-      This.Sub_Pools.Foreach(Closure'Access);
-   end;
+      This.Do_For_Static_Instances (F);
+      This.Sub_Pools.Foreach (Closure'Access);
+   end Do_In_Type_Order;
 
    function Blocks
      (This : access Pool_T) return Skill.Internal.Parts.Blocks is
@@ -167,8 +167,9 @@ package body Skill.Types.Pools is
      (This : access Pool_T'Class) return Sub_Pool_Vector is
      (This.Sub_Pools);
 
-   function Known_Fields (This  : access Pool_T'Class) return String_Access_Array_Access is
-      (This.Known_Fields);
+   function Known_Fields
+     (This : access Pool_T'Class) return String_Access_Array_Access is
+     (This.Known_Fields);
 
    -- base pool properties
 
@@ -177,36 +178,41 @@ package body Skill.Types.Pools is
      (This : access Base_Pool_T) return Skill.Types.Annotation_Array is
      (This.Data);
 
-   procedure Compress (This : access Base_Pool_T'Class; Lbpo_Map : Skill.Internal.Lbpo_Map_T) is
-      D : Annotation_Array := new Annotation_Array_T(1 .. This.Size);
-      P : Skill_ID_T := 1;
+   procedure Compress
+     (This     : access Base_Pool_T'Class;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T)
+   is
+      D : Annotation_Array := new Annotation_Array_T (1 .. This.Size);
+      P : Skill_ID_T       := 1;
 
-      procedure Update(I : Annotation) is
+      procedure Update (I : Annotation) is
       begin
-         D(P) := I;
-         P := P + 1;
-         I.Skill_Id := P;
-      end update;
+         D (P)      := I;
+         P          := P + 1;
+         I.Skill_ID := P;
+      end Update;
    begin
-      This.Do_In_Type_Order(Update'Access);
+      This.Do_In_Type_Order (Update'Access);
 
       This.Data := D;
-      This.Update_After_Compress(Lbpo_Map);
+      This.Update_After_Compress (Lbpo_Map);
    end Compress;
-
 
    -- invoked by resize pool (from base pool implementation)
    procedure Resize_Data (This : access Base_Pool_T'Class) is
       Count : Types.v64        := This.Blocks.Last_Element.Count;
       D     : Annotation_Array :=
         new Annotation_Array_T
-                  (This.Data'First .. (This.Data'Last + Natural (Count)));
+        (This.Data'First .. (This.Data'Last + Natural (Count)));
 
-      procedure Free is new Ada.Unchecked_Deallocation(Object => Annotation_Array_T,
-                                                       Name   => Annotation_Array);
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object => Annotation_Array_T,
+         Name   => Annotation_Array);
    begin
       D (This.Data'First .. This.Data'Last) := This.Data.all;
-      Free (This.Data);
+      if This.Data /= Empty_Data then
+         Free (This.Data);
+      end if;
       This.Data := D;
    end Resize_Data;
 
