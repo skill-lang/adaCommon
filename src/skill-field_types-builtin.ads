@@ -79,7 +79,7 @@ package Skill.Field_Types.Builtin is
          Types_By_Tag : Type_Maps.Map;
       end record;
 
-      type Field_Type is access Field_Type_T;
+      type Field_Type is access all Field_Type_T;
 
       procedure Fix_Types (This : access Field_Type_T);
 
