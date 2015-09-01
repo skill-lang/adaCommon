@@ -80,21 +80,32 @@ package body Skill.Streams.Writer is
 
    procedure Flush_Buffer (This : access Output_Stream_T) is
       use type Map_Pointer;
-      use type C.ptrdiff_t;
       use type C_Streams.size_t;
 
-      Length, L : C_Streams.size_t;
+      package Casts is new System.Address_To_Access_Conversions
+        (C.unsigned_char);
+
+      function Convert is new Ada.Unchecked_Conversion
+        (Casts.Object_Pointer,
+         Map_Pointer);
+      function Convert is new Ada.Unchecked_Conversion
+        (Map_Pointer,
+         Casts.Object_Pointer);
+
+      Length : C_Streams.size_t := C_Streams.size_t (This.Map - This.Base);
    begin
-      if This.Base /= This.Map then
-         Length := C_Streams.size_t (This.Map - This.Base);
-         L      :=
+
+      if 0 /= Length then
+         if Length /=
            Interfaces.C_Streams.fwrite
              (Casts.To_Address (Convert (This.Base)),
               1,
               Length,
-              This.File);
-         -- if l/= length -> something went sideways while flushing a buffer
-         -- @note: we can not throw an exception here, because then we would loose inlining
+              This.File)
+         then
+            raise Skill.Errors.Skill_Error
+              with "something went sideways while flushing a buffer";
+         end if;
 
          This.Bytes_Written := This.Bytes_Written + Types.v64 (Length);
          This.Map           := This.Base;
@@ -259,27 +270,16 @@ package body Skill.Streams.Writer is
       P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + Diff));
    end Advance;
 
-   procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t) is
+   procedure Ensure_Size
+     (This : not null access Output_Stream_T;
+      V    : C.ptrdiff_t)
+   is
       use type Map_Pointer;
       use type C.ptrdiff_t;
       use type C_Streams.size_t;
-
-      Length, L : C_Streams.size_t;
    begin
       if This.EOF - This.Map < 1 + V then
-
-         Length := C_Streams.size_t (This.Map - This.Base);
-         L      :=
-           Interfaces.C_Streams.fwrite
-             (Casts.To_Address (Convert (This.Base)),
-              1,
-              Length,
-              This.File);
-         -- if l/= length -> something went sideways while flushing a buffer
-         -- @note: we can not throw an exception here, because then we would loose inlining
-
-         This.Bytes_Written := This.Bytes_Written + Types.v64 (Length);
-         This.Map           := This.Base;
+         Flush_Buffer (This);
       end if;
    end Ensure_Size;
 
@@ -463,9 +463,10 @@ package body Skill.Streams.Writer is
         (Map_Pointer,
          Casts.Object_Pointer);
 
-      P : Map_Pointer := This.Map;
+      P : Map_Pointer := Invalid_Pointer;
    begin
       This.Ensure_Size (9);
+      P := This.Map;
 
       if 0 = (V and 16#FFFFFFFFFFFFFF80#) then
          P.all := To_Byte (V);

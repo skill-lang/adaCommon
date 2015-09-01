@@ -98,8 +98,7 @@ package Skill.Streams.Writer is
 
 private
 
-   procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t);
-   pragma No_Inline (Ensure_Size);
+   procedure Ensure_Size (This : not null access Output_Stream_T; V : C.ptrdiff_t);
 
    package C renames Interfaces.C;
 

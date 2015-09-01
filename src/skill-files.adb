@@ -25,11 +25,11 @@ package body Skill.Files is
 
    -- read file closure
    type Cl is new Tasks.Closure_T with record
-      F : Skill.Field_Declarations.Field_Declaration;
+      F  : Skill.Field_Declarations.Field_Declaration;
       CE : Skill.Field_Declarations.Chunk_Entry;
    end record;
    type Cx is not null access Cl;
-   function Cast is new Ada.Unchecked_Conversion(Skill.Tasks.Closure, Cx);
+   function Cast is new Ada.Unchecked_Conversion (Skill.Tasks.Closure, Cx);
 
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool
@@ -72,27 +72,31 @@ package body Skill.Files is
 
       procedure Finish (F : Skill.Field_Declarations.Field_Declaration) is
 
-         procedure Read(C : Skill.Tasks.Closure) is
+         procedure Read (C : Skill.Tasks.Closure) is
          begin
-            F.Read (Cast(C).CE);
+            F.Read (Cast (C).CE);
 
             -- TODO error reporting? (see Java Field.finish)
 
             Read_Barrier.Complete;
          exception
             when E : others =>
-               Skill.Errors.Print_Stacktrace (E);
+               Read_Barrier.Complete;
+
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error,
                   "A task crashed during read data: " & F.Name.all);
-               Read_Barrier.Complete;
+
+--                 Skill.Errors.Print_Stacktrace (E);
+
+               return;
          end Read;
 
          procedure Read_Chunk (CE : Skill.Field_Declarations.Chunk_Entry) is
 
             T : Skill.Tasks.Run (Read'Access);
 
-            C : Skill.Tasks.Closure := new Cl'(F => F, Ce => Ce);
+            C : Skill.Tasks.Closure := new Cl'(F => F, CE => CE);
          begin
             Read_Barrier.Start;
 
