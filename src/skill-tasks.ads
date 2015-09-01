@@ -8,10 +8,13 @@
 --  X : Run (Some_Procedure'Access);
 --  X.Start;
 package Skill.Tasks is
-   pragma Pure;
+   pragma Preelaborate;
 
-   task type Run (Runnable : access procedure) is
-      entry Start;
+   type Closure_T is tagged null record;
+   type Closure is not null access Closure_T'Class;
+
+   task type Run (Runnable : not null access procedure(C : Closure)) is
+      entry Start (C : Closure);
    end Run;
 
 end Skill.Tasks;

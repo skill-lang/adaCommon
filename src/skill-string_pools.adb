@@ -218,6 +218,8 @@ package body Skill.String_Pools is
 
       Count := Types.v64 (This.Id_Map.Length - 1);
       Output.V64 (Count);
+
+      Output.Begin_Block_Map (4 * Count);
       declare
          Off : Types.i32 := 0;
 
@@ -237,6 +239,7 @@ package body Skill.String_Pools is
          end Put;
       begin
          This.Id_Map.Foreach (Put'Access);
+         Output.End_Block_Map;
       end;
    end Prepare_And_Write;
 end Skill.String_Pools;

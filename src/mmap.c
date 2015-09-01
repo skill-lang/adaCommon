@@ -55,7 +55,7 @@ mmap_read_record mmap_read(char const *filename)
   return rval;
 }
 
-char const* mmap_write_map(FILE *stream, size_t length)
+char const* mmap_write_map_block(FILE *stream, size_t length)
 {
   // advance file position
   fseek(stream, length, SEEK_CUR);

@@ -23,6 +23,14 @@ package body Skill.Files is
 
    package FileParser renames Skill.Internal.File_Parsers;
 
+   -- read file closure
+   type Cl is new Tasks.Closure_T with record
+      F : Skill.Field_Declarations.Field_Declaration;
+      CE : Skill.Field_Declarations.Chunk_Entry;
+   end record;
+   type Cx is not null access Cl;
+   function Cast is new Ada.Unchecked_Conversion(Skill.Tasks.Closure, Cx);
+
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool
    is
@@ -63,29 +71,32 @@ package body Skill.Files is
       Read_Barrier : Skill.Synchronization.Barrier;
 
       procedure Finish (F : Skill.Field_Declarations.Field_Declaration) is
+
+         procedure Read(C : Skill.Tasks.Closure) is
+         begin
+            F.Read (Cast(C).CE);
+
+            -- TODO error reporting? (see Java Field.finish)
+
+            Read_Barrier.Complete;
+         exception
+            when E : others =>
+               Skill.Errors.Print_Stacktrace (E);
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Current_Error,
+                  "A task crashed during read data: " & F.Name.all);
+               Read_Barrier.Complete;
+         end Read;
+
          procedure Read_Chunk (CE : Skill.Field_Declarations.Chunk_Entry) is
 
-            procedure Read is
-            begin
-               F.Read (CE);
-
-               -- TODO error reporting? (see Java Field.finish)
-
-               Read_Barrier.Complete;
-            exception
-               when E : others =>
-                  Skill.Errors.Print_Stacktrace (E);
-                  Ada.Text_IO.Put_Line
-                    (Ada.Text_IO.Current_Error,
-                     "A task crashed during read data: " & F.Name.all);
-                  Read_Barrier.Complete;
-            end Read;
-
             T : Skill.Tasks.Run (Read'Access);
+
+            C : Skill.Tasks.Closure := new Cl'(F => F, Ce => Ce);
          begin
             Read_Barrier.Start;
 
-            T.Start;
+            T.Start (C);
          end Read_Chunk;
       begin
          F.Data_Chunks.Foreach (Read_Chunk'Access);

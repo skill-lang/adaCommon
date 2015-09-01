@@ -24,6 +24,25 @@ with Ada.Text_IO;
 -- this is a combination of serialization functions, write and append
 package body Skill.Internal.File_Writers is
 
+   -- offset calculation closure
+   type Cl_Offset is new Tasks.Closure_T with record
+      F : Skill.Field_Declarations.Field_Declaration;
+   end record;
+   type Cx_Offset is not null access Cl_Offset;
+   function Cast is new Ada.Unchecked_Conversion
+     (Skill.Tasks.Closure,
+      Cx_Offset);
+
+   -- write field closure
+   type Cl_Write is new Tasks.Closure_T with record
+      F   : Skill.Field_Declarations.Field_Declaration;
+      Map : Streams.Writer.Sub_Stream;
+   end record;
+   type Cx_Write is not null access Cl_Write;
+   function Convert is new Ada.Unchecked_Conversion
+     (Skill.Tasks.Closure,
+      Cx_Write);
+
    function Make_LBPO_Map
      (P        :        Types.Pools.Pool;
       Lbpo_Map : in out Lbpo_Map_T;
@@ -144,9 +163,10 @@ package body Skill.Internal.File_Writers is
       declare
 
          procedure Make (F : Field_Declaration) is
-            procedure Calculate is
+
+            procedure Calculate (C : Tasks.Closure) is
             begin
-               F.Offset;
+               Cast (C).F.Offset;
                Write_Barrier.Complete;
             exception
                when E : others =>
@@ -154,13 +174,14 @@ package body Skill.Internal.File_Writers is
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Current_Error,
                      "A task crashed during offset calculation: " &
-                     F.Name.all);
+                     Cast (C).F.Name.all);
                   Write_Barrier.Complete;
             end Calculate;
             T : Skill.Tasks.Run (Calculate'Access);
+            C : Skill.Tasks.Closure := new Cl_Offset'(F => F);
          begin
             Write_Barrier.Start;
-            T.Start;
+            T.Start (C);
          end Make;
 
          procedure Off (This : Types.Pools.Pool) is
@@ -230,8 +251,8 @@ package body Skill.Internal.File_Writers is
                String (F.Name);
                Write_Type (F.T);
                Restrictions (F);
-               end_Offset := Offset + F.Future_Offset;
-               Output.V64 (end_Offset);
+               End_Offset := Offset + F.Future_Offset;
+               Output.V64 (End_Offset);
 
                -- update chunks and prepare write data
                F.Data_Chunks.Clear;
@@ -242,42 +263,49 @@ package body Skill.Internal.File_Writers is
                        (Offset, 0, Types.v64 (P.Size), 1),
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
 
-               Offset := end_Offset;
+               Offset := End_Offset;
             end Write_Field;
          begin
             Field_Queue.Foreach (Write_Field'Access);
+
+            -- map field data
+            Output.Begin_Block_Map (Offset);
          end;
 
          -- write field data
          declare
+
             procedure Write_Field (F : Field_Declarations.Field_Declaration) is
 
-               Map : Streams.Writer.Sub_Stream := Output.Map (F.Future_Offset);
-
-               procedure Job is
+               procedure Job (C : Skill.Tasks.Closure) is
                begin
-                  F.Write (Map);
-                  Map.Close;
+                  Convert (C).F.Write (Convert (C).Map);
                   Write_Barrier.Complete;
+                  pragma Assert (Convert (C).Map.Eof);
+                  Convert (C).Map.Close;
                exception
                   when E : others =>
                      Skill.Errors.Print_Stacktrace (E);
                      Ada.Text_IO.Put_Line
                        (Ada.Text_IO.Current_Error,
-                        "A task crashed during write data: " & F.Name.all);
+                        "A task crashed during write data: " &
+                        Convert (C).F.Name.all);
                      Write_Barrier.Complete;
                end Job;
 
                T : Skill.Tasks.Run (Job'Access);
+               C : Skill.Tasks.Closure :=
+                 new Cl_Write'(F => F, Map => Output.Map (F.Future_Offset));
             begin
                Write_Barrier.Start;
-               T.Start;
+               T.Start (C);
             end Write_Field;
          begin
             Field_Queue.Foreach (Write_Field'Access);
 
             -- await writing of actual field data
             Write_Barrier.Await;
+            Output.End_Block_Map;
          end;
       end;
 

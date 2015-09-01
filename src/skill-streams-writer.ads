@@ -25,6 +25,12 @@ package Skill.Streams.Writer is
      (Path : not null Skill.Types.String_Access;
       Mode : String) return Output_Stream;
 
+   -- creates a map for a block and enables usage of map function
+   procedure Begin_Block_Map (This : access Output_Stream_T; Size : Types.v64);
+
+   -- unmaps backing memory map
+   procedure End_Block_Map (This : access Output_Stream_T);
+
    -- creates a sub stream
    -- note: only sub streams use mmaps
    function Map
@@ -38,6 +44,9 @@ package Skill.Streams.Writer is
    procedure Close (This : access Output_Stream_T);
    -- destroy a sub map
    procedure Close (This : access Sub_Stream_T);
+
+   -- reached end of mapped region?
+   function Eof (This : access Sub_Stream_T) return Boolean;
 --
 --     function Path
 --       (This : access Output_Stream_T) return Skill.Types.String_Access;
@@ -46,6 +55,10 @@ package Skill.Streams.Writer is
      (This : access Abstract_Stream) return Skill.Types.v64 is abstract;
    function Position (This : access Output_Stream_T) return Skill.Types.v64;
    function Position (This : access Sub_Stream_T) return Skill.Types.v64;
+
+   -- bytes remaining in the current buffer
+   function Remaining_Bytes
+     (This : access Abstract_Stream'Class) return Skill.Types.v64;
 
    procedure I8
      (This : access Abstract_Stream;
@@ -108,7 +121,7 @@ private
    function MMap_Write_Map
      (F      : Interfaces.C_Streams.FILEs;
       Length : Types.v64) return Uchar.Pointer;
-   pragma Import (C, MMap_Write_Map, "mmap_write_map");
+   pragma Import (C, MMap_Write_Map, "mmap_write_map_block");
 
    procedure MMap_Unmap (Base : Map_Pointer; Eof : Map_Pointer);
    pragma Import (C, MMap_Unmap, "mmap_write_unmap");
@@ -121,6 +134,15 @@ private
       File          : Interfaces.C_Streams.FILEs;
       Bytes_Written : Types.v64;
       Buffer        : Uchar_Array (1 .. 1024);
+
+      -- true, iff a block is currently mapped
+      Block_Map_Mode : Boolean;
+      -- current position in client map
+      Client_Map : Map_Pointer;
+      -- first position in client map
+      Client_Base : Map_Pointer;
+      -- last position in client map
+      Client_EOF : Map_Pointer;
 
       -- safe a pointer to the last map we created to ensure that we can make
       -- the file size right

@@ -8,8 +8,9 @@ package body Skill.Tasks is
 
    task body Run is
    begin
-      accept Start;
-      Runnable.all;
+      accept Start (C : Closure) do
+         Runnable.all (C => C);
+      end Start;
    end Run;
 
 end Skill.Tasks;

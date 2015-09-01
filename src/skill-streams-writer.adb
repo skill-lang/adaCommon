@@ -50,14 +50,18 @@ package body Skill.Streams.Writer is
 
       R :=
         new Output_Stream_T'
-          (Path          => Path,
-           File          => F,
-           Map           => Invalid_Pointer,
-           Base          => Invalid_Pointer,
-           EOF           => Invalid_Pointer,
-           Bytes_Written => 0,
-           Buffer        => <>,
-           Last_Byte     => Invalid_Pointer);
+          (Path           => Path,
+           File           => F,
+           Map            => Invalid_Pointer,
+           Base           => Invalid_Pointer,
+           EOF            => Invalid_Pointer,
+           Bytes_Written  => 0,
+           Buffer         => <>,
+           Last_Byte      => Invalid_Pointer,
+           Block_Map_Mode => False,
+           Client_Map     => Invalid_Pointer,
+           Client_Base    => Invalid_Pointer,
+           Client_EOF     => Invalid_Pointer);
 
       R.Map  := Convert (Casts.To_Pointer (R.Buffer'Address));
       R.Base := Convert (Casts.To_Pointer (R.Buffer'Address));
@@ -66,6 +70,59 @@ package body Skill.Streams.Writer is
       return R;
    end Open;
 
+   -- creates a map for a block and enables usage of map function
+   procedure Begin_Block_Map
+     (This : access Output_Stream_T;
+      Size : Types.v64)
+   is
+      use type Uchar.Pointer;
+      use type Interfaces.Integer_64;
+
+      Map : Uchar.Pointer;
+   begin
+      pragma Assert (not This.Block_Map_Mode);
+      This.Block_Map_Mode := True;
+
+      -- Save Our Buffer To Disk
+      This.Flush_Buffer;
+
+      if 0 = Size then
+         This.Client_Map  := Invalid_Pointer;
+         This.Client_Base := Invalid_Pointer;
+         This.Client_EOF  := Invalid_Pointer;
+      else
+
+         Map := MMap_Write_Map (This.File, Size) + C.ptrdiff_t (This.Position);
+         if null = Map then
+            raise Skill.Errors.Skill_Error
+              with "failed to create map of size" &
+              Long_Long_Integer'Image (Long_Long_Integer (Size)) &
+              " in file: " &
+              This.Path.all;
+         end if;
+
+         -- Advance File Pointer
+         -- @Note: File Position Was Updated By C Code
+         This.Bytes_Written := This.Bytes_Written + Size;
+         This.Last_Byte     := Map_Pointer (Map) + C.ptrdiff_t (Size);
+         This.Client_Map    := Map_Pointer (Map);
+         This.Client_Base   := Map_Pointer (Map);
+         This.Client_EOF    := This.Last_Byte;
+      end if;
+   end Begin_Block_Map;
+
+   -- unmaps backing memory map
+   procedure End_Block_Map (This : access Output_Stream_T) is
+      use type Uchar.Pointer;
+   begin
+      pragma Assert (This.Block_Map_Mode);
+      This.Block_Map_Mode := False;
+
+      if Invalid_Pointer /= This.Client_Base then
+         MMap_Unmap (This.Client_Base, This.Client_EOF);
+      end if;
+   end End_Block_Map;
+
    function Map
      (This : access Output_Stream_T;
       Size : Types.v64) return Sub_Stream
@@ -73,37 +130,19 @@ package body Skill.Streams.Writer is
       use type Uchar.Pointer;
       use type Interfaces.Integer_64;
 
-      Map : Uchar.Pointer;
-
+      Result : Sub_Stream;
    begin
-      if 0 = Size then
-         return new Sub_Stream_T'
-             (Map  => Invalid_Pointer,
-              Base => Invalid_Pointer,
-              EOF  => Invalid_Pointer);
-      end if;
+      pragma Assert (This.Block_Map_Mode);
 
-      -- Save Our Buffer To Disk
-      This.Flush_Buffer;
+      Result :=
+        new Sub_Stream_T'
+          (Map  => This.Client_Map,
+           Base => This.Client_Map,
+           EOF  => This.Client_Map + C.ptrdiff_t (Size));
 
-      Map := MMap_Write_Map (This.File, Size) + C.ptrdiff_t (This.Position);
-      if null = Map then
-         raise Skill.Errors.Skill_Error
-           with "failed to create map of size" &
-           Long_Long_Integer'Image (Long_Long_Integer (Size)) &
-           " in file: " &
-           This.Path.all;
-      end if;
+      This.Client_Map := Result.EOF;
 
-      -- Advance File Pointer
-      -- @Note: File Position Was Updated By C Code
-      This.Bytes_Written := This.Bytes_Written + Size;
-      This.Last_Byte     := Map_Pointer (Map) + C.ptrdiff_t (Size);
-
-      return new Sub_Stream_T'
-          (Map  => Map_Pointer (Map),
-           Base => Map_Pointer (Map),
-           EOF  => This.Last_Byte);
+      return Result;
    end Map;
 
    procedure Flush_Buffer (This : access Output_Stream_T) is
@@ -161,7 +200,6 @@ package body Skill.Streams.Writer is
       procedure Delete is new Ada.Unchecked_Deallocation (Sub_Stream_T, S);
       D : S := S (This);
    begin
-      MMap_Unmap (This.Base, This.EOF);
       Delete (D);
    end Close;
 
@@ -183,20 +221,22 @@ package body Skill.Streams.Writer is
    begin
       return Types.v64 (This.Map - This.Base);
    end Position;
---
---     procedure Jump
---       (This : access Abstract_Stream'Class;
---        Pos  : Skill.Types.v64)
---     is
---     begin
---        This.Position := Interfaces.C.size_t (Pos);
---     end Jump;
---
---     function Eof (This : access Abstract_Stream'Class) return Boolean is
---        use C;
---     begin
---        return This.Position >= This.Length;
---     end Eof;
+
+   function Remaining_Bytes
+     (This : access Abstract_Stream'Class) return Skill.Types.v64
+   is
+      use type Map_Pointer;
+   begin
+      return Types.v64 (This.EOF - This.Map);
+   end Remaining_Bytes;
+
+   function Eof (This : access Sub_Stream_T) return Boolean is
+      use C;
+      function Cast is new Ada.Unchecked_Conversion (Uchar.Pointer, Types.i64);
+      use type Interfaces.Integer_64;
+   begin
+      return Cast (This.Map) >= Cast (This.EOF);
+   end Eof;
 
    procedure Advance (This : access Abstract_Stream'Class) is
       use C;
@@ -666,42 +706,7 @@ package body Skill.Streams.Writer is
          end if;
       end if;
    end V64;
---     function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
---        pragma Warnings (Off);
---
---        subtype Count_Type is Natural range 0 .. 8;
---        use type Interfaces.Unsigned_64;
---        function Convert is new Ada.Unchecked_Conversion
---          (Source => Types.i8,
---           Target => Types.Uv64);
---        function Convert is new Ada.Unchecked_Conversion
---          (Source => Types.Uv64,
---           Target => Types.v64);
---
---        Count        : Count_Type := 0;
---        Return_Value : Types.Uv64 := 0;
---        Bucket       : Types.Uv64 := Convert (This.I8);
---     begin
---        while (Count < 8 and then 0 /= (Bucket and 16#80#)) loop
---           Return_Value :=
---             Return_Value or
---             Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
---           Count  := Count + 1;
---           Bucket := Convert (This.I8);
---        end loop;
---
---        case Count is
---           when 8 =>
---              Return_Value := Return_Value or Interfaces.Shift_Left (Bucket, 56);
---           when others =>
---              Return_Value :=
---                Return_Value or
---                Interfaces.Shift_Left (Bucket and 16#7f#, 7 * Count);
---        end case;
---
---        return Convert (Return_Value);
---     end V64;
---
+
    procedure Put_Plain_String
      (This : access Output_Stream_T;
       V    : Skill.Types.String_Access)
@@ -717,5 +722,12 @@ package body Skill.Streams.Writer is
    begin
       This.Map.all := C.unsigned_char (V);
       This.Advance;
+   exception
+      when E : others =>
+         raise Constraint_Error
+           with "failed to put byte @" &
+           Integer'Image (Integer (This.Position)) &
+           " remaining bytes:" &
+           Integer'Image (Integer (This.Remaining_Bytes));
    end Put_Byte;
 end Skill.Streams.Writer;
