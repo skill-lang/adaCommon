@@ -17,6 +17,8 @@ with Skill.Errors;
 with Interfaces.C_Streams;
 with System.Storage_Elements;
 with System.Address_To_Access_Conversions;
+with System.Address_Image;
+with Ada.Text_IO;
 
 package body Skill.Streams.Writer is
 
@@ -57,7 +59,6 @@ package body Skill.Streams.Writer is
            EOF            => Invalid_Pointer,
            Bytes_Written  => 0,
            Buffer         => <>,
-           Last_Byte      => Invalid_Pointer,
            Block_Map_Mode => False,
            Client_Map     => Invalid_Pointer,
            Client_Base    => Invalid_Pointer,
@@ -104,10 +105,9 @@ package body Skill.Streams.Writer is
          -- Advance File Pointer
          -- @Note: File Position Was Updated By C Code
          This.Bytes_Written := This.Bytes_Written + Size;
-         This.Last_Byte     := Map_Pointer (Map) + C.ptrdiff_t (Size);
          This.Client_Map    := Map_Pointer (Map);
          This.Client_Base   := Map_Pointer (Map);
-         This.Client_EOF    := This.Last_Byte;
+         This.Client_EOF    := Map_Pointer (Map) + C.ptrdiff_t (Size);
       end if;
    end Begin_Block_Map;
 
@@ -176,7 +176,6 @@ package body Skill.Streams.Writer is
 
          This.Bytes_Written := This.Bytes_Written + Types.v64 (Length);
          This.Map           := This.Base;
-         This.Last_Byte     := Invalid_Pointer;
       end if;
    end Flush_Buffer;
 
@@ -190,7 +189,6 @@ package body Skill.Streams.Writer is
    begin
       -- do Pending Writes
       This.Flush_Buffer;
-      MMap_Flush (This.File, This.Last_Byte);
       Exit_Code := Interfaces.C_Streams.fclose (This.File);
       Delete (D);
    end Close;
@@ -203,13 +201,6 @@ package body Skill.Streams.Writer is
       Delete (D);
    end Close;
 
---     function Path
---       (This : access Output_Stream_T) return Skill.Types.String_Access
---     is
---     begin
---        return This.Path;
---     end Path;
---
    function Position (This : access Output_Stream_T) return Skill.Types.v64 is
       use type Map_Pointer;
    begin
@@ -719,15 +710,9 @@ package body Skill.Streams.Writer is
    end Put_Plain_String;
 
    procedure Put_Byte (This : access Abstract_Stream'Class; V : Unsigned_8) is
+      function Cast is new Ada.Unchecked_Conversion (Unsigned_8, C.unsigned_char);
    begin
-      This.Map.all := C.unsigned_char (V);
+      This.Map.all := Cast (V);
       This.Advance;
-   exception
-      when E : others =>
-         raise Constraint_Error
-           with "failed to put byte @" &
-           Integer'Image (Integer (This.Position)) &
-           " remaining bytes:" &
-           Integer'Image (Integer (This.Remaining_Bytes));
    end Put_Byte;
 end Skill.Streams.Writer;

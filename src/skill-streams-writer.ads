@@ -126,9 +126,6 @@ private
    procedure MMap_Unmap (Base : Map_Pointer; Eof : Map_Pointer);
    pragma Import (C, MMap_Unmap, "mmap_write_unmap");
 
-   procedure MMap_Flush (F : Interfaces.C_Streams.FILEs; Last : Map_Pointer);
-   pragma Import (C, MMap_Flush, "mmap_write_ensure_size");
-
    type Output_Stream_T is new Abstract_Stream with record
       Path          : Skill.Types.String_Access; -- shared string!
       File          : Interfaces.C_Streams.FILEs;
@@ -143,10 +140,6 @@ private
       Client_Base : Map_Pointer;
       -- last position in client map
       Client_EOF : Map_Pointer;
-
-      -- safe a pointer to the last map we created to ensure that we can make
-      -- the file size right
-      Last_Byte : Map_Pointer;
    end record;
 
    -- a part that is a sub section of an input stream

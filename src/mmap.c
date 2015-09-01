@@ -61,7 +61,7 @@ char const* mmap_write_map_block(FILE *stream, size_t length)
   fseek(stream, length, SEEK_CUR);
 
   // create map
-  void *rval = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(stream), 0);
+  void *rval = mmap(NULL, ftell(stream), PROT_READ | PROT_WRITE, MAP_SHARED, fileno(stream), 0);
 
   if(MAP_FAILED == rval){
     fprintf(stderr, "mmap.c: %s\n errno was: %s\n", "failed to create write map", strerror(errno));
@@ -73,22 +73,17 @@ char const* mmap_write_map_block(FILE *stream, size_t length)
     return NULL;
   }
 
+  // resize file
+  ftruncate(fileno(stream), ftell(stream));
+
   return rval;
 }
 
 void mmap_write_unmap(void *base, void *eof)
 {
+
   // release the map
   munmap(base, eof - base);
-}
-
-void mmap_write_ensure_size(FILE* stream, unsigned char *eof)
-{
-  // write last byte to ensure that correct position is flushed to disk
-  if((unsigned char *)-1L != eof){
-    fseek(stream, -1, SEEK_CUR);
-    fputc(*(eof-1), stream);
-  }
 }
 
 void mmap_close(FILE *stream)
