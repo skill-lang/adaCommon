@@ -73,7 +73,7 @@ package body Skill.Internal.File_Writers is
 
       -- index → bpo
       --  @note pools.par would not be possible if it were an actual
-      Lbpo_Map : Lbpo_Map_T (0 .. Natural(State.Types.Length) - 1);
+      Lbpo_Map : Lbpo_Map_T (0 .. Natural (State.Types.Length) - 1);
 
       -- barrier used for parallel processing
       Write_Barrier : Skill.Synchronization.Barrier;
@@ -90,27 +90,26 @@ package body Skill.Internal.File_Writers is
       declare
          Strings : Skill.String_Pools.Pool := State.Strings;
 
-
          procedure Add (This : Skill.Types.Pools.Pool) is
 
-            procedure Add_Field(F : Field_Declarations.Field_Declaration) is
+            procedure Add_Field (F : Field_Declarations.Field_Declaration) is
 
                procedure Add_String (I : Types.Annotation) is
                begin
                   Strings.Add
-                    (Field_Types.Builtin.String_Type_P.Unboxed
-                       (I.Dynamic.Reflective_Get(F)));
-               end;
+                  (Field_Types.Builtin.String_Type_P.Unboxed
+                     (I.Dynamic.Reflective_Get (F)));
+               end Add_String;
             begin
-            Strings.Add (F.Name);
+               Strings.Add (F.Name);
                -- add string data
                if F.T.ID = 14 then
-                  This.Do_In_Type_Order(Add_String'Access);
+                  This.Do_In_Type_Order (Add_String'Access);
                end if;
             end Add_Field;
          begin
             Strings.Add (This.Skill_Name);
-            This.Data_Fields.Foreach(Add_Field'Access);
+            This.Data_Fields.Foreach (Add_Field'Access);
          end Add;
       begin
          State.Types.Foreach (Add'Access);
@@ -152,7 +151,10 @@ package body Skill.Internal.File_Writers is
             exception
                when E : others =>
                   Skill.Errors.Print_Stacktrace (E);
-                  Ada.Text_IO.Put_Line(Ada.Text_IO.Current_Error, "A task crashed during offset calculation: " & F.Name.all);
+                  Ada.Text_IO.Put_Line
+                    (Ada.Text_IO.Current_Error,
+                     "A task crashed during offset calculation: " &
+                     F.Name.all);
                   Write_Barrier.Complete;
             end Calculate;
             T : Skill.Tasks.Run (Calculate'Access);
@@ -199,7 +201,7 @@ package body Skill.Internal.File_Writers is
             if null = This.Super then
                Output.I8 (0);
             else
-               Output.V64 (Types.v64 (This.Super.ID + 1));
+               Output.V64 (Types.v64 (This.Super.Pool_Offset + 1));
                if 0 /= Lcount then
                   Output.V64 (Types.v64 (Lbpo_Map (This.Pool_Offset)));
                end if;
@@ -218,7 +220,7 @@ package body Skill.Internal.File_Writers is
          -- write fields
          declare
 --          ArrayList<Task> data = new ArrayList<>();
-            Ende, Offset : Types.v64 := 0;
+            End_Offset, Offset : Types.v64 := 0;
 
             procedure Write_Field (F : Field_Declaration) is
                P : Types.Pools.Pool := F.Owner.To_Pool;
@@ -228,8 +230,8 @@ package body Skill.Internal.File_Writers is
                String (F.Name);
                Write_Type (F.T);
                Restrictions (F);
-               Ende := Offset + F.Future_Offset;
-               Output.V64 (Ende);
+               end_Offset := Offset + F.Future_Offset;
+               Output.V64 (end_Offset);
 
                -- update chunks and prepare write data
                F.Data_Chunks.Clear;
@@ -240,8 +242,7 @@ package body Skill.Internal.File_Writers is
                        (Offset, 0, Types.v64 (P.Size), 1),
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
 
-               --              data.add(new Task(f, offset, end));
-               Offset := Ende;
+               Offset := end_Offset;
             end Write_Field;
          begin
             Field_Queue.Foreach (Write_Field'Access);
@@ -258,11 +259,13 @@ package body Skill.Internal.File_Writers is
                   F.Write (Map);
                   Map.Close;
                   Write_Barrier.Complete;
-            exception
-               when E : others =>
-                  Skill.Errors.Print_Stacktrace (E);
-                  Ada.Text_IO.Put_Line(Ada.Text_IO.Current_Error, "A task crashed during write data: " & F.Name.all);
-                  Write_Barrier.Complete;
+               exception
+                  when E : others =>
+                     Skill.Errors.Print_Stacktrace (E);
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Current_Error,
+                        "A task crashed during write data: " & F.Name.all);
+                     Write_Barrier.Complete;
                end Job;
 
                T : Skill.Tasks.Run (Job'Access);
