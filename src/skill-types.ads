@@ -73,7 +73,7 @@ package Skill.Types is
    -- default type conversion for root type
    function To_Annotation
      (This : access Skill_Object'Class) return Skill.Types.Annotation;
-   pragma Inline (To_Annotation);
+   pragma Inline_Always (To_Annotation);
    pragma Pure_Function (To_Annotation);
 
    function Dynamic (This : access Skill_Object) return Annotation_Dyn;

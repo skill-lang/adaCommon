@@ -181,71 +181,39 @@ package body Skill.Streams.Reader is
       return Cast (This.Map) >= Cast (This.EOF);
    end Eof;
 
-   procedure Advance (This : access Abstract_Stream'Class) is
-      use C;
-      use Uchar;
-      use System.Storage_Elements;
 
-      package Casts is new System.Address_To_Access_Conversions
-        (C.unsigned_char);
+   package Casts is new System.Address_To_Access_Conversions
+     (C.unsigned_char);
 
-      function Convert is new Ada.Unchecked_Conversion
-        (Interfaces.C.unsigned_char,
-         Skill.Types.i8);
-      function Convert is new Ada.Unchecked_Conversion
-        (Casts.Object_Pointer,
-         Map_Pointer);
-      function Convert is new Ada.Unchecked_Conversion
-        (Map_Pointer,
-         Casts.Object_Pointer);
-   begin
-      This.Map :=
-        Convert (Casts.To_Pointer (Casts.To_Address (Convert (This.Map)) + 1));
-   end Advance;
-   pragma Inline (Advance);
+   function Convert is new Ada.Unchecked_Conversion
+     (Interfaces.C.unsigned_char,
+      Skill.Types.i8);
+   function Convert is new Ada.Unchecked_Conversion
+     (Casts.Object_Pointer,
+      Map_Pointer);
+   function Convert is new Ada.Unchecked_Conversion
+     (Map_Pointer,
+      Casts.Object_Pointer);
 
    procedure Advance (P : in out Map_Pointer) is
       use C;
       use Uchar;
       use System.Storage_Elements;
-
-      package Casts is new System.Address_To_Access_Conversions
-        (C.unsigned_char);
-
-      function Convert is new Ada.Unchecked_Conversion
-        (Interfaces.C.unsigned_char,
-         Skill.Types.i8);
-      function Convert is new Ada.Unchecked_Conversion
-        (Casts.Object_Pointer,
-         Map_Pointer);
-      function Convert is new Ada.Unchecked_Conversion
-        (Map_Pointer,
-         Casts.Object_Pointer);
    begin
       P := Convert (Casts.To_Pointer (Casts.To_Address (Convert (P)) + 1));
    end Advance;
+   pragma Inline_Always (Advance);
 
    function I8 (This : access Abstract_Stream'Class) return Skill.Types.i8 is
       use C;
       use Uchar;
 
-      package Casts is new System.Address_To_Access_Conversions
-        (C.unsigned_char);
-
-      function Convert is new Ada.Unchecked_Conversion
-        (Interfaces.C.unsigned_char,
-         Skill.Types.i8);
-      function Convert is new Ada.Unchecked_Conversion
-        (Casts.Object_Pointer,
-         Map_Pointer);
-      function Convert is new Ada.Unchecked_Conversion
-        (Map_Pointer,
-         Casts.Object_Pointer);
       P : Map_Pointer := This.Map;
       R : Types.i8    := Convert (This.Map.all);
 
    begin
-      This.Advance;
+      Advance(P);
+      This.Map := P;
       return R;
    end I8;
 

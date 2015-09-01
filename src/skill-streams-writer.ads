@@ -37,9 +37,6 @@ package Skill.Streams.Writer is
      (This : access Output_Stream_T;
       Size : Types.v64) return Sub_Stream;
 
-   -- internal use
-   procedure Flush_Buffer (This : access Output_Stream_T);
-
    -- destroy a map and close the file
    procedure Close (This : access Output_Stream_T);
    -- destroy a sub map
@@ -102,10 +99,7 @@ package Skill.Streams.Writer is
 private
 
    procedure Ensure_Size (This : access Output_Stream_T; V : C.ptrdiff_t);
-   procedure Put_Byte
-     (This : access Abstract_Stream'Class;
-      V    : Interfaces.Unsigned_8);
-   pragma Inline (Put_Byte);
+   pragma No_Inline (Ensure_Size);
 
    package C renames Interfaces.C;
 

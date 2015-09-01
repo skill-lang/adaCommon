@@ -7,9 +7,12 @@
 with Ada.Finalization;
 
 -- vector, can also be used as a stack
+-- vector element operation is total, i.e. it will never raise an exception
+-- instead of exception, Err_Val will be returned
 generic
    type Index_Type is range <>;
    type Element_Type is private;
+--     Err_Val : Element_Type;
 package Skill.Containers.Vectors is
    pragma Pure;
 
@@ -22,57 +25,57 @@ package Skill.Containers.Vectors is
 
    -- applies F for each element in this
    procedure Foreach
-     (This : access Vector_T;
-      F    : access procedure (I : Element_Type));
+     (This : not null access Vector_T'Class;
+      F    : not null access procedure (I : Element_Type));
 
    -- appends element to the vector
-   procedure Append (This : access Vector_T; New_Element : Element_Type);
+   procedure Append (This : not null access Vector_T'Class; New_Element : Element_Type);
 
 -- appends element to the vector and assumes that the vector has a spare slot
    procedure Append_Unsafe
-     (This        : access Vector_T;
+     (This        : not null access Vector_T'Class;
       New_Element : Element_Type);
 
    -- apppends all elements stored in argument vector
-   procedure Append_All (This : access Vector_T; Other : Vector);
+   procedure Append_All (This : access Vector_T'Class; Other : Vector);
 
    -- remove the last element
-   function Pop (This : access Vector_T) return Element_Type;
+   function Pop (This : access Vector_T'Class) return Element_Type;
 
    -- get element at argument index
    function Element
-     (This  : access Vector_T;
+     (This  : access Vector_T'Class;
       Index : Index_Type) return Element_Type with
       Pre => Check_Index (This, Index);
 
 -- returns the last element in the vector or raises constraint error if empty
-   function Last_Element (This : access Vector_T) return Element_Type;
+   function Last_Element (This : access Vector_T'Class) return Element_Type;
 
    -- ensures that an index can be allocated
-   procedure Ensure_Index (This : access Vector_T; New_Index : Index_Type);
+   procedure Ensure_Index (This : access Vector_T'Class; New_Index : Index_Type);
 
    -- allocates an index, filling previous elements with random garbage!
    procedure Ensure_Allocation
-     (This      : access Vector_T;
+     (This      : access Vector_T'Class;
       New_Index : Index_Type);
 
    -- length of the container
-   function Length (This : access Vector_T) return Natural;
+   function Length (This : access Vector_T'Class) return Natural;
 
    -- true iff empty
-   function Is_Empty (This : access Vector_T) return Boolean;
+   function Is_Empty (This : access Vector_T'Class) return Boolean;
 
    -- remove all elements
-   procedure Clear (This : access Vector_T);
+   procedure Clear (This : access Vector_T'Class);
 
    -- checks if an index is used
    function Check_Index
-     (This  : access Vector_T;
+     (This  : access Vector_T'Class;
       Index : Index_Type) return Boolean;
 
    -- replace element at given index
    procedure Replace_Element
-     (This    : access Vector_T;
+     (This    : access Vector_T'Class;
       Index   : Index_Type;
       Element : Element_Type);
 
