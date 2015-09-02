@@ -12,7 +12,6 @@ with Ada.Containers.Vectors;
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
-with Ada.Tags;
 
 package body Skill.Field_Types.Builtin is
 
@@ -105,17 +104,14 @@ package body Skill.Field_Types.Builtin is
          if null = Ref then
             return 2;
          else
-            declare
-               Name : aliased String := Ada.Tags.Expanded_Name (Ref.Tag);
-               X    : T              := Name'Unchecked_Access;
-            begin
-               return Offset_Single_V64
-                   (Types.v64
-                      (1 +
-                       This.Types_By_Name.Element (Cast (X)).Pool_Offset)) +
-                 Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
-            end;
+            return Offset_Single_V64
+                (Types.v64
+                   (1 +
+                    This.Types_By_Name.Element
+                    (Ref.Dynamic.Skill_Name).Pool_Offset)) +
+              Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
          end if;
+
       end Offset_Box;
 
       overriding procedure Write_Box
@@ -134,16 +130,13 @@ package body Skill.Field_Types.Builtin is
          if null = Ref then
             Output.I16 (0);
          else
-            declare
-               Name : aliased String := Ada.Tags.Expanded_Name (Ref.Tag);
-               X    : T              := Name'Unchecked_Access;
-            begin
-               Output.V64
-               (Types.v64
-                  (1 + This.Types_By_Name.Element (Cast (X)).Pool_Offset));
+            Output.V64
+            (Types.v64
+               (1 +
+                This.Types_By_Name.Element
+                (Ref.Dynamic.Skill_Name).Pool_Offset));
 
-               Output.V64 (Types.v64 (Ref.Skill_ID));
-            end;
+            Output.V64 (Types.v64 (Ref.Skill_ID));
          end if;
       end Write_Box;
 

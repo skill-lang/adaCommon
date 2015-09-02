@@ -45,16 +45,16 @@ package Skill.Types is
    -- containers exist only in boxed form in ada
    -- TF: I dont see how to do this in a different way, because there is no
    -- OO-polymorphism between generic containers, right?
-   package Arrays_P is new Containers.Vectors(Natural, Box);
+   package Arrays_P is new Containers.Vectors (Natural, Box);
    subtype Boxed_Array is Arrays_P.Vector;
 
-   package Lists_P is new Ada.Containers.Doubly_Linked_Lists(Box);
+   package Lists_P is new Ada.Containers.Doubly_Linked_Lists (Box);
    type Boxed_List is access Lists_P.List;
 
-   package Sets_P is new Ada.Containers.Hashed_Sets(Box, Hash, "=");
+   package Sets_P is new Ada.Containers.Hashed_Sets (Box, Hash, "=");
    type Boxed_Set is access Sets_P.Set;
 
-   package Maps_P is new Ada.Containers.Hashed_Maps(Box, Box, Hash, "=");
+   package Maps_P is new Ada.Containers.Hashed_Maps (Box, Box, Hash, "=");
    type Boxed_Map is access Maps_P.Map;
 
    -- declare skill ids type for later configuration
@@ -76,6 +76,8 @@ package Skill.Types is
    pragma Inline_Always (To_Annotation);
    pragma Pure_Function (To_Annotation);
 
+   function Skill_Name (This : access Skill_Object) return String_Access;
+
    function Dynamic (This : access Skill_Object) return Annotation_Dyn;
    pragma Inline (Dynamic);
    pragma Pure_Function (Dynamic);
@@ -89,12 +91,12 @@ package Skill.Types is
    -- reflective getter
    function Reflective_Get
      (This : access Skill_Object;
-      F : Skill.Field_Declarations.Field_Declaration) return Box;
+      F    : Skill.Field_Declarations.Field_Declaration) return Box;
 
    -- reflective setter
    procedure Reflective_Set
      (This : access Skill_Object;
-      F : Field_Declarations.Field_Declaration;
-      V : Box);
+      F    : Field_Declarations.Field_Declaration;
+      V    : Box);
 
 end Skill.Types;
