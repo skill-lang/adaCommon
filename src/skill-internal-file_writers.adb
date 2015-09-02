@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     file writer implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+with Ada.Text_IO;
 with Ada.Unchecked_Conversion;
 
 with Interfaces;
@@ -18,7 +19,6 @@ with Skill.Streams.Reader;
 with Skill.Synchronization;
 with Skill.Tasks;
 with Skill.Errors;
-with Ada.Text_IO;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
@@ -87,7 +87,7 @@ package body Skill.Internal.File_Writers is
                     (Field_Types.Field_Type,
                      X);
                begin
-                  Output.I8 (X (T).Value);
+                  Output.I8 (Cast (T).Value);
                end;
             when 1 =>
                declare
@@ -98,7 +98,7 @@ package body Skill.Internal.File_Writers is
                     (Field_Types.Field_Type,
                      X);
                begin
-                  Output.I16 (X (T).Value);
+                  Output.I16 (Cast (T).Value);
                end;
             when 2 =>
                declare
@@ -109,7 +109,7 @@ package body Skill.Internal.File_Writers is
                     (Field_Types.Field_Type,
                      X);
                begin
-                  Output.I32 (X (T).Value);
+                  Output.I32 (Cast (T).Value);
                end;
             when 3 =>
                declare
@@ -120,7 +120,7 @@ package body Skill.Internal.File_Writers is
                     (Field_Types.Field_Type,
                      X);
                begin
-                  Output.I64 (X (T).Value);
+                  Output.I64 (Cast (T).Value);
                end;
             when 4 =>
                declare
@@ -131,10 +131,55 @@ package body Skill.Internal.File_Writers is
                     (Field_Types.Field_Type,
                      X);
                begin
-                  Output.V64 (X (T).Value);
+                  Output.V64 (Cast (T).Value);
                end;
 
-               -- TODO container
+            when 15 =>
+               declare
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     Skill.Field_Types.Builtin.Const_Arrays_P.Field_Type);
+               begin
+                  Output.V64 (Cast (T).Length);
+                  Write_Type (Cast (T).Base);
+               end;
+
+            when 17 =>
+               declare
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     Skill.Field_Types.Builtin.Var_Arrays_P.Field_Type);
+               begin
+                  Write_Type (Cast (T).Base);
+               end;
+
+            when 18 =>
+               declare
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     Skill.Field_Types.Builtin.List_Type_P.Field_Type);
+               begin
+                  Write_Type (Cast (T).Base);
+               end;
+
+            when 19 =>
+               declare
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     Skill.Field_Types.Builtin.Set_Type_P.Field_Type);
+               begin
+                  Write_Type (Cast (T).Base);
+               end;
+
+            when 20 =>
+               declare
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     Skill.Field_Types.Builtin.Map_Type_P.Field_Type);
+               begin
+                  Write_Type (Cast (T).Key);
+                  Write_Type (Cast (T).Value);
+               end;
 
             when others =>
                null;
@@ -222,7 +267,16 @@ package body Skill.Internal.File_Writers is
          State.Types.Foreach (Make'Access);
       end;
 
+      --------------------
+      -- PHASE 3: Write --
+      --------------------
+
+      --  write string block
+      State.Strings.Prepare_And_Write
+      (Output, State.String_Type.String_IDs'Access);
+
       -- Calculate Offsets
+      -- @note this has top happen after string IDs have been updated
       declare
 
          procedure Make (F : Field_Declaration) is
@@ -254,14 +308,6 @@ package body Skill.Internal.File_Writers is
       begin
          State.Types.Foreach (Off'Access);
       end;
-
-      --------------------
-      -- PHASE 3: Write --
-      --------------------
-
-      --  write string block
-      State.Strings.Prepare_And_Write
-      (Output, State.String_Type.String_IDs'Access);
 
       -- write count of the type block
       Output.V64 (Types.v64 (State.Types.Length));

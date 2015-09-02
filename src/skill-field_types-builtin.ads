@@ -8,7 +8,6 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
-with Ada.Tags;
 with Ada.Unchecked_Conversion;
 
 with Skill.Types;
@@ -60,15 +59,13 @@ package Skill.Field_Types.Builtin is
          Equivalent_Keys => Skill.Equals.Equals,
          "="             => "=");
 
-      function Hash_Tag is new Ada.Unchecked_Conversion(Ada.Tags.Tag, Ada.Containers.Hash_Type);
-      use type Ada.Tags.Tag;
       use type Types.Pools.Pool;
 
       package Type_Maps is new Ada.Containers.Hashed_Maps
-        (Key_Type        => Ada.Tags.Tag,
+        (Key_Type        => Types.String_Access,
          Element_Type    => Types.Pools.Pool,
-         Hash            => Hash_Tag,
-         Equivalent_Keys => "=",
+         Hash            => Skill.Hashes.Hash,
+         Equivalent_Keys => Skill.Equals.Equals,
          "="             => "=");
 
       -- we need to pass a pointer to the map around
@@ -76,7 +73,7 @@ package Skill.Field_Types.Builtin is
 
       type Field_Type_T is new A1.Field_Type with record
          Types : Skill.Types.Pools.Type_Vector;
-         Types_By_Tag : Type_Maps.Map;
+         Types_By_Name : Type_Maps.Map;
       end record;
 
       type Field_Type is access all Field_Type_T;
@@ -104,7 +101,7 @@ package Skill.Field_Types.Builtin is
 
    function Annotation (Types : Skill.Types.Pools.Type_Vector) return Annotation_Type_P.Field_Type is
      (new Annotation_Type_P.Field_Type_T'(Types         => types,
-                                          Types_By_Tag => <>));
+                                          Types_By_Name => <>));
 
    function Offset_Single
      (Input : Boolean) return Types.V64 is

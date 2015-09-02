@@ -13,7 +13,6 @@ with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
 with Ada.Tags;
-with Ada.Text_IO;
 
 package body Skill.Field_Types.Builtin is
 
@@ -66,8 +65,7 @@ package body Skill.Field_Types.Builtin is
 
          procedure Add (P : Types.Pools.Pool) is
          begin
-            -- note: this trick wont work for unknown types!!!
-            This.Types_By_Tag.Include (P.Dynamic.Content_Tag, P);
+            This.Types_By_Name.Include (P.Skill_Name, P);
          end Add;
       begin
          This.Types.Foreach (Add'Access);
@@ -96,29 +94,28 @@ package body Skill.Field_Types.Builtin is
         (This   : access Field_Type_T;
          Target : Types.Box) return Types.v64
       is
+         type T is access all String;
+
+         function Cast is new Ada.Unchecked_Conversion
+           (T,
+            Types.String_Access);
 
          Ref : Types.Annotation := Unboxed (Target);
       begin
          if null = Ref then
             return 2;
          else
-            return Offset_Single_V64
-                (Types.v64
-                   (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset)) +
-              Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
+            declare
+               Name : aliased String := Ada.Tags.Expanded_Name (Ref.Tag);
+               X    : T              := Name'Unchecked_Access;
+            begin
+               return Offset_Single_V64
+                   (Types.v64
+                      (1 +
+                       This.Types_By_Name.Element (Cast (X)).Pool_Offset)) +
+                 Offset_Single_V64 (Types.v64 (Ref.Skill_ID));
+            end;
          end if;
-      exception
-         when E : others =>
-            Ada.Text_IO.Put_Line ("ref:");
-            Ada.Text_IO.Put_Line (Ada.Tags.Expanded_Name (Ref.Tag));
-            Ada.Text_IO.Put_Line (Integer'Image (Ref.Skill_ID));
-
-            Ada.Text_IO.Put_Line ("map:");
-            Ada.Text_IO.Put_Line
-              (Integer'Image (Integer (This.Types_By_Tag.Length)));
---              for I of
-
-            return 0;
       end Offset_Box;
 
       overriding procedure Write_Box
@@ -126,16 +123,27 @@ package body Skill.Field_Types.Builtin is
          Output : Streams.Writer.Sub_Stream;
          Target : Types.Box)
       is
+         type T is access all String;
+
+         function Cast is new Ada.Unchecked_Conversion
+           (T,
+            Types.String_Access);
 
          Ref : Types.Annotation := Unboxed (Target);
       begin
          if null = Ref then
             Output.I16 (0);
          else
-            Output.V64
-            (Types.v64 (1 + This.Types_By_Tag.Element (Ref.Tag).Pool_Offset));
+            declare
+               Name : aliased String := Ada.Tags.Expanded_Name (Ref.Tag);
+               X    : T              := Name'Unchecked_Access;
+            begin
+               Output.V64
+               (Types.v64
+                  (1 + This.Types_By_Name.Element (Cast (X)).Pool_Offset));
 
-            Output.V64 (Types.v64 (Ref.Skill_ID));
+               Output.V64 (Types.v64 (Ref.Skill_ID));
+            end;
          end if;
       end Write_Box;
 
@@ -168,7 +176,7 @@ package body Skill.Field_Types.Builtin is
       begin
          for I in 1 .. Count loop
             Result :=
-              Result + This.Base.Offset_Box (Unboxed (Target).Element (I));
+              Result + This.Base.Offset_Box (Unboxed (Target).Element (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -182,7 +190,7 @@ package body Skill.Field_Types.Builtin is
          Length : Natural := Natural (This.Length);
       begin
          for I in 1 .. Length loop
-            This.Base.Write_Box (Output, Unboxed (Target).Element (I));
+            This.Base.Write_Box (Output, Unboxed (Target).Element (I - 1));
          end loop;
       end Write_Box;
 
@@ -216,7 +224,7 @@ package body Skill.Field_Types.Builtin is
          Result := Offset_Single_V64 (Types.v64 (Count));
          for I in 1 .. Count loop
             Result :=
-              Result + This.Base.Offset_Box (Unboxed (Target).Element (I));
+              Result + This.Base.Offset_Box (Unboxed (Target).Element (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -231,7 +239,7 @@ package body Skill.Field_Types.Builtin is
       begin
          Output.V64 (Types.v64 (Length));
          for I in 1 .. Length loop
-            This.Base.Write_Box (Output, Unboxed (Target).Element (I));
+            This.Base.Write_Box (Output, Unboxed (Target).Element (I - 1));
          end loop;
       end Write_Box;
 
