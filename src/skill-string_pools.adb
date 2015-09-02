@@ -115,6 +115,18 @@ package body Skill.String_Pools is
          Result (P) := Convert (Input.I8);
       end loop;
 
+      -- unify with new strings
+      declare
+         Cursor   : A1.Cursor;
+         Inserted : Boolean;
+      begin
+         This.New_Strings.Insert (Result, Cursor, Inserted);
+         if not Inserted then
+            Free (Result);
+            Result := A1.Element (Cursor);
+         end if;
+      end;
+
       Input.Jump (Last);
       This.Id_Map.Replace_Element (Natural (Index), Result);
 
