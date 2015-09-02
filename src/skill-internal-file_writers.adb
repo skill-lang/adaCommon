@@ -76,6 +76,69 @@ package body Skill.Internal.File_Writers is
       procedure Write_Type (T : Field_Types.Field_Type) is
       begin
          Output.V64 (Types.v64 (T.ID));
+
+         case T.ID is
+            when 0 =>
+               declare
+                  type X is
+                    access all Skill.Field_Types.Builtin.Constant_I8
+                      .Field_Type;
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     X);
+               begin
+                  Output.I8 (X (T).Value);
+               end;
+            when 1 =>
+               declare
+                  type X is
+                    access all Skill.Field_Types.Builtin.Constant_I16
+                      .Field_Type;
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     X);
+               begin
+                  Output.I16 (X (T).Value);
+               end;
+            when 2 =>
+               declare
+                  type X is
+                    access all Skill.Field_Types.Builtin.Constant_I32
+                      .Field_Type;
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     X);
+               begin
+                  Output.I32 (X (T).Value);
+               end;
+            when 3 =>
+               declare
+                  type X is
+                    access all Skill.Field_Types.Builtin.Constant_I64
+                      .Field_Type;
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     X);
+               begin
+                  Output.I64 (X (T).Value);
+               end;
+            when 4 =>
+               declare
+                  type X is
+                    access all Skill.Field_Types.Builtin.Constant_V64
+                      .Field_Type;
+                  function Cast is new Ada.Unchecked_Conversion
+                    (Field_Types.Field_Type,
+                     X);
+               begin
+                  Output.V64 (X (T).Value);
+               end;
+
+               -- TODO container
+
+            when others =>
+               null;
+         end case;
       end Write_Type;
 
       procedure Restrictions (S : Types.Pools.Pool) is

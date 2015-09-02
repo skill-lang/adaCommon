@@ -318,6 +318,28 @@ package body Skill.Streams.Writer is
       This.Map := P;
    end Bool;
 
+   procedure I16 (This : access Output_Stream_T; V : Skill.Types.i16) is
+      pragma Warnings (Off);
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion
+        (Unsigned_16,
+         C.unsigned_char);
+      function Cast is new Ada.Unchecked_Conversion (Types.i16, Unsigned_16);
+
+      P : Map_Pointer := Invalid_Pointer;
+   begin
+      This.Ensure_Size (2);
+
+      P     := This.Map;
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 8));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 0));
+      Advance (P);
+      This.Map := P;
+   end I16;
+
    procedure I16 (This : access Sub_Stream_T; V : Skill.Types.i16) is
       pragma Warnings (Off);
       use C;
@@ -383,6 +405,39 @@ package body Skill.Streams.Writer is
       Advance (P);
       This.Map := P;
    end I32;
+
+   procedure I64 (This : access Output_Stream_T; V : Skill.Types.i64) is
+      use C;
+      use Uchar;
+
+      function Cast is new Ada.Unchecked_Conversion
+        (Unsigned_64,
+         C.unsigned_char);
+      function Cast is new Ada.Unchecked_Conversion (Types.i64, Unsigned_64);
+
+      P : Map_Pointer := Invalid_Pointer;
+   begin
+      This.Ensure_Size (8);
+
+      P     := This.Map;
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 56));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 48));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 40));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 32));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 24));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 16));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 8));
+      Advance (P);
+      P.all := Cast (Interfaces.Shift_Right (Cast (V), 0));
+      Advance (P);
+      This.Map := P;
+   end I64;
 
    procedure I64 (This : access Sub_Stream_T; V : Skill.Types.i64) is
       use C;

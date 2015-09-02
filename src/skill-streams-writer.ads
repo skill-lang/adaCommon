@@ -66,6 +66,7 @@ package Skill.Streams.Writer is
    procedure Bool (This : access Sub_Stream_T; V : Boolean);
    pragma Inline (Bool);
 
+   procedure I16 (This : access Output_Stream_T; V : Skill.Types.i16);
    procedure I16 (This : access Sub_Stream_T; V : Skill.Types.i16);
    pragma Inline (I16);
 
@@ -76,6 +77,7 @@ package Skill.Streams.Writer is
    procedure I32 (This : access Output_Stream_T; V : Skill.Types.i32);
    procedure I32 (This : access Sub_Stream_T; V : Skill.Types.i32);
 
+   procedure I64 (This : access Output_Stream_T; V : Skill.Types.I64);
    procedure I64 (This : access Sub_Stream_T; V : Skill.Types.i64);
    pragma Inline (I64);
 
