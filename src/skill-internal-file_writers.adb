@@ -18,7 +18,6 @@ with Skill.Internal.Parts;
 with Skill.Streams.Reader;
 with Skill.Synchronization;
 with Skill.Tasks;
-with Skill.Errors;
 
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
@@ -67,6 +66,8 @@ package body Skill.Internal.File_Writers is
    is
       String_Type : Skill.Field_Types.Builtin.String_Type_P.Field_Type :=
         State.String_Type;
+
+      Job_Failed_Concurrently : Boolean := False;
 
       procedure String (S : Types.String_Access) is
       begin
@@ -287,12 +288,12 @@ package body Skill.Internal.File_Writers is
                Write_Barrier.Complete;
             exception
                when E : others =>
-                  Skill.Errors.Print_Stacktrace (E);
+                  Job_Failed_Concurrently := True;
+                  Write_Barrier.Complete;
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Current_Error,
                      "A task crashed during offset calculation: " &
                      Cast (C).F.Name.all);
-                  Write_Barrier.Complete;
             end Calculate;
             T : Skill.Tasks.Run (Calculate'Access);
             C : Skill.Tasks.Closure := new Cl_Offset'(F => F);
@@ -346,6 +347,10 @@ package body Skill.Internal.File_Writers is
 
          -- await offsets before we can write fields
          Write_Barrier.Await;
+         if Job_Failed_Concurrently then
+            raise Program_Error
+              with "internal error during offset calculation";
+         end if;
 
          -- write fields
          declare
@@ -394,12 +399,12 @@ package body Skill.Internal.File_Writers is
                   Convert (C).Map.Close;
                exception
                   when E : others =>
-                     Skill.Errors.Print_Stacktrace (E);
+                     Job_Failed_Concurrently := True;
+                     Write_Barrier.Complete;
                      Ada.Text_IO.Put_Line
                        (Ada.Text_IO.Current_Error,
                         "A task crashed during write data: " &
                         Convert (C).F.Name.all);
-                     Write_Barrier.Complete;
                end Job;
 
                T : Skill.Tasks.Run (Job'Access);
@@ -415,6 +420,10 @@ package body Skill.Internal.File_Writers is
             -- await writing of actual field data
             Write_Barrier.Await;
             Output.End_Block_Map;
+
+            if Job_Failed_Concurrently then
+               raise Program_Error with "internal error during field write";
+            end if;
          end;
       end;
 
