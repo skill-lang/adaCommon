@@ -48,7 +48,7 @@ mmap_read_record mmap_read(char const *filename)
   if(MAP_FAILED == mapped)
     return error("Execution of function mmap failed.");
 
-  if (-1 == madvise(mapped, length, MADV_WILLNEED))
+  if (-1 == posix_madvise(mapped, length, MADV_WILLNEED))
     return error("Execution of function madvise failed.");
 
   mmap_read_record const rval = { stream, length, mapped };
@@ -68,7 +68,7 @@ char const* mmap_write_map_block(FILE *stream, size_t length)
     return NULL;
   }
 
-  if (-1 == madvise(rval, length, MADV_SEQUENTIAL | MADV_WILLNEED)){
+  if (-1 == posix_madvise(rval, length, MADV_SEQUENTIAL | MADV_WILLNEED)){
     fprintf(stderr, "mmap.c: %s\n errno was: %s\n", "failed to advise write map", strerror(errno));
     return NULL;
   }
