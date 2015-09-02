@@ -470,29 +470,15 @@ package body Skill.Streams.Writer is
    end I64;
 
    procedure F32 (This : access Sub_Stream_T; V : Skill.Types.F32) is
-      use C;
-      use Uchar;
-
-      R : Types.F32;
-      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
-      for R'Address use P.all'Address;
-      pragma Import (Ada, R);
+      function Cast is new Ada.Unchecked_Conversion (Types.F32, Types.i32);
    begin
-      R := V;
-      Advance (This.Map, 4);
+      This.I32 (Cast (V));
    end F32;
 
    procedure F64 (This : access Sub_Stream_T; V : Skill.Types.F64) is
-      use C;
-      use Uchar;
-
-      R : Types.F64;
-      P : Uchar.Pointer := This.Map + C.ptrdiff_t (This.Position);
-      for R'Address use P.all'Address;
-      pragma Import (Ada, R);
+      function Cast is new Ada.Unchecked_Conversion (Types.F64, Types.i64);
    begin
-      R := V;
-      Advance (This.Map, 8);
+      This.I64 (Cast (V));
    end F64;
 
    function To_Byte is new Ada.Unchecked_Conversion

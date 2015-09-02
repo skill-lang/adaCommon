@@ -97,7 +97,7 @@ package body Skill.Streams.Reader is
       use type Uchar.Pointer;
       use type Interfaces.Integer_64;
 
-      function Cast is new Ada.Unchecked_Conversion (Map_Pointer, Types.V64);
+      function Cast is new Ada.Unchecked_Conversion (Map_Pointer, Types.v64);
    begin
       if Cast (This.EOF) < Cast (This.Base + C.ptrdiff_t (Base + Last)) then
          raise Constraint_Error with "Tried to read behind end of file.";
@@ -157,11 +157,13 @@ package body Skill.Streams.Reader is
 
    procedure Check_Offset
      (This : access Abstract_Stream'Class;
-      Pos  : Skill.Types.v64) is
-      use type Types.V64;
+      Pos  : Skill.Types.v64)
+   is
+      use type Types.v64;
    begin
-      if Types.v64 (This.Eof - This.Base) <= Pos then
-         raise Constraint_Error with "Offset check failed, argument position is behind end of file.";
+      if Types.v64 (This.EOF - This.Base) <= Pos then
+         raise Constraint_Error
+           with "Offset check failed, argument position is behind end of file.";
       end if;
    end Check_Offset;
 
@@ -181,9 +183,7 @@ package body Skill.Streams.Reader is
       return Cast (This.Map) >= Cast (This.EOF);
    end Eof;
 
-
-   package Casts is new System.Address_To_Access_Conversions
-     (C.unsigned_char);
+   package Casts is new System.Address_To_Access_Conversions (C.unsigned_char);
 
    function Convert is new Ada.Unchecked_Conversion
      (Interfaces.C.unsigned_char,
@@ -212,7 +212,7 @@ package body Skill.Streams.Reader is
       R : Types.i8    := Convert (This.Map.all);
 
    begin
-      Advance(P);
+      Advance (P);
       This.Map := P;
       return R;
    end I8;
@@ -278,29 +278,15 @@ package body Skill.Streams.Reader is
    end I64;
 
    function F32 (This : access Abstract_Stream'Class) return Skill.Types.F32 is
-      use C;
-      use Uchar;
-
-      R : Types.F32;
-      P : Uchar.Pointer := This.Map;
-      for R'Address use This.Map.all'Address;
-      pragma Import (Ada, R);
+      function Cast is new Ada.Unchecked_Conversion (Types.i32, Types.F32);
    begin
-      This.Map := This.Map + 4;
-      return R;
+      return Cast (This.I32);
    end F32;
 
    function F64 (This : access Abstract_Stream'Class) return Skill.Types.F64 is
-      use C;
-      use Uchar;
-
-      R : Types.F64;
-      P : Uchar.Pointer := This.Map;
-      for R'Address use This.Map.all'Address;
-      pragma Import (Ada, R);
+      function Cast is new Ada.Unchecked_Conversion (Types.i64, Types.F64);
    begin
-      This.Map := This.Map + 8;
-      return R;
+      return Cast (This.I64);
    end F64;
 
    function V64 (This : access Abstract_Stream'Class) return Skill.Types.v64 is
