@@ -254,4 +254,72 @@ package body Skill.String_Pools is
          Output.End_Block_Map;
       end;
    end Prepare_And_Write;
+
+   procedure Prepare_And_Append
+     (This              : access Pool_T;
+      Output            : Skill.Streams.Writer.Output_Stream;
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_P.ID_Map)
+   is
+      S : Types.String_Access;
+
+      Count : Types.v64;
+
+      use type Types.v64;
+      use type Skill.Field_Types.Builtin.String_Type_P.ID_Map;
+
+      Todo : A3.Vector := A3.Empty_Vector;
+   begin
+
+      -- ensure all strings are present
+      for I in 1 .. Types.v64 (This.String_Positions.Length - 1) loop
+         S := This.Get (I);
+      end loop;
+
+      -- create inverse map
+      for I in 1 .. Types.Skill_ID_T (This.Id_Map.Length - 1) loop
+         Serialization_IDs.Insert
+         (Key => This.Id_Map.Element (I), New_Item => I);
+      end loop;
+
+   -- instert new strings to the map;
+   -- this is the place where duplications with lazy strings will be detected
+   -- and eliminated;
+   -- this is also the place, where new instances are appended to the output
+   -- file
+      for S of This.New_Strings loop
+         if not Serialization_IDs.Contains (S) then
+            Serialization_IDs.Insert (S, This.Id_Map.Length);
+            This.Id_Map.Append (S);
+            Todo.Append (S);
+         end if;
+      end loop;
+
+      Count := Types.v64 (Todo.Length);
+      Output.V64 (Count);
+
+      Output.Begin_Block_Map (4 * Count);
+      declare
+         Off : Types.i32 := 0;
+
+         -- map offsets
+         Offsets : Streams.Writer.Sub_Stream := Output.Map (4 * Count);
+
+         procedure Put (S : Types.String_Access) is
+         begin
+            -- first ID is mapped to null
+            if null = S then
+               return;
+            end if;
+
+            Off := Off + S.all'Size / 8;
+            Output.Put_Plain_String (S);
+            Offsets.I32 (Off);
+         end Put;
+      begin
+         This.Id_Map.Foreach (Put'Access);
+         Output.End_Block_Map;
+      end;
+
+      Todo.Free;
+   end Prepare_And_Append;
 end Skill.String_Pools;

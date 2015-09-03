@@ -40,7 +40,6 @@ package Skill.String_Pools is
      (This  : access Pool_T;
       Index : Types.v64) return Skill.Types.String_Access;
 
-
    -- adds a string to the pool
    procedure Add (This : access Pool_T; S : Types.String_Access);
    -- adds a string to the pool
@@ -64,8 +63,14 @@ package Skill.String_Pools is
 
    -- internal use only
    procedure Prepare_And_Write
-     (This   : access Pool_T;
-      Output : Skill.Streams.Writer.Output_Stream;
+     (This              : access Pool_T;
+      Output            : Skill.Streams.Writer.Output_Stream;
+      Serialization_IDs : Skill.Field_Types.Builtin.String_Type_P.ID_Map);
+
+   -- internal use only
+   procedure Prepare_And_Append
+     (This              : access Pool_T;
+      Output            : Skill.Streams.Writer.Output_Stream;
       Serialization_IDs : Skill.Field_Types.Builtin.String_Type_P.ID_Map);
 private
 
@@ -84,7 +89,9 @@ private
    end record;
 
    package A2 is new Skill.Containers.Vectors (Natural, Position);
-   package A3 is new Skill.Containers.Vectors (Natural, Skill.Types.String_Access);
+   package A3 is new Skill.Containers.Vectors
+     (Natural,
+      Skill.Types.String_Access);
 
    type Pool_T is tagged limited record
       Input            : Skill.Streams.Reader.Input_Stream;

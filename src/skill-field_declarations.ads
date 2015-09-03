@@ -12,6 +12,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Skill.Containers.Vectors;
 limited with Skill.Types.Pools;
 with Skill.Types;
+with Ada.Containers.Hashed_Maps;
 
 package Skill.Field_Declarations is
 --     pragma Preelaborate;
@@ -40,6 +41,15 @@ package Skill.Field_Declarations is
    end record;
    -- can not be not null, because we need to store them in arrays :-/
    type Field_Declaration is access Field_Declaration_T'Class;
+   function Hash (This : Field_Declaration) return Ada.Containers.Hash_Type;
+
+   use type Internal.Parts.Chunk;
+   package Chunk_Map_P is new Ada.Containers.Hashed_Maps(Key_Type        => Field_Declaration,
+                                                         Element_Type    => Internal.Parts.Chunk,
+                                                         Hash            => Hash,
+                                                         Equivalent_Keys => "=",
+                                                         "="             => "=");
+   type Chunk_Map is not null access Chunk_Map_P.Map;
 
    package Field_Vector_P is new Skill.Containers.Vectors
      (Positive,
@@ -59,6 +69,7 @@ package Skill.Field_Declarations is
 
    function Owner
      (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
+
 
    procedure Read
      (This : access Field_Declaration_T;

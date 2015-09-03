@@ -48,8 +48,11 @@ package Skill.Containers.Vectors is
       Index : Index_Type) return Element_Type with
       Pre => Check_Index (This, Index);
 
--- returns the last element in the vector or raises constraint error if empty
+   -- returns the last element in the vector or raises constraint error if empty
    function Last_Element (This : access Vector_T'Class) return Element_Type;
+
+   -- returns the first element in the vector or raises constraint error if empty
+   function First_Element (This : access Vector_T'Class) return Element_Type;
 
    -- ensures that an index can be allocated
    procedure Ensure_Index (This : access Vector_T'Class; New_Index : Index_Type);

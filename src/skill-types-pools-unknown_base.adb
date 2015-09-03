@@ -127,6 +127,9 @@ package body Skill.Types.Pools.Unknown_Base is
       return This.Static_Data.Length + This.New_Objects.Length;
    end Static_Size;
 
+   overriding function New_Objects_Size (This : access Pool_T) return Natural is
+     (This.New_Objects.Length);
+
    procedure Write_Box
      (This   : access Pool_T;
       Output : Streams.Writer.Sub_Stream;

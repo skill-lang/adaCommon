@@ -38,6 +38,11 @@ package body Skill.Field_Declarations is
       return Convert (This.Owner);
    end Owner;
 
+   function Hash
+     (This : Field_Declaration) return Ada.Containers.Hash_Type is
+     (Ada.Containers.Hash_Type
+        (37 * This.Index + 31337 * This.Owner.Pool_Offset));
+
    function Field_ID
      (This : access Field_Declaration_T'Class) return Natural is
      (This.Index);
@@ -75,18 +80,18 @@ package body Skill.Field_Declarations is
    is
    begin
       return new Lazy_Field_T'
-          (Data_Chunks => Chunk_List_P.Empty_Vector,
-           T           => T,
-           Name        => Name,
-           Index       => ID,
-           Owner       => Owner,
+          (Data_Chunks   => Chunk_List_P.Empty_Vector,
+           T             => T,
+           Name          => Name,
+           Index         => ID,
+           Owner         => Owner,
            Future_Offset => 0);
    end Make_Lazy_Field;
 
    procedure Free (This : access Lazy_Field_T) is
       type T is access all Lazy_Field_T;
-      procedure Delete is new Ada.Unchecked_Deallocation(Lazy_Field_T, T);
-      D : T := T(This);
+      procedure Delete is new Ada.Unchecked_Deallocation (Lazy_Field_T, T);
+      D : T := T (This);
    begin
       This.Data_Chunks.Foreach (Delete_Chunk'Access);
       This.Data_Chunks.Free;

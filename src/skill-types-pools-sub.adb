@@ -123,6 +123,9 @@ package body Skill.Types.Pools.Sub is
         Natural (This.New_Objects.Length);
    end Static_Size;
 
+   overriding function New_Objects_Size (This : access Pool_T) return Natural is
+     (This.New_Objects.Length);
+
    function Offset_Box
      (This   : access Pool_T;
       Target : Types.Box) return Types.v64 is

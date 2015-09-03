@@ -10,6 +10,8 @@ with Ada.Unchecked_Conversion;
 with Skill.Field_Types;
 with Skill.Internal.Parts;
 with Ada.Unchecked_Deallocation;
+with Skill.Field_Declarations;
+with Skill.Streams.Reader;
 
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
@@ -80,7 +82,7 @@ package body Skill.Types.Pools is
 
    procedure Do_In_Type_Order
      (This : access Pool_T'Class;
-      F    : access procedure (I : Annotation))
+      F    : not null access procedure (I : Annotation))
    is
 
       procedure Closure (This : Sub_Pool) is
@@ -215,6 +217,178 @@ package body Skill.Types.Pools is
       end if;
       This.Data := D;
    end Resize_Data;
+
+   -- Called after a prepare append operation to write empty the new objects
+   -- buffer and to set blocks correctly
+   procedure Update_After_Prepare_Append
+     (This      : access Pool_T'Class;
+      Chunk_Map : Skill.Field_Declarations.Chunk_Map)
+   is
+
+      New_Instances : constant Boolean :=
+        null /= This.Dynamic.First_Dynamic_New_Instance;
+      New_Pool  : constant Boolean := This.Blocks.Is_Empty;
+      New_Field : Boolean          := False;
+
+      procedure Find_New_Field (F : Field_Declarations.Field_Declaration) is
+      begin
+         if not New_Field and then F.Data_Chunks.Is_Empty then
+            New_Field := True;
+         end if;
+      end Find_New_Field;
+
+   begin
+      This.Data_Fields_F.Foreach (Find_New_Field'Access);
+
+      if New_Pool or else New_Instances or else New_Field then
+         declare
+            -- build block chunk
+            Lcount : Natural := This.New_Objects_Size;
+            procedure Dynamic_Lcount (P : Sub_Pool) is
+            begin
+               Lcount := Lcount + P.To_Pool.Dynamic.New_Objects_Size;
+               P.Sub_Pools.Foreach (Dynamic_Lcount'Access);
+            end Dynamic_Lcount;
+
+            Lbpo : Natural;
+         begin
+            This.Sub_Pools.Foreach (Dynamic_Lcount'Access);
+
+            if 0 = Lcount then
+               Lbpo := 0;
+            else
+               Lbpo := This.Dynamic.First_Dynamic_New_Instance.Skill_ID - 1;
+            end if;
+
+            This.Blocks.Append
+            (Skill.Internal.Parts.Block'
+               (BPO => Types.v64 (Lbpo), Count => Types.v64 (Lcount)));
+
+            -- @note: if this does not hold for p; then it will not hold for
+            -- p.subPools either!
+            if New_Instances or else not New_Pool then
+               -- build field chunks
+               for I in 1 .. This.Data_Fields_F.Length loop
+                  declare
+                     F : Field_Declarations.Field_Declaration :=
+                       This.Data_Fields_F.Element (I);
+                     CE : Skill.Field_Declarations.Chunk_Entry;
+                  begin
+                     if F.Data_Chunks.Is_Empty then
+                        CE :=
+                          new Skill.Field_Declarations.Chunk_Entry_T'
+                            (C =>
+                               new Skill.Internal.Parts.Bulk_Chunk'
+                                 (First       => Types.v64 (-1),
+                                  Last        => Types.v64 (-1),
+                                  Count       => Types.v64 (This.Size),
+                                  Block_Count => 0),
+                             Input => Skill.Streams.Reader.Empty_Sub_Stream);
+                        F.Data_Chunks.Append (CE);
+                        Chunk_Map.Include (F, CE.C);
+                     elsif New_Instances then
+                        CE :=
+                          new Skill.Field_Declarations.Chunk_Entry_T'
+                            (C =>
+                               new Skill.Internal.Parts.Simple_Chunk'
+                                 (First => Types.v64 (-1),
+                                  Last  => Types.v64 (-1),
+                                  Count => Types.v64 (This.Size),
+                                  BPO   => Types.v64 (Lcount)),
+                             Input => Skill.Streams.Reader.Empty_Sub_Stream);
+                        F.Data_Chunks.Append (CE);
+                        Chunk_Map.Include (F, CE.C);
+                     end if;
+                  end;
+               end loop;
+            end if;
+         end;
+      end if;
+
+      -- notify sub pools
+      declare
+         procedure Update (P : Sub_Pool) is
+         begin
+            Update_After_Prepare_Append (P, Chunk_Map);
+         end Update;
+      begin
+         This.Sub_Pools.Foreach (Update'Access);
+      end;
+
+      -- remove new objects, because they are regular objects by now
+
+      -- TODO if we ever want to get rid of Destroyed mode
+      --          staticData.addAll(newObjects);
+      --          newObjects.clear();
+      --          newObjects.trimToSize();
+   end Update_After_Prepare_Append;
+
+   procedure Prepare_Append
+     (This      : access Base_Pool_T'Class;
+      Chunk_Map : Skill.Field_Declarations.Chunk_Map)
+   is
+
+      New_Instances : constant Boolean :=
+        null /= This.Dynamic.First_Dynamic_New_Instance;
+   begin
+
+      -- check if we have to append at all
+      if not New_Instances
+        and then not This.Blocks.Is_Empty
+        and then not This.Data_Fields.Is_Empty
+      then
+         declare
+            Done : Boolean := True;
+
+            procedure Check (F : Field_Declarations.Field_Declaration) is
+            begin
+               if F.Data_Chunks.Is_Empty then
+                  Done := False;
+               end if;
+            end Check;
+         begin
+            This.Data_Fields_F.Foreach (Check'Access);
+
+            if Done then
+               return;
+            end if;
+         end;
+      end if;
+
+      if New_Instances then
+         -- we have to resize
+         declare
+
+            Count : Natural          := This.Size;
+            D     : Annotation_Array :=
+              new Annotation_Array_T
+              (This.Data'First .. (This.Data'Last + Count));
+
+            procedure Free is new Ada.Unchecked_Deallocation
+              (Object => Annotation_Array_T,
+               Name   => Annotation_Array);
+
+            I : Natural := This.Data'Last + 1;
+            procedure Mark (Inst : Annotation) is
+            begin
+               D (I)         := Inst;
+               Inst.Skill_ID := I;
+               I             := I + 1;
+            end Mark;
+
+         begin
+            D (This.Data'First .. This.Data'Last) := This.Data.all;
+            This.Foreach_Dynamic_New_Instance (Mark'Access);
+
+            if This.Data /= Empty_Data then
+               Free (This.Data);
+            end if;
+            This.Data := D;
+         end;
+      end if;
+
+      Update_After_Prepare_Append (This, Chunk_Map);
+   end Prepare_Append;
 
    procedure Set_Owner
      (This  : access Base_Pool_T'Class;

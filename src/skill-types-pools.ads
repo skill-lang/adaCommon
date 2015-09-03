@@ -82,22 +82,43 @@ package Skill.Types.Pools is
 
    procedure Do_In_Type_Order
      (This : access Pool_T'Class;
-      F    : access procedure (I : Annotation));
+      F    : not null access procedure (I : Annotation));
    procedure Do_For_Static_Instances
      (This : access Pool_T;
-      F    : access procedure (I : Annotation)) is abstract;
+      F    : not null access procedure (I : Annotation)) is abstract;
    procedure Do_For_Static_Instances
      (This : access Base_Pool_T;
-      F    : access procedure (I : Annotation)) is abstract;
+      F    : not null access procedure (I : Annotation)) is abstract;
    procedure Do_For_Static_Instances
      (This : access Sub_Pool_T;
-      F    : access procedure (I : Annotation)) is abstract;
+      F    : not null access procedure (I : Annotation)) is abstract;
+   procedure Foreach_Dynamic_New_Instance
+     (This : access Pool_T;
+      F    : not null access procedure (I : Annotation)) is abstract;
+   procedure Foreach_Dynamic_New_Instance
+     (This : access Base_Pool_T;
+      F    : not null access procedure (I : Annotation)) is abstract;
+   procedure Foreach_Dynamic_New_Instance
+     (This : access Sub_Pool_T;
+      F    : not null access procedure (I : Annotation)) is abstract;
+   function First_Dynamic_New_Instance
+     (This : access Pool_T) return Annotation is abstract;
+   function First_Dynamic_New_Instance
+     (This : access Base_Pool_T) return Annotation is abstract;
+   function First_Dynamic_New_Instance
+     (This : access Sub_Pool_T) return Annotation is abstract;
 
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes
    function Static_Size (This : access Pool_T) return Natural is abstract;
    function Static_Size (This : access Base_Pool_T) return Natural is abstract;
    function Static_Size (This : access Sub_Pool_T) return Natural is abstract;
+
+   -- the number of new instances of exactly this type, excluding sub-types
+   -- @return new_objects.size
+   function New_Objects_Size (This : access Pool_T) return Natural is abstract;
+   function New_Objects_Size (This : access Base_Pool_T) return Natural is abstract;
+   function New_Objects_Size (This : access Sub_Pool_T) return Natural is abstract;
 
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
@@ -205,6 +226,10 @@ package Skill.Types.Pools is
    procedure Update_After_Compress
      (This     : access Sub_Pool_T;
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
+
+   procedure Prepare_Append
+     (This     : access Base_Pool_T'Class;
+      Chunk_Map : Skill.Field_Declarations.Chunk_Map);
 
    -- internal use only
    procedure Resize_Data (This : access Base_Pool_T'Class);

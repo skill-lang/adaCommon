@@ -107,6 +107,10 @@ package body Skill.Containers.Vectors is
       end if;
    end Last_Element;
 
+   -- returns the first element in the vector or raises constraint error if empty
+   function First_Element (This : access Vector_T'Class) return Element_Type is
+     (This.Data(Index_Type'First));
+
    procedure Ensure_Index
      (This      : access Vector_T'Class;
       New_Index : Index_Type)

@@ -57,6 +57,8 @@ package Skill.Types.Pools.Sub is
 
    overriding function Static_Size (This : access Pool_T) return Natural;
 
+   overriding function New_Objects_Size (This : access Pool_T) return Natural;
+
    -- applies F for each element in this
    --        procedure Foreach
    --          (This : access Pool_T;
@@ -71,6 +73,13 @@ package Skill.Types.Pools.Sub is
    procedure Do_For_Static_Instances
      (This : access Pool_T;
       F    : access procedure (I : Annotation)) is null;
+
+   overriding procedure Foreach_Dynamic_New_Instance
+     (This : access Pool_T;
+      F    : not null access procedure (I : Annotation)) is null;
+
+   function First_Dynamic_New_Instance
+     (This : access Pool_T) return Annotation is (null);
 
    procedure Update_After_Compress
      (This     : access Pool_T;
