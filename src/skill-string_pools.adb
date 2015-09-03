@@ -297,28 +297,30 @@ package body Skill.String_Pools is
       Count := Types.v64 (Todo.Length);
       Output.V64 (Count);
 
-      Output.Begin_Block_Map (4 * Count);
-      declare
-         Off : Types.i32 := 0;
+      if 0 /= Count then
+         Output.Begin_Block_Map (4 * Count);
+         declare
+            Off : Types.i32 := 0;
 
-         -- map offsets
-         Offsets : Streams.Writer.Sub_Stream := Output.Map (4 * Count);
+            -- map offsets
+            Offsets : Streams.Writer.Sub_Stream := Output.Map (4 * Count);
 
-         procedure Put (S : Types.String_Access) is
+            procedure Put (S : Types.String_Access) is
+            begin
+               -- first ID is mapped to null
+               if null = S then
+                  return;
+               end if;
+
+               Off := Off + S.all'Size / 8;
+               Output.Put_Plain_String (S);
+               Offsets.I32 (Off);
+            end Put;
          begin
-            -- first ID is mapped to null
-            if null = S then
-               return;
-            end if;
-
-            Off := Off + S.all'Size / 8;
-            Output.Put_Plain_String (S);
-            Offsets.I32 (Off);
-         end Put;
-      begin
-         This.Id_Map.Foreach (Put'Access);
-         Output.End_Block_Map;
-      end;
+            This.Id_Map.Foreach (Put'Access);
+            Output.End_Block_Map;
+         end;
+      end if;
 
       Todo.Free;
    end Prepare_And_Append;
