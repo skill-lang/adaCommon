@@ -863,15 +863,6 @@ package body Skill.Internal.File_Writers is
                End_Offset := Offset + F.Future_Offset;
                Output.V64 (End_Offset);
 
-               -- update chunks and prepare write data
-               F.Data_Chunks.Clear;
-               F.Data_Chunks.Append
-               (new Chunk_Entry_T'
-                  (C =>
-                     new Skill.Internal.Parts.Bulk_Chunk'
-                       (Offset, 0, Types.v64 (P.Size), 1),
-                   Input => Skill.Streams.Reader.Empty_Sub_Stream));
-
                Offset := End_Offset;
             end Write_Field;
          begin

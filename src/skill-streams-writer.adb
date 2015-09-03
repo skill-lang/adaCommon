@@ -50,12 +50,17 @@ package body Skill.Streams.Writer is
 
       R : Output_Stream;
 
+      -- throwaway value required by ada ...
+      U : Integer;
+
       use System.Storage_Elements;
    begin
       if C_Streams.NULL_Stream = F then
          raise Skill.Errors.Skill_Error
            with "failed to write file: " & Path.all;
       end if;
+
+      U := C_Streams.Fseek(F, 0, C_Streams.SEEK_END);
 
       R :=
         new Output_Stream_T'
@@ -64,7 +69,7 @@ package body Skill.Streams.Writer is
            Map            => Invalid_Pointer,
            Base           => Invalid_Pointer,
            EOF            => Invalid_Pointer,
-           Bytes_Written  => 0,
+           Bytes_Written  => Types.V64(C_Streams.Ftell(F)),
            Buffer         => <>,
            Block_Map_Mode => False,
            Client_Map     => Invalid_Pointer,

@@ -282,7 +282,7 @@ package body Skill.Types.Pools is
                                  (First       => Types.v64 (-1),
                                   Last        => Types.v64 (-1),
                                   Count       => Types.v64 (This.Size),
-                                  Block_Count => 0),
+                                  Block_Count => This.Blocks.Length),
                              Input => Skill.Streams.Reader.Empty_Sub_Stream);
                         F.Data_Chunks.Append (CE);
                         Chunk_Map.Include (F, CE.C);
@@ -293,8 +293,8 @@ package body Skill.Types.Pools is
                                new Skill.Internal.Parts.Simple_Chunk'
                                  (First => Types.v64 (-1),
                                   Last  => Types.v64 (-1),
-                                  Count => Types.v64 (This.Size),
-                                  BPO   => Types.v64 (Lcount)),
+                                  Count => Types.v64 (Lcount),
+                                  BPO   => Types.V64 (Lbpo)),
                              Input => Skill.Streams.Reader.Empty_Sub_Stream);
                         F.Data_Chunks.Append (CE);
                         Chunk_Map.Include (F, CE.C);
@@ -361,8 +361,7 @@ package body Skill.Types.Pools is
 
             Count : Natural          := This.Size;
             D     : Annotation_Array :=
-              new Annotation_Array_T
-              (This.Data'First .. (This.Data'Last + Count));
+              new Annotation_Array_T (This.Data'First .. Count);
 
             procedure Free is new Ada.Unchecked_Deallocation
               (Object => Annotation_Array_T,
