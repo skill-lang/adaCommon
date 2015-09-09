@@ -28,6 +28,10 @@ package Skill.Types.Pools.Sub is
    -- API methods
    function Get (This : access Pool_T; ID : Skill_ID_T) return P;
 
+   overriding
+   function Make_Boxed_Instance (This : access Pool_T) return Box;
+
+
    ----------------------
    -- internal methods --
    ----------------------

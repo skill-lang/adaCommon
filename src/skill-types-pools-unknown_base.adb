@@ -34,6 +34,15 @@ package body Skill.Types.Pools.Unknown_Base is
       end if;
    end Get;
 
+
+   overriding
+   function Make_Boxed_Instance (This : access Pool_T) return Box is
+   begin
+      raise Constraint_Error
+        with "one must not reflectively allocate an instance of an unknown type!";
+      return null;
+   end Make_Boxed_Instance;
+
    ----------------------
    -- internal methods --
    ----------------------

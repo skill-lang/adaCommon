@@ -80,6 +80,10 @@ package Skill.Types.Pools is
 
    function Size (This : access Pool_T'Class) return Natural;
 
+   function Make_Boxed_Instance (This : access Pool_T) return Box is abstract;
+   function Make_Boxed_Instance (This : access Sub_Pool_T) return Box is abstract;
+   function Make_Boxed_Instance (This : access Base_Pool_T) return Box is abstract;
+
    procedure Do_In_Type_Order
      (This : access Pool_T'Class;
       F    : not null access procedure (I : Annotation));
