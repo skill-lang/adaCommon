@@ -15,7 +15,6 @@ with Skill.Containers.Vectors;
 limited with Skill.Field_Declarations;
 
 package Skill.Types is
-   pragma Preelaborate;
 
    -- this is a boxed object; it is required, because one can not mix generic
    -- and object oriented polymorphism in ada.

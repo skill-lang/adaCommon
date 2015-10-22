@@ -5,6 +5,7 @@
 --                                                                            --
 
 with Ada.Unchecked_Conversion;
+with Skill.Field_Declarations;
 
 package body Skill.Types is
 

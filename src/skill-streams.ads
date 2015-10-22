@@ -45,7 +45,7 @@ private
 
    -- returns an invalid map pointer, that can be used in empty maps
    function Invalid_Pointer return Map_Pointer;
-   pragma Inline_Always (Invalid_Pointer);
+   pragma Inline (Invalid_Pointer);
    pragma Pure_Function (Invalid_Pointer);
 
    type Mmap is record

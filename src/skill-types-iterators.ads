@@ -8,7 +8,6 @@ generic
    type T is private;
    type Index_Type is range <>;
 package Skill.Types.Iterators is
-   pragma Preelaborate;
    subtype Index_Base is Index_Type'Base;
 
    type Abstract_Iterator is abstract tagged private;

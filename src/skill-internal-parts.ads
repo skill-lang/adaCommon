@@ -11,7 +11,6 @@ with Skill.Containers.Vectors;
 
 -- documentation can be found in java common
 package Skill.Internal.Parts is
-   pragma Preelaborate;
 
    type Block is record
       BPO   : Skill.Types.v64;

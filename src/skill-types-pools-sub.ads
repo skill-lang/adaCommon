@@ -4,15 +4,19 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
+with Ada.Containers.Vectors;
+with Ada.Unchecked_Conversion;
+
+with Skill.Containers.Vectors;
+with Skill.Field_Types;
+with Skill.Field_Types.Builtin;
+with Skill.Field_Types.Builtin.String_Type_P;
 with Skill.Files;
 with Skill.Internal.File_Parsers;
 with Skill.Streams.Reader;
 with Skill.Streams.Writer;
 with Skill.Types.Pools;
 with Skill.Types;
-with Skill.Containers.Vectors;
-with Ada.Containers.Vectors;
-with Ada.Unchecked_Conversion;
 
 -- generic sub pool packages
 generic
