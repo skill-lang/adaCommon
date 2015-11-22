@@ -1,4 +1,4 @@
-.PHONY:clean debug release main valgrind leakcheck callgrind
+.PHONY:clean debug release skill_common main valgrind leakcheck callgrind
 
 main: debug
 
@@ -15,6 +15,9 @@ debug:
 
 release:
 	gprbuild gnat/tester.gpr -Xmode=release
+
+skill_common:
+	gprbuild gnat/skill_common.gpr -Xmode=release
 
 valgrind: debug
 	valgrind --dsymutil=yes --leak-check=full --show-leak-kinds=all ./debug

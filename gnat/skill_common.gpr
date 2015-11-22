@@ -1,4 +1,4 @@
-Project Skill_Common is
+library Project Skill_Common is
 
    type Mode_Type is ("clean", "debug", "release");
    Mode : Mode_Type := external ("mode", "clean");
