@@ -1,4 +1,4 @@
-.PHONY:clean debug release skill_common main valgrind leakcheck callgrind
+.PHONY:main clean debug release skill_common valgrind leakcheck callgrind
 
 main: debug
 
