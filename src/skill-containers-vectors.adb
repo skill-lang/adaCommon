@@ -5,7 +5,6 @@
 --                                                                            --
 
 with Ada.Unchecked_Deallocation;
-with Ada.Containers;
 
 package body Skill.Containers.Vectors is
 
