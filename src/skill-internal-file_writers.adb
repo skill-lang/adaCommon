@@ -606,7 +606,7 @@ package body Skill.Internal.File_Writers is
       end Restrictions;
 
       -- index of the first new pool
-      New_Pool_Index : Integer := 0;
+      New_Pool_Index : Natural := 0;
 
       -- index → bpo
       --  @note pools.par would not be possible if it were an actual
@@ -673,6 +673,9 @@ package body Skill.Internal.File_Writers is
             exit when T.Element (I - 1).Blocks.Is_Empty;
             New_Pool_Index := New_Pool_Index + 1;
          end loop;
+         if not T.Last_Element.Blocks.Is_Empty then
+            New_Pool_Index := Natural'Last;
+         end if;
       end;
 
       -- make lbpo map, update data map to contain dynamic instances and create
