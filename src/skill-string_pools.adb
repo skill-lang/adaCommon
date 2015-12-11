@@ -277,7 +277,7 @@ package body Skill.String_Pools is
 
       -- create inverse map
       for I in 1 .. Types.Skill_ID_T (This.Id_Map.Length - 1) loop
-         Serialization_IDs.Insert
+         Serialization_IDs.Include
          (Key => This.Id_Map.Element (I), New_Item => I);
       end loop;
 
@@ -288,7 +288,7 @@ package body Skill.String_Pools is
    -- file
       for S of This.New_Strings loop
          if not Serialization_IDs.Contains (S) then
-            Serialization_IDs.Insert (S, This.Id_Map.Length);
+            Serialization_IDs.Include (S, This.Id_Map.Length);
             This.Id_Map.Append (S);
             Todo.Append (S);
          end if;
