@@ -17,6 +17,10 @@ package body Skill.Field_Types.Builtin is
 
    use type Skill.Types.v64;
    use type Skill.Types.Uv64;
+   use type Skill.Types.Boxed_Array;
+   use type Skill.Types.Boxed_List;
+   use type Skill.Types.Boxed_Set;
+   use type Skill.Types.Boxed_Map;
 
    function Offset_Single_V64 (Input : Types.v64) return Types.v64 is
       function Cast is new Ada.Unchecked_Conversion
@@ -212,12 +216,16 @@ package body Skill.Field_Types.Builtin is
       is
 
          Result : Types.v64;
-         Count  : Natural := Natural (Unboxed (Target).Length);
+         Arr    : Skill.Types.Boxed_Array := Unboxed (Target);
+         Count  : Natural                 := Natural (Arr.Length);
       begin
+         if null = Arr then
+            return 1;
+         end if;
+
          Result := Offset_Single_V64 (Types.v64 (Count));
          for I in 1 .. Count loop
-            Result :=
-              Result + This.Base.Offset_Box (Unboxed (Target).Element (I - 1));
+            Result := Result + This.Base.Offset_Box (Arr.Element (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -228,11 +236,17 @@ package body Skill.Field_Types.Builtin is
          Target : Types.Box)
       is
 
-         Length : Natural := Natural (Unboxed (Target).Length);
+         Arr    : Skill.Types.Boxed_Array := Unboxed (Target);
+         Length : Natural                 := Natural (Arr.Length);
       begin
+         if null = Arr then
+            Output.I8 (0);
+            return;
+         end if;
+
          Output.V64 (Types.v64 (Length));
          for I in 1 .. Length loop
-            This.Base.Write_Box (Output, Unboxed (Target).Element (I - 1));
+            This.Base.Write_Box (Output, Arr.Element (I - 1));
          end loop;
       end Write_Box;
 
@@ -264,6 +278,10 @@ package body Skill.Field_Types.Builtin is
          List   : Types.Boxed_List := Unboxed (Target);
          Count  : Natural          := Natural (List.Length);
       begin
+         if null = List then
+            return 1;
+         end if;
+
          Result := Offset_Single_V64 (Types.v64 (Count));
          for I of List.all loop
             Result := Result + This.Base.Offset_Box (I);
@@ -280,6 +298,11 @@ package body Skill.Field_Types.Builtin is
          List   : Types.Boxed_List := Unboxed (Target);
          Length : Natural          := Natural (List.Length);
       begin
+         if null = List then
+            Output.I8 (0);
+            return;
+         end if;
+
          Output.V64 (Types.v64 (Length));
          for I of List.all loop
             This.Base.Write_Box (Output, I);
@@ -314,6 +337,10 @@ package body Skill.Field_Types.Builtin is
          Set    : Types.Boxed_Set := Unboxed (Target);
          Count  : Natural         := Natural (Set.Length);
       begin
+         if null = Set then
+            return 1;
+         end if;
+
          Result := Offset_Single_V64 (Types.v64 (Count));
          for I of Set.all loop
             Result := Result + This.Base.Offset_Box (I);
@@ -330,6 +357,11 @@ package body Skill.Field_Types.Builtin is
          Set    : Types.Boxed_Set := Unboxed (Target);
          Length : Natural         := Natural (Set.Length);
       begin
+         if null = Set then
+            Output.I8 (0);
+            return;
+         end if;
+
          Output.V64 (Types.v64 (Length));
          for I of Set.all loop
             This.Base.Write_Box (Output, I);
@@ -376,6 +408,10 @@ package body Skill.Field_Types.Builtin is
          end Offset;
 
       begin
+         if null = Map then
+            return 1;
+         end if;
+
          Result := Offset_Single_V64 (Types.v64 (Count));
          Map.Iterate (Offset'Access);
          return Result;
@@ -396,6 +432,11 @@ package body Skill.Field_Types.Builtin is
             This.Value.Write_Box (Output, Types.Maps_P.Element (I));
          end Offset;
       begin
+         if null = Map then
+            Output.I8 (0);
+            return;
+         end if;
+
          Output.V64 (Types.v64 (Length));
          Map.Iterate (Offset'Access);
       end Write_Box;
