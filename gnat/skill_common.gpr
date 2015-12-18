@@ -12,7 +12,8 @@ library Project Skill_Common is
 
    case Mode is
       when "clean" =>
-         null;
+         for Library_Dir use "../lib/Debug";
+         for Object_Dir use "../obj/Debug";
       when "debug" =>
          for Library_Dir use "../lib/Debug";
          for Object_Dir use "../obj/Debug";
