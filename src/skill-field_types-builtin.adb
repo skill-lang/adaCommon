@@ -12,12 +12,13 @@ with Ada.Containers.Vectors;
 with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
+with Skill.Containers.Arrays;
 
 package body Skill.Field_Types.Builtin is
 
    use type Skill.Types.v64;
    use type Skill.Types.Uv64;
-   use type Skill.Types.Boxed_Array;
+   use type Skill.Containers.Boxed_Array;
    use type Skill.Types.Boxed_List;
    use type Skill.Types.Boxed_Set;
    use type Skill.Types.Boxed_Map;
@@ -51,11 +52,10 @@ package body Skill.Field_Types.Builtin is
       end if;
    end Offset_Single_V64;
 
-   procedure Insert (This : in out Types.Boxed_Array; E : in Types.Box) is
-   begin
-      This.Append (E);
-   end Insert;
-   procedure Insert (This : in out Types.Boxed_List; E : in Types.Box) is
+   procedure Insert
+     (This : in out Skill.Containers.Boxed_Array;
+      E    : in     Types.Box)
+   is
    begin
       This.Append (E);
    end Insert;
@@ -146,7 +146,19 @@ package body Skill.Field_Types.Builtin is
 
    end Annotation_Type_P;
 
+   package Arrays_P is new Skill.Containers.Arrays (Types.Box);
+
    package body Const_Arrays_P is
+      pragma Warnings(Off);
+
+      function Boxed
+        (This : access Containers.Boxed_Array_T'Class) return Types.Box
+      is
+         type X is access all Containers.Boxed_Array_T'Class;
+         function Cast is new Ada.Unchecked_Conversion (X, Types.Box);
+      begin
+         return Cast (X (This));
+      end Boxed;
 
       function Read_Box
         (This  : access Field_Type_T;
@@ -155,7 +167,8 @@ package body Skill.Field_Types.Builtin is
 
          Count : Types.v64 := This.Length;
 
-         Result : Types.Boxed_Array := Types.Arrays_P.Empty_Vector;
+         Result : Containers.Boxed_Array :=
+           Containers.Boxed_Array (Arrays_P.Make);
       begin
          for I in 1 .. Count loop
             Insert (Result, This.Base.Read_Box (Input));
@@ -173,7 +186,7 @@ package body Skill.Field_Types.Builtin is
       begin
          for I in 1 .. Count loop
             Result :=
-              Result + This.Base.Offset_Box (Unboxed (Target).Element (I - 1));
+              Result + This.Base.Offset_Box (Unboxed (Target).Get (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -187,7 +200,7 @@ package body Skill.Field_Types.Builtin is
          Length : Natural := Natural (This.Length);
       begin
          for I in 1 .. Length loop
-            This.Base.Write_Box (Output, Unboxed (Target).Element (I - 1));
+            This.Base.Write_Box (Output, Unboxed (Target).Get (I - 1));
          end loop;
       end Write_Box;
 
@@ -199,10 +212,10 @@ package body Skill.Field_Types.Builtin is
         (This  : access Field_Type_T;
          Input : Streams.Reader.Sub_Stream) return Types.Box
       is
-
          Count : Types.v64 := Input.V64;
 
-         Result : Types.Boxed_Array := Types.Arrays_P.Empty_Vector;
+         Result : Containers.Boxed_Array :=
+           Containers.Boxed_Array (Arrays_P.Make);
       begin
          for I in 1 .. Count loop
             Insert (Result, This.Base.Read_Box (Input));
@@ -214,10 +227,9 @@ package body Skill.Field_Types.Builtin is
         (This   : access Field_Type_T;
          Target : Types.Box) return Types.v64
       is
-
          Result : Types.v64;
-         Arr    : Skill.Types.Boxed_Array := Unboxed (Target);
-         Count  : Natural                 := Natural (Arr.Length);
+         Arr    : Containers.Boxed_Array := Unboxed (Target);
+         Count  : Natural                := Natural (Arr.Length);
       begin
          if null = Arr then
             return 1;
@@ -225,7 +237,7 @@ package body Skill.Field_Types.Builtin is
 
          Result := Offset_Single_V64 (Types.v64 (Count));
          for I in 1 .. Count loop
-            Result := Result + This.Base.Offset_Box (Arr.Element (I - 1));
+            Result := Result + This.Base.Offset_Box (Arr.Get (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -235,9 +247,8 @@ package body Skill.Field_Types.Builtin is
          Output : Streams.Writer.Sub_Stream;
          Target : Types.Box)
       is
-
-         Arr    : Skill.Types.Boxed_Array := Unboxed (Target);
-         Length : Natural                 := Natural (Arr.Length);
+         Arr    : Containers.Boxed_Array := Unboxed (Target);
+         Length : Natural                := Natural (Arr.Length);
       begin
          if null = Arr then
             Output.I8 (0);
@@ -246,7 +257,7 @@ package body Skill.Field_Types.Builtin is
 
          Output.V64 (Types.v64 (Length));
          for I in 1 .. Length loop
-            This.Base.Write_Box (Output, Arr.Element (I - 1));
+            This.Base.Write_Box (Output, Arr.Get (I - 1));
          end loop;
       end Write_Box;
 
@@ -258,10 +269,10 @@ package body Skill.Field_Types.Builtin is
         (This  : access Field_Type_T;
          Input : Streams.Reader.Sub_Stream) return Types.Box
       is
-
          Count : Types.v64 := Input.V64;
 
-         Result : Types.Boxed_List := new Types.Lists_P.List;
+         Result : Containers.Boxed_Array :=
+           Containers.Boxed_Array (Arrays_P.Make);
       begin
          for I in 1 .. Count loop
             Insert (Result, This.Base.Read_Box (Input));
@@ -273,18 +284,17 @@ package body Skill.Field_Types.Builtin is
         (This   : access Field_Type_T;
          Target : Types.Box) return Types.v64
       is
-
          Result : Types.v64;
-         List   : Types.Boxed_List := Unboxed (Target);
-         Count  : Natural          := Natural (List.Length);
+         Arr    : Containers.Boxed_Array := Unboxed (Target);
+         Count  : Natural                := Natural (Arr.Length);
       begin
-         if null = List then
+         if null = Arr then
             return 1;
          end if;
 
          Result := Offset_Single_V64 (Types.v64 (Count));
-         for I of List.all loop
-            Result := Result + This.Base.Offset_Box (I);
+         for I in 1 .. Count loop
+            Result := Result + This.Base.Offset_Box (Arr.Get (I - 1));
          end loop;
          return Result;
       end Offset_Box;
@@ -294,18 +304,17 @@ package body Skill.Field_Types.Builtin is
          Output : Streams.Writer.Sub_Stream;
          Target : Types.Box)
       is
-
-         List   : Types.Boxed_List := Unboxed (Target);
-         Length : Natural          := Natural (List.Length);
+         Arr    : Containers.Boxed_Array := Unboxed (Target);
+         Length : Natural                := Natural (Arr.Length);
       begin
-         if null = List then
+         if null = Arr then
             Output.I8 (0);
             return;
          end if;
 
          Output.V64 (Types.v64 (Length));
-         for I of List.all loop
-            This.Base.Write_Box (Output, I);
+         for I in 1 .. Length loop
+            This.Base.Write_Box (Output, Arr.Get (I - 1));
          end loop;
       end Write_Box;
 

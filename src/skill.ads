@@ -7,6 +7,4 @@
 package Skill is
    pragma Pure;
 
-   procedure My_Lib_Dummy;
-
 end Skill;

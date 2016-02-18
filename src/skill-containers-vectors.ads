@@ -14,7 +14,6 @@ generic
    type Element_Type is private;
 --     Err_Val : Element_Type;
 package Skill.Containers.Vectors is
-   pragma Pure;
 
    type Vector_T is tagged limited private;
    type Vector is access Vector_T;

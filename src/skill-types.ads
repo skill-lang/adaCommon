@@ -11,8 +11,8 @@ with Ada.Tags;
 
 with Interfaces;
 with System;
-with Skill.Containers.Vectors;
 limited with Skill.Field_Declarations;
+with Skill.Containers;
 
 package Skill.Types is
 
@@ -41,14 +41,8 @@ package Skill.Types is
      array (Integer range <>) of not null String_Access;
    type String_Access_Array_Access is access all String_Access_Array;
 
-   -- containers exist only in boxed form in ada
-   -- TF: I dont see how to do this in a different way, because there is no
-   -- OO-polymorphism between generic containers, right?
-   package Arrays_P is new Containers.Vectors (Natural, Box);
-   subtype Boxed_Array is Arrays_P.Vector;
-
-   package Lists_P is new Ada.Containers.Doubly_Linked_Lists (Box);
-   type Boxed_List is access Lists_P.List;
+   subtype Boxed_Array is Skill.Containers.Boxed_Array;
+   subtype Boxed_List is Skill.Containers.Boxed_Array;
 
    package Sets_P is new Ada.Containers.Hashed_Sets (Box, Hash, "=");
    type Boxed_Set is access Sets_P.Set;
