@@ -13,6 +13,8 @@ with Skill.Types;
 with Skill.Hashes; use Skill.Hashes;
 with Skill.Types.Pools;
 with Skill.Containers.Arrays;
+with Skill.Containers.Sets;
+with Skill.Containers.Maps;
 
 package body Skill.Field_Types.Builtin is
 
@@ -20,7 +22,7 @@ package body Skill.Field_Types.Builtin is
    use type Skill.Types.Uv64;
    use type Skill.Containers.Boxed_Array;
    use type Skill.Types.Boxed_List;
-   use type Skill.Types.Boxed_Set;
+   use type Skill.Containers.Boxed_Set;
    use type Skill.Types.Boxed_Map;
 
    function Offset_Single_V64 (Input : Types.v64) return Types.v64 is
@@ -149,7 +151,7 @@ package body Skill.Field_Types.Builtin is
    package Arrays_P is new Skill.Containers.Arrays (Types.Box);
 
    package body Const_Arrays_P is
-      pragma Warnings(Off);
+      pragma Warnings (Off);
 
       function Boxed
         (This : access Containers.Boxed_Array_T'Class) return Types.Box
@@ -320,6 +322,8 @@ package body Skill.Field_Types.Builtin is
 
    end List_Type_P;
 
+   package Sets_P is new Skill.Containers.Sets (Types.Box, Types.Hash, "=");
+
    package body Set_Type_P is
 
       function Read_Box
@@ -329,10 +333,10 @@ package body Skill.Field_Types.Builtin is
 
          Count : Types.v64 := Input.V64;
 
-         Result : Types.Boxed_Set := new Types.Sets_P.Set;
+         Result : Containers.Boxed_Set := Containers.Boxed_Set (Sets_P.Make);
       begin
          for I in 1 .. Count loop
-            Result.Include (This.Base.Read_Box (Input));
+            Result.Add (This.Base.Read_Box (Input));
          end loop;
          return Boxed (Result);
       end Read_Box;
@@ -343,17 +347,20 @@ package body Skill.Field_Types.Builtin is
       is
 
          Result : Types.v64;
-         Set    : Types.Boxed_Set := Unboxed (Target);
-         Count  : Natural         := Natural (Set.Length);
+         Set    : Containers.Boxed_Set := Unboxed (Target);
+         Count  : Natural              := Natural (Set.Length);
+         Iter   : Containers.Set_Iterator;
       begin
          if null = Set then
             return 1;
          end if;
 
          Result := Offset_Single_V64 (Types.v64 (Count));
-         for I of Set.all loop
-            Result := Result + This.Base.Offset_Box (I);
+         Iter   := Set.Iterator;
+         while Iter.Has_Next loop
+            Result := Result + This.Base.Offset_Box (Iter.Next);
          end loop;
+         Iter.Free;
          return Result;
       end Offset_Box;
 
@@ -363,8 +370,9 @@ package body Skill.Field_Types.Builtin is
          Target : Types.Box)
       is
 
-         Set    : Types.Boxed_Set := Unboxed (Target);
-         Length : Natural         := Natural (Set.Length);
+         Set    : Containers.Boxed_Set := Unboxed (Target);
+         Length : Natural              := Natural (Set.Length);
+         Iter   : Containers.Set_Iterator;
       begin
          if null = Set then
             Output.I8 (0);
@@ -372,12 +380,16 @@ package body Skill.Field_Types.Builtin is
          end if;
 
          Output.V64 (Types.v64 (Length));
-         for I of Set.all loop
-            This.Base.Write_Box (Output, I);
+         Iter := Set.Iterator;
+         while Iter.Has_Next loop
+            This.Base.Write_Box (Output, Iter.Next);
          end loop;
+         Iter.Free;
       end Write_Box;
 
    end Set_Type_P;
+
+   package Maps_P is new Skill.Containers.Maps(Types.Box, Types.Box, Types.Hash, "=", "=");
 
    package body Map_Type_P is
 
@@ -388,13 +400,13 @@ package body Skill.Field_Types.Builtin is
 
          Count : Types.v64 := Input.V64;
 
-         Result : Types.Boxed_Map := new Types.Maps_P.Map;
+         Result : Types.Boxed_Map := Types.Boxed_Map (Maps_P.Make);
          K, V   : Types.Box;
       begin
          for I in 1 .. Count loop
             K := This.Key.Read_Box (Input);
             V := This.Value.Read_Box (Input);
-            Result.Include (K, V);
+            Result.Update (K, V);
          end loop;
          return Boxed (Result);
       end Read_Box;
@@ -404,25 +416,26 @@ package body Skill.Field_Types.Builtin is
          Target : Types.Box) return Types.v64
       is
 
-         Map : Types.Boxed_Map := Unboxed (Target);
+         Map : Containers.Boxed_Map := Unboxed (Target);
+         Iter : Containers.Map_Iterator;
 
          Result : Types.v64;
          Count  : Natural := Natural (Map.Length);
 
-         procedure Offset (I : Types.Maps_P.Cursor) is
-         begin
-            Result := Result + This.Key.Offset_Box (Types.Maps_P.Key (I));
-            Result :=
-              Result + This.Value.Offset_Box (Types.Maps_P.Element (I));
-         end Offset;
-
       begin
-         if null = Map then
+         if null = Map or 0 = Count then
             return 1;
          end if;
 
          Result := Offset_Single_V64 (Types.v64 (Count));
-         Map.Iterate (Offset'Access);
+         Iter := Map.Iterator;
+         while Iter.Has_Next loop
+            Result := Result
+              + This.Key.Offset_Box (Iter.Key)
+              + This.Value.Offset_Box (Iter.Value);
+            Iter.Advance;
+         end loop;
+         Iter.Free;
          return Result;
       end Offset_Box;
 
@@ -433,21 +446,22 @@ package body Skill.Field_Types.Builtin is
       is
 
          Map    : Types.Boxed_Map := Unboxed (Target);
+         Iter : Containers.Map_Iterator;
          Length : Natural         := Natural (Map.Length);
-
-         procedure Offset (I : Types.Maps_P.Cursor) is
-         begin
-            This.Key.Write_Box (Output, Types.Maps_P.Key (I));
-            This.Value.Write_Box (Output, Types.Maps_P.Element (I));
-         end Offset;
       begin
-         if null = Map then
+         if null = Map or 0 = Length then
             Output.I8 (0);
             return;
          end if;
 
          Output.V64 (Types.v64 (Length));
-         Map.Iterate (Offset'Access);
+         Iter := Map.Iterator;
+         while Iter.Has_Next loop
+            This.Key.Write_Box (Output, Iter.Key);
+            This.Value.Write_Box (Output, Iter.Value);
+            Iter.Advance;
+         end loop;
+         Iter.Free;
       end Write_Box;
 
    end Map_Type_P;

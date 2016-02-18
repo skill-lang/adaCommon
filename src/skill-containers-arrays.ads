@@ -30,6 +30,7 @@ package Skill.Containers.Arrays is
    type Ref is access Array_T;
 
    procedure Append (This : access Array_T; V : Box);
+   procedure Add (This : access Array_T; V : Box);
    function Get
      (This : access Array_T;
       I    : Natural) return Box is

@@ -43,12 +43,7 @@ package Skill.Types is
 
    subtype Boxed_Array is Skill.Containers.Boxed_Array;
    subtype Boxed_List is Skill.Containers.Boxed_Array;
-
-   package Sets_P is new Ada.Containers.Hashed_Sets (Box, Hash, "=");
-   type Boxed_Set is access Sets_P.Set;
-
-   package Maps_P is new Ada.Containers.Hashed_Maps (Box, Box, Hash, "=");
-   type Boxed_Map is access Maps_P.Map;
+   subtype Boxed_Map is Skill.Containers.Boxed_Map;
 
    -- declare skill ids type for later configuration
    subtype Skill_ID_T is Integer;

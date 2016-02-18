@@ -8,6 +8,7 @@ with Ada.Containers;
 with Ada.Strings.Hash;
 with Skill.Types;
 with Skill.Types.Pools;
+with Interfaces;
 
 -- the trick of this package is to instantiate equals codes as Skill.Equals.equals
 -- independent of the type! :)
@@ -15,6 +16,7 @@ package Skill.Equals is
 --     pragma Preelaborate;
 
    use type Skill.Types.String_Access;
+   use Interfaces;
 
    function Equals
      (A, B : Skill.Types.String_Access) return Boolean is
@@ -26,5 +28,10 @@ package Skill.Equals is
    function Equals
      (A, B : Skill.Types.Pools.Pool) return Boolean is
      (A = B);
+
+   function Equals
+     (A, B : Interfaces.Integer_64) return Boolean is
+     (A = B);
+
 
 end Skill.Equals;

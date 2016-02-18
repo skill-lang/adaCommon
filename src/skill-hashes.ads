@@ -8,11 +8,14 @@ with Ada.Containers;
 with Ada.Strings.Hash;
 with Skill.Types;
 with Skill.Types.Pools;
+with Ada.Unchecked_Conversion;
+with Interfaces;
 
 -- the trick of this package is to instantiate hash codes as Skill.hashes.hash
 -- independent of the type! :)
 package Skill.Hashes is
---     pragma Preelaborate;
+   --     pragma Preelaborate;
+   pragma Warnings(Off);
 
    function Hash
      (Element : Skill.Types.String_Access) return Ada.Containers.Hash_Type is
@@ -21,5 +24,7 @@ package Skill.Hashes is
    function Hash
      (Element : Skill.Types.Pools.Pool) return Ada.Containers.Hash_Type is
      (Ada.Containers.Hash_Type(Element.Id));
+
+   function Hash is new Ada.Unchecked_Conversion(Interfaces.Integer_64, Ada.Containers.Hash_Type);
 
 end Skill.Hashes;

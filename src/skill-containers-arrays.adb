@@ -11,6 +11,11 @@ package body Skill.Containers.Arrays is
       This.This.Append (Cast (V));
    end Append;
 
+   procedure Add (This : access Array_T; V : Box) is
+   begin
+      This.This.Append (Cast (V));
+   end Add;
+
    procedure Update (This : access Array_T; I : Natural; V : Box) is
    begin
       This.This.Replace_Element (I, Cast (V));

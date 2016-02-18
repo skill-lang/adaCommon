@@ -85,7 +85,9 @@ package body Skill.Files is
 
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error,
-                  "A task crashed during read data: " & F.Name.all);
+                  "A task crashed during read data: " &
+                    F.Owner.To_String & "."
+                  & F.Name.all);
 
 --                 Skill.Errors.Print_Stacktrace (E);
 

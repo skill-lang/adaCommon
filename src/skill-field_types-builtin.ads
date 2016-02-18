@@ -280,8 +280,8 @@ package Skill.Field_Types.Builtin is
 
 
    package Set_Type_P is
-      use type Types.Boxed_Set;
-      package A1 is new Skill.Field_Types.Field_Types (Types.Boxed_Set, 19);
+      use type Containers.Boxed_Set;
+      package A1 is new Skill.Field_Types.Field_Types (Containers.Boxed_Set, 19);
 
 
       type Field_Type_T is new A1.Field_Type with record
@@ -293,8 +293,11 @@ package Skill.Field_Types.Builtin is
         (new Field_Type_T'(Base => Base));
 
 
-      function Boxed is new Ada.Unchecked_Conversion(Types.Boxed_Set, Types.Box);
-      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.Boxed_Set);
+      type X is access all Containers.Boxed_Set_T'Class;
+      function Cast is new Ada.Unchecked_Conversion (X, Types.Box);
+      function Boxed (This : access Containers.Boxed_Set_T'Class) return Types.Box is
+         (Cast (X (This)));
+      function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Containers.Boxed_Set);
 
 
       function Read_Box
@@ -335,7 +338,11 @@ package Skill.Field_Types.Builtin is
         (new Field_Type_T'(Key => K, Value => V));
 
 
-      function Boxed is new Ada.Unchecked_Conversion(Types.Boxed_Map, Types.Box);
+
+      type X is access all Containers.Boxed_Map_T'Class;
+      function Cast is new Ada.Unchecked_Conversion (X, Types.Box);
+      function Boxed (This : access Containers.Boxed_Map_T'Class) return Types.Box is
+        (Cast (X (This)));
       function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.Boxed_Map);
 
 
