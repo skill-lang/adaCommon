@@ -45,6 +45,11 @@ package body Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool is (This.Super);
 
+   function Next (This : access Pool_T'Class) return Pool is (This.Next);
+
+   function Type_Hierarchy_Height (This : access Pool_T'Class) return Natural is
+     (This.Super_Type_Count);
+
    function Size (This : access Pool_T'Class) return Natural is
       Size : Natural;
 

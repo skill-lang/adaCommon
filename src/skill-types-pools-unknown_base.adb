@@ -68,6 +68,8 @@ package body Skill.Types.Pools.Unknown_Base is
            Super         => null,
            Base          => null,
            Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
+           Next     => null, -- can only be calculated after all types are known
+           Super_Type_Count => 0,
            Data_Fields_F =>
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
            Known_Fields => No_Known_Fields,

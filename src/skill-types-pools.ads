@@ -78,6 +78,10 @@ package Skill.Types.Pools is
 
    function Super (This : access Pool_T) return Pool;
 
+   function Next (This : access Pool_T'Class) return Pool;
+
+   function Type_Hierarchy_Height (This : access Pool_T'Class) return Natural;
+
    function Size (This : access Pool_T'Class) return Natural;
 
    function Make_Boxed_Instance (This : access Pool_T) return Box is abstract;
@@ -261,6 +265,12 @@ private
 
       -- a list of sub-pools, mostly used to simplify some algorithms
       Sub_Pools : Sub_Pool_Vector;
+
+      -- next pool in type order
+      Next : Pool;
+
+      -- number of super types
+      Super_Type_Count : Natural;
 
       -- the list of all data fields
       Data_Fields_F : Skill.Field_Declarations.Field_Vector;

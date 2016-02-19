@@ -44,6 +44,28 @@ package body Skill.Files is
       This.Path := new String'(New_Path);
    end Change_Path;
 
+   procedure Check (This : access File_T'Class) is
+      P : Skill.Types.Pools.Pool;
+      F : Skill.Field_Declarations.Field_Declaration;
+   begin
+      -- TODO par
+      -- TODO a more efficient solution would be helpful
+      -- TODO lacks type restrictions
+      -- @note this should be more like, each pool is checking its type restriction, aggergating its field restrictions,
+      -- and if there are any, then they will all be checked using (hopefully) overridden check methods
+      for I in 1 .. This.Types.Length loop
+         P := This.Types.Element (I - 1);
+         for J in 1 .. P.Data_Fields.Length loop
+            F := P.Data_Fields.Element (J);
+            if not F.Check then
+               raise Skill.Errors.Skill_Error
+                 with "check failed in " & P.Skill_Name.all & "." & F.Name.all;
+            end if;
+         end loop;
+      end loop;
+      null;
+   end Check;
+
    procedure Flush (This : access File_T'Class) is
       type T is access all File_T;
       function Cast is new Ada.Unchecked_Conversion (T, File);
@@ -86,8 +108,9 @@ package body Skill.Files is
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error,
                   "A task crashed during read data: " &
-                    F.Owner.To_String & "."
-                  & F.Name.all);
+                  F.Owner.To_String &
+                  "." &
+                  F.Name.all);
 
 --                 Skill.Errors.Print_Stacktrace (E);
 

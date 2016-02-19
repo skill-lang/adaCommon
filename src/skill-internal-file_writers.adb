@@ -248,7 +248,7 @@ package body Skill.Internal.File_Writers is
       ------------------------------
 
       --  check consistency of the state, now that we aggregated all instances
-      -- TODO State.Check;
+      State.Check;
 
       -- make lbpo map, update data map to contain dynamic instances and create
       -- skill IDs for serialization
@@ -663,7 +663,7 @@ package body Skill.Internal.File_Writers is
       ------------------------------
 
       --  check consistency of the state, now that we aggregated all instances
-      -- TODO State.Check;
+      State.Check;
 
       -- save the index of the first new pool
       declare

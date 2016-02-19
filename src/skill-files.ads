@@ -50,6 +50,10 @@ package Skill.Files is
    -- @note can currently only be used in write mode
    procedure Change_Path (This : access File_T'Class; New_Path : String);
 
+   -- checks restrictions
+   -- raises skill_error, if a check fails
+   procedure Check (This : access File_T'Class);
+
    -- write changes to disk
    procedure Flush (This : access File_T'Class);
 

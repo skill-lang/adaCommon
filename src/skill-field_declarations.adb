@@ -38,6 +38,12 @@ package body Skill.Field_Declarations is
       return Convert (This.Owner);
    end Owner;
 
+   function Check (This : access Lazy_Field_T) return Boolean is
+   begin
+      -- TODO
+      return True;
+   end Check;
+
    function Hash
      (This : Field_Declaration) return Ada.Containers.Hash_Type is
      (Ada.Containers.Hash_Type

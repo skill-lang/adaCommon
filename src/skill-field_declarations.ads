@@ -70,6 +70,11 @@ package Skill.Field_Declarations is
    function Owner
      (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
 
+   -- @return ∀ r € restrictinos, i € owner. r.check(i)
+   function Check (This : access Field_Declaration_T) return Boolean is abstract;
+   function Check (This : access Lazy_Field_T) return Boolean;
+   function Check (This : access Auto_Field_T) return Boolean is (True);
+
 
    procedure Read
      (This : access Field_Declaration_T;
