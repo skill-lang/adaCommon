@@ -18,6 +18,7 @@ with Skill.Types.Iterators;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings;
 with Ada.Strings.Hash;
+with Ada.Unchecked_Conversion;
 
 -- in contrast to a solution in c++ or java, we will represent data and most of
 -- the internal implementation in a type erasure version of the java
@@ -27,7 +28,7 @@ package Skill.Types.Pools is
 
 --     pragma Preelaborate;
 
-   -- abstract pool types
+   -- = abstract storage pool
    type Pool_T is abstract new Field_Types.Field_Type_Base with private;
    type Pool is access Pool_T;
    type Pool_Dyn is access Pool_T'Class;
@@ -65,6 +66,7 @@ package Skill.Types.Pools is
    pragma Inline (Dynamic);
    function To_Pool (This : access Pool_T'Class) return Pool;
    pragma Inline (To_Pool);
+   function To_Base_Pool is new Ada.Unchecked_Conversion(Pool, Base_Pool);
 
    -- pool properties
 
@@ -79,14 +81,17 @@ package Skill.Types.Pools is
    function Super (This : access Pool_T) return Pool;
 
    function Next (This : access Pool_T'Class) return Pool;
+   procedure Establish_Next (This : access Base_Pool_T'Class);
 
    function Type_Hierarchy_Height (This : access Pool_T'Class) return Natural;
 
    function Size (This : access Pool_T'Class) return Natural;
 
    function Make_Boxed_Instance (This : access Pool_T) return Box is abstract;
-   function Make_Boxed_Instance (This : access Sub_Pool_T) return Box is abstract;
-   function Make_Boxed_Instance (This : access Base_Pool_T) return Box is abstract;
+   function Make_Boxed_Instance
+     (This : access Sub_Pool_T) return Box is abstract;
+   function Make_Boxed_Instance
+     (This : access Base_Pool_T) return Box is abstract;
 
    procedure Do_In_Type_Order
      (This : access Pool_T'Class;
@@ -125,8 +130,10 @@ package Skill.Types.Pools is
    -- the number of new instances of exactly this type, excluding sub-types
    -- @return new_objects.size
    function New_Objects_Size (This : access Pool_T) return Natural is abstract;
-   function New_Objects_Size (This : access Base_Pool_T) return Natural is abstract;
-   function New_Objects_Size (This : access Sub_Pool_T) return Natural is abstract;
+   function New_Objects_Size
+     (This : access Base_Pool_T) return Natural is abstract;
+   function New_Objects_Size
+     (This : access Sub_Pool_T) return Natural is abstract;
 
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
@@ -236,7 +243,7 @@ package Skill.Types.Pools is
       Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
 
    procedure Prepare_Append
-     (This     : access Base_Pool_T'Class;
+     (This      : access Base_Pool_T'Class;
       Chunk_Map : Skill.Field_Declarations.Chunk_Map);
 
    -- internal use only

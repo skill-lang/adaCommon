@@ -46,8 +46,27 @@ package body Skill.Types.Pools is
    function Super (This : access Pool_T) return Pool is (This.Super);
 
    function Next (This : access Pool_T'Class) return Pool is (This.Next);
+   procedure Establish_Next (This : access Base_Pool_T'Class) is
+      procedure Set_Next_Pool (This : access Pool_T'Class; Nx : Pool) is
+      begin
+         if This.Sub_Pools.Is_Empty then
+            This.Next := Nx;
+         else
+            This.Next := This.Sub_Pools.First_Element.To_Pool;
+            for I in 0 .. This.Sub_Pools.Length - 2 loop
+               Set_Next_Pool
+                 (This.Sub_Pools.Element (I).To_Pool,
+                  This.Sub_Pools.Element (I + 1).To_Pool);
+            end loop;
+            Set_Next_Pool (This.Sub_Pools.Last_Element, Nx);
+         end if;
+      end Set_Next_Pool;
+   begin
+      Set_Next_Pool (This, null);
+   end Establish_Next;
 
-   function Type_Hierarchy_Height (This : access Pool_T'Class) return Natural is
+   function Type_Hierarchy_Height
+     (This : access Pool_T'Class) return Natural is
      (This.Super_Type_Count);
 
    function Size (This : access Pool_T'Class) return Natural is
@@ -299,7 +318,7 @@ package body Skill.Types.Pools is
                                  (First => Types.v64 (-1),
                                   Last  => Types.v64 (-1),
                                   Count => Types.v64 (Lcount),
-                                  BPO   => Types.V64 (Lbpo)),
+                                  BPO   => Types.v64 (Lbpo)),
                              Input => Skill.Streams.Reader.Empty_Sub_Stream);
                         F.Data_Chunks.Append (CE);
                         Chunk_Map.Include (F, CE.C);

@@ -171,11 +171,19 @@ package body Skill.Files is
          P.Data_Fields.Foreach (Finish'Access);
          null;
       end Start_Read;
+
+      use Skill.Types.Pools;
    begin
       This.Types.Foreach (Start_Read'Access);
 
       -- fix types in the Annotation-runtime type, because we need it in offset calculation
       This.Annotation_Type.Fix_Types;
+
+      for P of This.Types_By_Name loop
+         if null = P.Super then
+            To_Base_Pool(P).Establish_Next;
+         end if;
+      end loop;
 
       -- await async reads
       Read_Barrier.Await;
