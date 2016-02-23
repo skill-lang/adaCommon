@@ -121,11 +121,13 @@ private
    procedure MMap_Unmap (Base : Map_Pointer; Eof : Map_Pointer);
    pragma Import (C, MMap_Unmap, "mmap_write_unmap");
 
+   Buffer_Size : Constant := 1024;
+
    type Output_Stream_T is new Abstract_Stream with record
       Path          : Skill.Types.String_Access; -- shared string!
       File          : Interfaces.C_Streams.FILEs;
       Bytes_Written : Types.v64;
-      Buffer        : Uchar_Array (1 .. 1024);
+      Buffer        : Uchar_Array (1 .. Buffer_Size);
 
       -- true, iff a block is currently mapped
       Block_Map_Mode : Boolean;

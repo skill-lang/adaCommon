@@ -8,15 +8,15 @@ with Ada.Unchecked_Conversion;
 
 with Interfaces;
 
-with Skill.String_Pools;
-with Skill.Types.Pools;
+with Skill.Containers.Vectors;
 with Skill.Field_Types.Builtin;
 with Skill.Field_Types.Builtin.String_Type_P;
-with Skill.Containers.Vectors;
 with Skill.Field_Declarations; use Skill.Field_Declarations;
 with Skill.Internal.Parts;
 with Skill.Streams.Reader;
 with Skill.Synchronization;
+with Skill.String_Pools;
+with Skill.Types.Pools;
 with Skill.Tasks;
 
 -- documentation can be found in java common
@@ -228,6 +228,7 @@ package body Skill.Internal.File_Writers is
                   (Field_Types.Builtin.String_Type_P.Unboxed
                      (I.Dynamic.Reflective_Get (F)));
                end Add_String;
+
             begin
                Strings.Add (F.Name);
                -- add string data

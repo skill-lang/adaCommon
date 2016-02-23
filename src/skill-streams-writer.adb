@@ -675,6 +675,7 @@ package body Skill.Streams.Writer is
       This.Map := P;
    end V64;
 
+   use type Interfaces.C.Ptrdiff_T;
    function Cast is new Ada.Unchecked_Conversion (Character, C.unsigned_char);
    procedure Put_Plain_String
      (This : access Output_Stream_T;
@@ -682,13 +683,45 @@ package body Skill.Streams.Writer is
    is
       P : Map_Pointer := Invalid_Pointer;
    begin
+      if(V.all'Length >= Buffer_Size) then
+         Flush_Buffer (This);
+         declare
+            use C_Streams;
+            use C.Strings;
+
+            Str : chars_ptr := New_String(V.all);
+
+            function Convert is new Ada.Unchecked_Conversion(Chars_Ptr, Voids);
+
+            Length : Size_T := Size_T(Strlen(Str));
+            use type Size_T;
+         begin
+
+               if Length /=
+                 Interfaces.C_Streams.fwrite
+                   (Convert(Str),
+                    1,
+                   Length,
+                    This.File)
+            then
+               Free(Str);
+                  raise Skill.Errors.Skill_Error
+                  with "something went sideways while flushing a buffer";
+               end if;
+
+            Free(Str);
+               This.Bytes_Written := This.Bytes_Written + Types.v64 (Length);
+            end;
+
+      else
       This.Ensure_Size (V.all'Length);
       P := This.Map;
       for C of V.all loop
          P.all := Cast (C);
          Advance (P);
       end loop;
-      This.Map := P;
+            This.Map := P;
+            end if;
    end Put_Plain_String;
 
 end Skill.Streams.Writer;
