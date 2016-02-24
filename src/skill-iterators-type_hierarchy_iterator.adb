@@ -6,14 +6,26 @@
 
 package body Skill.Iterators.Type_Hierarchy_Iterator is
 
-   function Make (First : Skill.Types.Pools.Pool := null) return Iterator is
+   procedure Init (This : access Iterator'Class;
+                   First : Skill.Types.Pools.Pool := null) is
    begin
-      if null = First then
-         return Iterator'(null, 0);
-      else
-         return Iterator'(First, First.Type_Hierarchy_Height);
+      This.Current := First;
+      if null /= First then
+         This.End_Height := First.Type_Hierarchy_Height;
       end if;
-   end Make;
+   end Init;
+
+   procedure Next
+     (This : access Iterator'Class)
+   is
+   begin
+      This.Current := This.Current.Next;
+      if null = This.Current
+        or else This.End_Height >= This.Current.Type_Hierarchy_Height
+      then
+         This.Current := null;
+      end if;
+   end Next;
 
    function Next
      (This : access Iterator'Class) return Skill.Types.Pools.Pool

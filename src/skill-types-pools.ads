@@ -99,15 +99,7 @@ package Skill.Types.Pools is
    procedure Do_For_Static_Instances
      (This : access Pool_T'Class;
       F    : not null access procedure (I : Annotation));
-   procedure Foreach_Dynamic_New_Instance
-     (This : access Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
-   procedure Foreach_Dynamic_New_Instance
-     (This : access Base_Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
-   procedure Foreach_Dynamic_New_Instance
-     (This : access Sub_Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
+
    function First_Dynamic_New_Instance
      (This : access Pool_T) return Annotation is abstract;
    function First_Dynamic_New_Instance

@@ -13,6 +13,7 @@ with Ada.Unchecked_Deallocation;
 with Skill.Field_Declarations;
 with Skill.Streams.Reader;
 
+with Skill.Iterators.Dynamic_New_Instances;
 with Skill.Iterators.Static_Data;
 with Skill.Iterators.Type_Hierarchy_Iterator;
 
@@ -80,9 +81,9 @@ package body Skill.Types.Pools is
       declare
          Size : Natural := 0;
 
-         Iter : aliased Skill.Iterators.Type_Hierarchy_Iterator.Iterator
-           := Skill.Iterators.Type_Hierarchy_Iterator.Make(This.To_Pool);
+         Iter : aliased Skill.Iterators.Type_Hierarchy_Iterator.Iterator;
       begin
+         Iter.Init (This.To_Pool);
          while Iter.Has_Next loop
             Size := Size + Iter.Next.Static_Size;
          end loop;
@@ -433,16 +434,19 @@ package body Skill.Types.Pools is
                Name   => Annotation_Array);
 
             I : Natural := This.Data'Last + 1;
-            procedure Mark (Inst : Annotation) is
-            begin
+
+            Iter : aliased Skill.Iterators.Dynamic_New_Instances.Iterator;
+            Inst : Annotation;
+
+         begin
+            Iter.Init (This.To_Pool);
+            D (This.Data'First .. This.Data'Last) := This.Data.all;
+            while Iter.Has_Next loop
+               Inst := Iter.Next;
                D (I)         := Inst;
                Inst.Skill_ID := I;
                I             := I + 1;
-            end Mark;
-
-         begin
-            D (This.Data'First .. This.Data'Last) := This.Data.all;
-            This.Foreach_Dynamic_New_Instance (Mark'Access);
+            end loop;
 
             if This.Data /= Empty_Data then
                Free (This.Data);

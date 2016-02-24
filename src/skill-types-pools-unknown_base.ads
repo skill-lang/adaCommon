@@ -76,10 +76,6 @@ package Skill.Types.Pools.Unknown_Base is
      (This : access Pool_T;
       F    : access procedure (I : Annotation)) is null;
 
-   overriding procedure Foreach_Dynamic_New_Instance
-     (This : access Pool_T;
-      F    : not null access procedure (I : Annotation)) is null;
-
    function First_Dynamic_New_Instance
      (This : access Pool_T) return Annotation is (null);
 

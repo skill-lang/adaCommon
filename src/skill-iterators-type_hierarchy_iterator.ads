@@ -14,7 +14,8 @@ package Skill.Iterators.Type_Hierarchy_Iterator is
       End_Height : Natural;
    end record;
 
-   function Make (First : Skill.Types.Pools.Pool := null) return Iterator;
+   procedure Init (This : access Iterator'Class;
+                  First : Skill.Types.Pools.Pool := null);
 
    function Element (This : access Iterator'Class)
                      return Skill.Types.Pools.Pool is
@@ -23,6 +24,7 @@ package Skill.Iterators.Type_Hierarchy_Iterator is
    function Has_Next (This : access Iterator'Class) return Boolean is
      (null /= This.Current);
 
+   procedure Next (This : access Iterator'Class);
    function Next (This : access Iterator'Class)
                   return Skill.Types.Pools.Pool;
 
