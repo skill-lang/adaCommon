@@ -37,7 +37,7 @@ package body Skill.Books is
       if This.Current_Remaining > 0 then
          This.Current_Remaining := This.Current_Remaining - 1;
          return This.Current_Page
-             (Default_Page_Size - This.Current_Remaining + 1)'
+             (Default_Page_Size - This.Current_Remaining)'
              Access;
 
       elsif This.Freelist.Length > 0 then
@@ -45,11 +45,11 @@ package body Skill.Books is
          return This.Freelist.Pop;
       else
          -- we have to allocate a new page
-         This.Current_Page := new P (0 .. Default_Page_Size - 1);
+         This.Current_Page := new P (1 .. Default_Page_Size);
          This.Pages.Append (This.Current_Page);
          -- return first object
          This.Current_Remaining := Default_Page_Size - 1;
-         return This.Current_Page (0)'Access;
+         return This.Current_Page (1)'Access;
       end if;
    end Next;
 

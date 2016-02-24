@@ -35,8 +35,7 @@ package body Skill.Types.Pools.Sub is
       end if;
    end Get;
 
-   overriding
-   function Make_Boxed_Instance (This : access Pool_T) return Box is
+   overriding function Make_Boxed_Instance (This : access Pool_T) return Box is
    begin
       raise Constraint_Error
         with "one must not reflectively allocate an instance of an unknown type!";
@@ -65,22 +64,22 @@ package body Skill.Types.Pools.Sub is
 
       This :=
         new Pool_T'
-          (Name          => Name,
-           Type_Id       => Type_Id,
-           Super         => Super,
-           Base          => Super.Base,
-           Sub_Pools     => Sub_Pool_Vector_P.Empty_Vector,
-           Next     => null, -- can only be calculated after all types are known
+          (Name             => Name,
+           Type_Id          => Type_Id,
+           Super            => Super,
+           Base             => Super.Base,
+           Sub_Pools        => Sub_Pool_Vector_P.Empty_Vector,
+           Next => null, -- can only be calculated after all types are known
            Super_Type_Count => 1 + Super.Super_Type_Count,
-           Data_Fields_F =>
+           Data_Fields_F    =>
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
-           Known_Fields => No_Known_Fields,
-           Blocks       => Skill.Internal.Parts.Blocks_P.Empty_Vector,
-           Fixed        => False,
-           Cached_Size  => 0,
-           Book         => <>,
+           Known_Fields          => No_Known_Fields,
+           Blocks                => Skill.Internal.Parts.Blocks_P.Empty_Vector,
+           Fixed                 => False,
+           Cached_Size           => 0,
+           Book                  => <>,
            Static_Data_Instances => 0,
-           New_Objects  => New_Objects_P.Empty_Vector);
+           New_Objects           => New_Objects_P.Empty_Vector);
 
       return Convert (This);
    exception
@@ -125,25 +124,27 @@ package body Skill.Types.Pools.Sub is
    overriding procedure Resize_Pool (This : access Pool_T) is
       ID   : Skill_ID_T := 1 + Skill_ID_T (This.Blocks.Last_Element.BPO);
       Last : Skill_ID_T := ID - 1 + This.Blocks.Last_Element.Static_Count;
-      Size : Skill_ID_T := (Last - Id) + 1;
+      Size : Skill_ID_T := (Last - ID) + 1;
 
       Data : Skill.Types.Annotation_Array;
 
       SD : Book_P.Page;
+      R  : P;
 
       use Interfaces;
    begin
-      Data := This.Base.Data;
+      Data                       := This.Base.Data;
       This.Static_Data_Instances := This.Static_Data_Instances + Size;
 
       if 0 = Size then
          return;
       end if;
 
-      SD := This.Book.Make_Page(Size);
+      SD := This.Book.Make_Page (Size);
 
       -- set skill IDs and insert into data
-      for R of SD.all loop
+      for I in SD'Range loop
+         R          := SD (I)'Access;
          R.Skill_ID := ID;
          Data (ID)  := R.To_Annotation;
          ID         := ID + 1;
