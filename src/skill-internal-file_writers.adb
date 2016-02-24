@@ -22,6 +22,7 @@ with Skill.Tasks;
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
 package body Skill.Internal.File_Writers is
+   use type Types.Pools.Pool;
 
    -- offset calculation closure
    type Cl_Offset is new Tasks.Closure_T with record
@@ -52,21 +53,20 @@ package body Skill.Internal.File_Writers is
 
       Job_Failed_Concurrently : Boolean := False;
 
-      function Make_LBPO_Map
+      procedure Make_LBPO_Map
         (P        :        Types.Pools.Pool;
          Lbpo_Map : in out Lbpo_Map_T;
-         Next     :        Integer) return Integer
+         Next     :        Integer)
       is
-         Result : Integer := Next + P.Dynamic.Static_Size;
+         Pool   : Types.Pools.Pool := P;
+         Result : Integer          := Next;
 
-         procedure Children (sub : Types.Pools.Sub_Pool) is
-         begin
-            Result := Make_LBPO_Map (sub.To_Pool, Lbpo_Map, Result);
-         end Children;
       begin
-         Lbpo_Map (P.Pool_Offset) := Next;
-         P.Sub_Pools.Foreach (Children'Access);
-         return Result;
+         while Pool /= null loop
+            Lbpo_Map (Pool.Pool_Offset) := Result;
+            Result                      := Result + Pool.Static_Size;
+            Pool                        := Pool.Next;
+         end loop;
       end Make_LBPO_Map;
 
       procedure String (S : Types.String_Access) is
@@ -259,11 +259,10 @@ package body Skill.Internal.File_Writers is
             function Cast is new Ada.Unchecked_Conversion
               (Types.Pools.Pool,
                Types.Pools.Base_Pool);
-            R : Integer;
          begin
             This.Fixed (True);
-            if This.Dynamic.all in Types.Pools.Base_Pool_T'Class then
-               R := Make_LBPO_Map (This, Lbpo_Map, 0);
+            if null = This.Super then
+               Make_LBPO_Map (This, Lbpo_Map, 0);
                Cast (This).Compress (Lbpo_Map);
             end if;
          end Make;
@@ -326,7 +325,8 @@ package body Skill.Internal.File_Writers is
 
          procedure Write_Type (This : Types.Pools.Pool) is
 
-            Lcount : Types.v64 := Types.v64 (This.Blocks.Last_Element.Dynamic_Count);
+            Lcount : Types.v64 :=
+              Types.v64 (This.Blocks.Last_Element.Dynamic_Count);
 
          begin
             String (This.Skill_Name);
@@ -793,7 +793,8 @@ package body Skill.Internal.File_Writers is
 
             Fields : Field_Vector := Field_Vector_P.Empty_Vector;
 
-            Lcount : Types.v64 := Types.V64(This.Blocks.Last_Element.Dynamic_Count);
+            Lcount : Types.v64 :=
+              Types.v64 (This.Blocks.Last_Element.Dynamic_Count);
 
             procedure Add (F : Field_Declaration) is
             begin
