@@ -142,6 +142,20 @@ package body Skill.Types.Pools is
       end loop;
    end Do_For_Static_Instances;
 
+
+   function First_Dynamic_New_Instance
+     (This : access Pool_T'Class) return Annotation is
+      P : Pool := This.To_Pool;
+   begin
+      while P /= null loop
+         if P.New_Objects.Length > 0 then
+            return P.New_Objects.First_Element;
+         end if;
+         P := P.Next;
+      end loop;
+      return null;
+   end First_Dynamic_New_Instance;
+
    function Blocks
      (This : access Pool_T) return Skill.Internal.Parts.Blocks is
      (This.Blocks);

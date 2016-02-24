@@ -72,17 +72,6 @@ package Skill.Types.Pools.Unknown_Base is
       Name : String_Access) return Skill.Types.Pools.Pool is
      (Sub_Pools.Make (This.To_Pool, ID, Name));
 
-   procedure Do_For_Static_Instances
-     (This : access Pool_T;
-      F    : access procedure (I : Annotation)) is null;
-
-   function First_Dynamic_New_Instance
-     (This : access Pool_T) return Annotation is (null);
-
-   procedure Update_After_Compress
-     (This     : access Pool_T;
-      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is null;
-
    -- RTTI implementation
    function Boxed is new Ada.Unchecked_Conversion
      (Types.Annotation,

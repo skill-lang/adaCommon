@@ -100,14 +100,8 @@ package Skill.Types.Pools is
      (This : access Pool_T'Class;
       F    : not null access procedure (I : Annotation));
 
-
-   -- TODO genauso über next
    function First_Dynamic_New_Instance
-     (This : access Pool_T) return Annotation is abstract;
-   function First_Dynamic_New_Instance
-     (This : access Base_Pool_T) return Annotation is abstract;
-   function First_Dynamic_New_Instance
-     (This : access Sub_Pool_T) return Annotation is abstract;
+     (This : access Pool_T'Class) return Annotation;
 
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes

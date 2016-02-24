@@ -55,6 +55,7 @@ package Skill.Types.Pools.Sub is
       T    : Field_Types.Field_Type;
       Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
 
+   overriding
    procedure Add_Known_Field
      (This            : access Pool_T;
       Name            : String_Access;
@@ -64,34 +65,36 @@ package Skill.Types.Pools.Sub is
 
    overriding procedure Resize_Pool (This : access Pool_T);
 
-
+   overriding
    function Make_Sub_Pool
      (This : access Pool_T;
       ID   : Natural;
       Name : String_Access) return Skill.Types.Pools.Pool is
      (Make (This.To_Pool, ID, Name));
 
-   function First_Dynamic_New_Instance
-     (This : access Pool_T) return Annotation is (null);
 
    -- RTTI implementation
    function Boxed is new Ada.Unchecked_Conversion (P, Types.Box);
    function Unboxed is new Ada.Unchecked_Conversion (Types.Box, P);
 
+   overriding
    function Read_Box
      (This  : access Pool_T;
       Input : Skill.Streams.Reader.Sub_Stream) return Types.Box is
      (Boxed (This.Get (Skill_ID_T (Input.V64))));
 
+   overriding
    function Offset_Box
      (This   : access Pool_T;
       Target : Types.Box) return Types.v64;
 
+   overriding
    procedure Write_Box
      (This   : access Pool_T;
       Output : Streams.Writer.Sub_Stream;
       Target : Types.Box);
 
+   overriding
    function Content_Tag
      (This : access Pool_T) return Ada.Tags.Tag is
      (This.To_Pool.Super.Dynamic.Content_Tag);
