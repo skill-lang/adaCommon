@@ -13,9 +13,13 @@ package body Skill.Iterators.Dynamic_New_Instances is
       This.Current.Init (First);
       This.Index := 0;
       This.Last := First.New_Objects_Size;
-      while 0 /= This.Last and then This.Current.Has_Next loop
+      while 0 = This.Last loop
          This.Current.Next;
-         This.Last := This.Current.Element.New_Objects_Size;
+         if This.Current.Has_Next then
+            This.Last := This.Current.Element.New_Objects_Size;
+         else
+            return;
+         end if;
       end loop;
    end Init;
 
@@ -31,11 +35,18 @@ package body Skill.Iterators.Dynamic_New_Instances is
       Rval : Annotation := This.Current.Element.New_Objects_Element(This.Index);
    begin
       This.Index := This.Index + 1;
-      while This.Index = This.Last loop
+      if This.Index = This.Last then
          This.Index := 0;
-         This.Current.Next;
-         This.Last := This.Current.Element.New_Objects_Size;
-      end loop;
+         This.Last := 0;
+         while 0 = This.Last loop
+            This.Current.Next;
+            if This.Current.Has_Next then
+               This.Last := This.Current.Element.New_Objects_Size;
+            else
+               return Rval;
+            end if;
+         end loop;
+      end if;
       return Rval;
    end Next;
 end Skill.Iterators.dynamic_new_instances;

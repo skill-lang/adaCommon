@@ -442,7 +442,7 @@ package body Skill.Types.Pools is
             Iter.Init (This.To_Pool);
             D (This.Data'First .. This.Data'Last) := This.Data.all;
             while Iter.Has_Next loop
-               Inst := Iter.Next;
+               Inst          := Iter.Next;
                D (I)         := Inst;
                Inst.Skill_ID := I;
                I             := I + 1;
