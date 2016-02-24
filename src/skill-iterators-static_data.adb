@@ -32,6 +32,35 @@ package body Skill.Iterators.Static_Data is
       end if;
    end Make;
 
+   procedure Init (This : access Iterator'Class;
+                   First : Skill.Types.Pools.Pool := null) is
+      B : Skill.Internal.Parts.Block;
+   begin
+      This.Current := First;
+      This.SecondIndex := 0;
+      This.Index := 0;
+      This.Last := 0;
+
+      if null = First then
+         This.LastBlock := 0;
+         return;
+      end if;
+      This.LastBlock := First.Blocks.Length;
+
+      While This.index = This.last and then This.secondIndex < This.LastBlock loop
+         B := This.Current.Blocks.Element(This.SecondIndex);
+         This.Index := Skill_ID_T(B.Bpo);
+         This.Last := This.Index + Skill_ID_T(B.Static_Count);
+         This.SecondIndex := This.SecondIndex + 1;
+      end loop;
+      -- mode switch, if there is no other block
+      if This.Index= This.Last and then This.SecondIndex = This.LastBlock then
+         This.SecondIndex := This.SecondIndex + 1;
+         This.Index := 0;
+         This.Last := This.Current.New_Objects_Size;
+      end if;
+   end;
+
    function Element
      (This : access Iterator'Class) return Annotation is
    begin

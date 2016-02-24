@@ -16,6 +16,7 @@ with Skill.Streams.Reader;
 with Skill.Iterators.Dynamic_New_Instances;
 with Skill.Iterators.Static_Data;
 with Skill.Iterators.Type_Hierarchy_Iterator;
+with Skill.Iterators.Type_Order;
 
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
@@ -120,14 +121,12 @@ package body Skill.Types.Pools is
      (This : access Pool_T'Class;
       F    : not null access procedure (I : Annotation))
    is
-
-      procedure Closure (This : Sub_Pool) is
-      begin
-         This.Do_In_Type_Order (F);
-      end Closure;
+      Iter : aliased Skill.Iterators.Type_Order.Iterator;
    begin
-      This.Do_For_Static_Instances (F);
-      This.Sub_Pools.Foreach (Closure'Access);
+      Iter.Init (This.To_Pool);
+      while Iter.Has_Next loop
+         F(Iter.Next);
+      end loop;
    end Do_In_Type_Order;
 
    procedure Do_For_Static_Instances
