@@ -260,13 +260,15 @@ package body Skill.Internal.File_Parsers is
                   declare
                      Sb : Internal.Parts.Block := Super_Pool.Blocks.Last_Element;
                      -- assumed static instances, minus what static instances would be, if p were the first sub pool.
-                     Diff : constant Types.Skill_ID_T := sb.Static_Count - (Block.bpo - sb.bpo);
+                     Diff : constant Types.Skill_ID_T := sb.Static_Count -
+                       (Block.bpo - sb.bpo);
 
                   begin
                      -- if positive, then we have to subtract it from the assumed static count (local and global)
                      if Diff > 0 then
                         Sb.Static_Count := Sb.Static_Count - Diff;
-                        Super_Pool.Blocks.Replace_Element(Super_Pool.Blocks.Length, Sb);
+                        Super_Pool.Blocks.Replace_Element
+                          (Super_Pool.Blocks.Length-1, Sb);
                      end if;
                   end;
                end if;

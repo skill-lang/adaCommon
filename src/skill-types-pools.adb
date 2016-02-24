@@ -14,6 +14,7 @@ with Skill.Field_Declarations;
 with Skill.Streams.Reader;
 
 with Skill.Iterators.Static_Data;
+with Skill.Iterators.Type_Hierarchy_Iterator;
 
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
@@ -72,26 +73,21 @@ package body Skill.Types.Pools is
      (This.Super_Type_Count);
 
    function Size (This : access Pool_T'Class) return Natural is
-      Size : Natural;
-
-      type P is access all Pool_T;
-      type D is access Pool_T'Class;
-      function Convert is new Ada.Unchecked_Conversion (P, D);
-
-      procedure F (I : Sub_Pool) is
-      begin
-         Size := Size + I.Size;
-      end F;
-
    begin
       if This.Fixed then
          return This.Cached_Size;
       end if;
+      declare
+         Size : Natural := 0;
 
-      Size := This.Dynamic.Static_Size;
-      This.Sub_Pools.Foreach (F'Access);
-
-      return Size;
+         Iter : aliased Skill.Iterators.Type_Hierarchy_Iterator.Iterator
+           := Skill.Iterators.Type_Hierarchy_Iterator.Make(This.To_Pool);
+      begin
+         while Iter.Has_Next loop
+            Size := Size + Iter.Next.Static_Size;
+         end loop;
+         return Size;
+      end;
    end Size;
 
    function Static_Size (This : access Pool_T'Class) return Natural is

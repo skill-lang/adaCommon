@@ -204,7 +204,7 @@ package Skill.Types.Pools is
 
    -- internal use only
    -- @note: this method is invoked in type order on exactly the pools that
-   -- ought to be rized
+   -- ought to be resized
    procedure Resize_Pool (This : access Pool_T) is abstract;
    procedure Resize_Pool (This : access Base_Pool_T) is abstract;
    procedure Resize_Pool (This : access Sub_Pool_T) is abstract;
