@@ -13,8 +13,9 @@ with Skill.Containers.Vectors;
 package Skill.Internal.Parts is
 
    type Block is record
-      BPO   : Skill.Types.v64;
-      Count : Skill.Types.v64;
+      BPO   : Skill.Types.Skill_ID_T;
+      Static_Count : Skill.Types.Skill_ID_T;
+      Dynamic_Count : Skill.Types.Skill_ID_T;
    end record;
 
    package Blocks_P is new Skill.Containers.Vectors (Natural, Block);
@@ -23,14 +24,14 @@ package Skill.Internal.Parts is
    type Chunk_T is abstract tagged record
       First : Skill.Types.v64;
       Last  : Skill.Types.v64;
-      Count : Skill.Types.v64;
+      Count : Skill.Types.Skill_ID_T;
    end record;
    type Chunk is access Chunk_T'Class;
 
    procedure Free (This : access Chunk_T) is abstract;
 
    type Simple_Chunk is new Chunk_T with record
-      BPO : Skill.Types.v64;
+      BPO : Skill.Types.Skill_ID_T;
    end record;
    type Simple_Chunk_X is not null access Simple_Chunk;
 

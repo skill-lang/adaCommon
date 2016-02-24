@@ -223,6 +223,7 @@ package body Skill.Internal.File_Writers is
             procedure Add_Field (F : Field_Declarations.Field_Declaration) is
 
                procedure Add_String (I : Types.Annotation) is
+                  use type Types.Annotation;
                begin
                   Strings.Add
                   (Field_Types.Builtin.String_Type_P.Unboxed
@@ -325,7 +326,7 @@ package body Skill.Internal.File_Writers is
 
          procedure Write_Type (This : Types.Pools.Pool) is
 
-            Lcount : Types.v64 := This.Blocks.Last_Element.Count;
+            Lcount : Types.v64 := Types.v64 (This.Blocks.Last_Element.Dynamic_Count);
 
          begin
             String (This.Skill_Name);
@@ -376,7 +377,7 @@ package body Skill.Internal.File_Writers is
                (new Chunk_Entry_T'
                   (C =>
                      new Skill.Internal.Parts.Bulk_Chunk'
-                       (Offset, 0, Types.v64 (P.Size), 1),
+                       (Offset, 0, P.Size, 1),
                    Input => Skill.Streams.Reader.Empty_Sub_Stream));
 
                Offset := End_Offset;
@@ -792,7 +793,7 @@ package body Skill.Internal.File_Writers is
 
             Fields : Field_Vector := Field_Vector_P.Empty_Vector;
 
-            Lcount : Types.v64 := This.Blocks.Last_Element.Count;
+            Lcount : Types.v64 := Types.V64(This.Blocks.Last_Element.Dynamic_Count);
 
             procedure Add (F : Field_Declaration) is
             begin

@@ -197,10 +197,12 @@ package body Skill.Internal.File_Parsers is
                Super_Pool : Types.Pools.Pool;
                Super_Id   : Integer;
             begin
-               Block.Count := Input.V64;
+               Block.Dynamic_Count := Types.Skill_ID_T(Input.V64);
+               Block.Static_Count := Block.Dynamic_Count;
 
                if Types_By_Name.Contains (Name) then
                   Definition := Types_By_Name.Element (Name);
+                  Super_Pool := Definition.Super;
                else
                   -- type restrictions
                   -- TODO use the result!
@@ -239,8 +241,8 @@ package body Skill.Internal.File_Parsers is
                end if;
 
                -- bpo
-               if 0 /= Block.Count and then null /= Definition.Super then
-                  Block.Bpo := Definition.Base.Data'Length + Input.V64;
+               if 0 /= Block.Dynamic_Count and then null /= Definition.Super then
+                  Block.Bpo := Definition.Base.Data'Length + Types.Skill_ID_T(Input.V64);
                else
                   Block.Bpo := Definition.Base.Data'Length;
                end if;
@@ -251,6 +253,23 @@ package body Skill.Internal.File_Parsers is
                Definition.Blocks.Append (Block);
                Resize_Queue.Append (Definition); -- <-TODO hier nur base pools einfügen!
                Local_Fields.Append (LF_Entry'(Definition.Dynamic, Input.V64));
+
+               -- fix parent static count
+               if 0 /= Block.Dynamic_Count and then null /= Super_Pool then
+                  -- calculate static count of our parent
+                  declare
+                     Sb : Internal.Parts.Block := Super_Pool.Blocks.Last_Element;
+                     -- assumed static instances, minus what static instances would be, if p were the first sub pool.
+                     Diff : constant Types.Skill_ID_T := sb.Static_Count - (Block.bpo - sb.bpo);
+
+                  begin
+                     -- if positive, then we have to subtract it from the assumed static count (local and global)
+                     if Diff > 0 then
+                        Sb.Static_Count := Sb.Static_Count - Diff;
+                        Super_Pool.Blocks.Replace_Element(Super_Pool.Blocks.Length, Sb);
+                     end if;
+                  end;
+               end if;
             end;
          exception
             when E : Constraint_Error =>
@@ -439,7 +458,7 @@ package body Skill.Internal.File_Parsers is
                              (new Internal.Parts.Bulk_Chunk'
                                 (Offset,
                                  End_Offset,
-                                 Types.V64 (E.Pool.Size),
+                                 E.Pool.Size,
                                  E.Pool.Blocks.Length)
                              );
 
@@ -458,7 +477,7 @@ package body Skill.Internal.File_Parsers is
                        (new Internal.Parts.Simple_Chunk'
                           (Offset,
                            End_Offset,
-                           Last_Block.Count,
+                           Last_Block.Dynamic_Count,
                            Last_Block.Bpo));
                   end if;
                   Offset := End_Offset;

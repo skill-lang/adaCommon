@@ -96,13 +96,16 @@ package body Skill.Types.Pools is
 
    function Static_Size (This : access Pool_T'Class) return Natural is
    begin
-      return This.Static_Data_Instances +
-        Natural (This.New_Objects.Length);
+      return This.Static_Data_Instances + Natural (This.New_Objects.Length);
    end Static_Size;
 
-   function New_Objects_Size (This : access Pool_T'Class) return Natural is
-      (This.New_Objects.Length);
-
+   function New_Objects_Size
+     (This : access Pool_T'Class) return Natural is
+     (This.New_Objects.Length);
+   function New_Objects_Element
+     (This : access Pool_T'Class;
+      Idx  : Natural) return Annotation is
+     (This.New_Objects.Element (Idx));
 
    procedure Fixed (This : access Pool_T'Class; Fix : Boolean) is
    begin
@@ -130,15 +133,15 @@ package body Skill.Types.Pools is
       This.Sub_Pools.Foreach (Closure'Access);
    end Do_In_Type_Order;
 
-
    procedure Do_For_Static_Instances
      (This : access Pool_T'Class;
-      F    : not null access procedure (I : Annotation)) is
+      F    : not null access procedure (I : Annotation))
+   is
       Iter : aliased Skill.Iterators.Static_Data.Iterator :=
-               Skill.Iterators.Static_Data.Make (This.To_Pool);
+        Skill.Iterators.Static_Data.Make (This.To_Pool);
    begin
       while Iter.Has_Next loop
-         F(Iter.Next);
+         F (Iter.Next);
       end loop;
    end Do_For_Static_Instances;
 
@@ -248,12 +251,30 @@ package body Skill.Types.Pools is
       This.Update_After_Compress (Lbpo_Map);
    end Compress;
 
+   procedure Update_After_Compress
+     (This     : access Pool_T'Class;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T)
+   is
+   begin
+      This.Static_Data_Instances :=
+        This.Static_Data_Instances + This.New_Objects.Length;
+      This.New_Objects.Clear;
+
+      This.Blocks.Clear;
+      This.Blocks.Append
+      (Skill.Internal.Parts.Block'
+         (Lbpo_Map (This.Pool_Offset), This.Static_Data_Instances, This.Size));
+
+      for I in 0 .. This.Sub_Pools.Length - 1 loop
+         This.Sub_Pools.Element (I).Dynamic.Update_After_Compress (Lbpo_Map);
+      end loop;
+   end Update_After_Compress;
+
    -- invoked by resize pool (from base pool implementation)
    procedure Resize_Data (This : access Base_Pool_T'Class) is
-      Count : Types.v64        := This.Blocks.Last_Element.Count;
+      Count : Types.Skill_ID_T := This.Blocks.Last_Element.Dynamic_Count;
       D     : Annotation_Array :=
-        new Annotation_Array_T
-        (This.Data'First .. (This.Data'Last + Natural (Count)));
+        new Annotation_Array_T (This.Data'First .. (This.Data'Last + Count));
 
       procedure Free is new Ada.Unchecked_Deallocation
         (Object => Annotation_Array_T,
@@ -310,7 +331,7 @@ package body Skill.Types.Pools is
 
             This.Blocks.Append
             (Skill.Internal.Parts.Block'
-               (BPO => Types.v64 (Lbpo), Count => Types.v64 (Lcount)));
+               (BPO => Lbpo, Static_Count => Lcount, Dynamic_Count => Lcount));
 
             -- @note: if this does not hold for p; then it will not hold for
             -- p.subPools either!
@@ -329,7 +350,7 @@ package body Skill.Types.Pools is
                                new Skill.Internal.Parts.Bulk_Chunk'
                                  (First       => Types.v64 (-1),
                                   Last        => Types.v64 (-1),
-                                  Count       => Types.v64 (This.Size),
+                                  Count       => This.Size,
                                   Block_Count => This.Blocks.Length),
                              Input => Skill.Streams.Reader.Empty_Sub_Stream);
                         F.Data_Chunks.Append (CE);
@@ -341,8 +362,8 @@ package body Skill.Types.Pools is
                                new Skill.Internal.Parts.Simple_Chunk'
                                  (First => Types.v64 (-1),
                                   Last  => Types.v64 (-1),
-                                  Count => Types.v64 (Lcount),
-                                  BPO   => Types.v64 (Lbpo)),
+                                  Count => Lcount,
+                                  BPO   => Lbpo),
                              Input => Skill.Streams.Reader.Empty_Sub_Stream);
                         F.Data_Chunks.Append (CE);
                         Chunk_Map.Include (F, CE.C);

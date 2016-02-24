@@ -66,7 +66,7 @@ package Skill.Types.Pools is
    pragma Inline (Dynamic);
    function To_Pool (This : access Pool_T'Class) return Pool;
    pragma Inline (To_Pool);
-   function To_Base_Pool is new Ada.Unchecked_Conversion(Pool, Base_Pool);
+   function To_Base_Pool is new Ada.Unchecked_Conversion (Pool, Base_Pool);
 
    -- pool properties
 
@@ -122,6 +122,9 @@ package Skill.Types.Pools is
    -- the number of new instances of exactly this type, excluding sub-types
    -- @return new_objects.size
    function New_Objects_Size (This : access Pool_T'Class) return Natural;
+   function New_Objects_Element
+     (This : access Pool_T'Class;
+      Idx  : Natural) return Annotation;
 
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
@@ -221,14 +224,8 @@ package Skill.Types.Pools is
      (This     : access Base_Pool_T'Class;
       Lbpo_Map : Skill.Internal.Lbpo_Map_T);
    procedure Update_After_Compress
-     (This     : access Pool_T;
-      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
-   procedure Update_After_Compress
-     (This     : access Base_Pool_T;
-      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
-   procedure Update_After_Compress
-     (This     : access Sub_Pool_T;
-      Lbpo_Map : Skill.Internal.Lbpo_Map_T) is abstract;
+     (This     : access Pool_T'Class;
+      Lbpo_Map : Skill.Internal.Lbpo_Map_T);
 
    procedure Prepare_Append
      (This      : access Base_Pool_T'Class;
@@ -244,7 +241,7 @@ package Skill.Types.Pools is
 
 private
 
-   package New_Objects_P is new Skill.Containers.Vectors(Natural, Annotation);
+   package New_Objects_P is new Skill.Containers.Vectors (Natural, Annotation);
 
    type Pool_T is abstract new Field_Types.Field_Type_Base with record
 

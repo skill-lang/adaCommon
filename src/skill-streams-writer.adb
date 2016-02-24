@@ -18,7 +18,6 @@ with Interfaces.C_Streams;
 with System.Storage_Elements;
 with System.Address_To_Access_Conversions;
 with System.Address_Image;
-with Ada.Text_IO;
 
 package body Skill.Streams.Writer is
 

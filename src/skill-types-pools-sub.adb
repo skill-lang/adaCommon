@@ -20,7 +20,6 @@ with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Types;
 with Skill.Containers.Vectors;
-with Ada.Text_IO;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(...)" instead
@@ -125,30 +124,16 @@ package body Skill.Types.Pools.Sub is
 
    overriding procedure Resize_Pool (This : access Pool_T) is
       ID   : Skill_ID_T := 1 + Skill_ID_T (This.Blocks.Last_Element.BPO);
-      Last : Skill_ID_T := ID - 1 + Natural (This.Blocks.Last_Element.Count);
-      Size : Natural;
+      Last : Skill_ID_T := ID - 1 + This.Blocks.Last_Element.Static_Count;
+      Size : Skill_ID_T := (Last - Id) + 1;
 
       Data : Skill.Types.Annotation_Array;
 
       SD : Book_P.Page;
-      R  : P;
-
-
-      procedure Max_BPO (P : Pools.Sub_Pool) is
-         Tmp_Bpo : Skill_ID_T := Skill_ID_T(P.Blocks.Last_Element.BPO);
-      begin
-         if (ID - 2) < Tmp_Bpo and then Tmp_Bpo < Last then
-            Last := Tmp_Bpo;
-         end if;
-      end Max_BPO;
 
       use Interfaces;
    begin
       Data := This.Base.Data;
-
-      This.Sub_Pools.Foreach (Max_BPO'Access);
-
-      Size := (Last - Id) + 1;
       This.Static_Data_Instances := This.Static_Data_Instances + Size;
 
       if 0 = Size then
@@ -158,8 +143,7 @@ package body Skill.Types.Pools.Sub is
       SD := This.Book.Make_Page(Size);
 
       -- set skill IDs and insert into data
-      for I in SD'Range loop
-         R          := SD (I)'access;
+      for R of SD.all loop
          R.Skill_ID := ID;
          Data (ID)  := R.To_Annotation;
          ID         := ID + 1;
