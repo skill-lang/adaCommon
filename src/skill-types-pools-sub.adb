@@ -149,6 +149,11 @@ package body Skill.Types.Pools.Sub is
       This.Sub_Pools.Foreach (Max_BPO'Access);
 
       Size := (Last - Id) + 1;
+      This.Static_Data_Instances := This.Static_Data_Instances + Size;
+
+      if 0 = Size then
+         return;
+      end if;
 
       SD := This.Book.Make_Page(Size);
 

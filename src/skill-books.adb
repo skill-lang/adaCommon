@@ -7,14 +7,15 @@ with Ada.Unchecked_Deallocation;
 
 package body Skill.Books is
 
-   function Make_Page (This : access Book'Class; Expected_Size : Natural)
-                       return Page is
+   function Make_Page
+     (This          : access Book'Class;
+      Expected_Size : Natural) return Page
+   is
    begin
       if 0 /= This.Current_Remaining then
-         raise Constraint_Error
-           with "make_page contract violated";
+         raise Constraint_Error with "make_page contract violated";
       end if;
-      This.Current_Page := new P (0 .. Expected_Size);
+      This.Current_Page := new P (0 .. Expected_Size - 1);
       This.Pages.Append (This.Current_Page);
       return This.Current_Page;
    end Make_Page;
@@ -44,7 +45,7 @@ package body Skill.Books is
          return This.Freelist.Pop;
       else
          -- we have to allocate a new page
-         This.Current_Page := new P (0 .. Default_Page_Size);
+         This.Current_Page := new P (0 .. Default_Page_Size - 1);
          This.Pages.Append (This.Current_Page);
          -- return first object
          This.Current_Remaining := Default_Page_Size - 1;

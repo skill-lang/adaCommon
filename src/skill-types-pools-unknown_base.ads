@@ -56,7 +56,7 @@ package Skill.Types.Pools.Unknown_Base is
       Annotation_Type : Field_Types.Builtin.Annotation_Type_P
         .Field_Type) is null;
 
-   overriding procedure Resize_Pool (This : access Pool_T) is null;
+   overriding procedure Resize_Pool (This : access Pool_T);
 
    function Cast_Annotation (This : Annotation) return Annotation is (This);
    pragma Inline (Cast_Annotation);
