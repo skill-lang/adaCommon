@@ -97,14 +97,8 @@ package Skill.Types.Pools is
      (This : access Pool_T'Class;
       F    : not null access procedure (I : Annotation));
    procedure Do_For_Static_Instances
-     (This : access Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
-   procedure Do_For_Static_Instances
-     (This : access Base_Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
-   procedure Do_For_Static_Instances
-     (This : access Sub_Pool_T;
-      F    : not null access procedure (I : Annotation)) is abstract;
+     (This : access Pool_T'Class;
+      F    : not null access procedure (I : Annotation));
    procedure Foreach_Dynamic_New_Instance
      (This : access Pool_T;
       F    : not null access procedure (I : Annotation)) is abstract;
@@ -123,17 +117,11 @@ package Skill.Types.Pools is
 
    -- the number of instances of exactly this type, excluding sub-types
    -- @return size excluding subtypes
-   function Static_Size (This : access Pool_T) return Natural is abstract;
-   function Static_Size (This : access Base_Pool_T) return Natural is abstract;
-   function Static_Size (This : access Sub_Pool_T) return Natural is abstract;
+   function Static_Size (This : access Pool_T'Class) return Natural;
 
    -- the number of new instances of exactly this type, excluding sub-types
    -- @return new_objects.size
-   function New_Objects_Size (This : access Pool_T) return Natural is abstract;
-   function New_Objects_Size
-     (This : access Base_Pool_T) return Natural is abstract;
-   function New_Objects_Size
-     (This : access Sub_Pool_T) return Natural is abstract;
+   function New_Objects_Size (This : access Pool_T'Class) return Natural;
 
    -- internal use only
    function Blocks (This : access Pool_T) return Skill.Internal.Parts.Blocks;
@@ -256,6 +244,8 @@ package Skill.Types.Pools is
 
 private
 
+   package New_Objects_P is new Skill.Containers.Vectors(Natural, Annotation);
+
    type Pool_T is abstract new Field_Types.Field_Type_Base with record
 
       -- the pools name
@@ -296,6 +286,12 @@ private
       -- operations.
       Fixed       : Boolean := False;
       Cached_Size : Natural;
+
+      -- number of static instances of this inside base.data
+      Static_Data_Instances : Natural;
+
+      -- new objects stored as annotation references
+      New_Objects : New_Objects_P.Vector;
    end record;
 
    type Owner_T is access Skill.Files.File_T;
@@ -313,8 +309,6 @@ private
       Owner : Owner_T;
    end record;
 
-   type Sub_Pool_T is abstract new Pool_T with record
-      null;
-   end record;
+   type Sub_Pool_T is abstract new Pool_T with null record;
 
 end Skill.Types.Pools;

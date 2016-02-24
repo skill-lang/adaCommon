@@ -53,7 +53,7 @@ package Skill.Types is
    type Skill_Object is tagged record
       Skill_ID : Skill_ID_T;
    end record;
-   type Annotation is access Skill_Object;
+   type Annotation is access all Skill_Object;
    type Annotation_Dyn is access Skill_Object'Class;
    type Annotation_Array_T is array (Positive range <>) of Annotation;
    type Annotation_Array is access Annotation_Array_T;

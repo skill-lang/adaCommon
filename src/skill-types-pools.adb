@@ -13,6 +13,8 @@ with Ada.Unchecked_Deallocation;
 with Skill.Field_Declarations;
 with Skill.Streams.Reader;
 
+with Skill.Iterators.Static_Data;
+
 -- pool realizations are moved to the pools.adb, because this way we can work
 -- around several restrictions of the (generic) ada type system.
 package body Skill.Types.Pools is
@@ -92,6 +94,16 @@ package body Skill.Types.Pools is
       return Size;
    end Size;
 
+   function Static_Size (This : access Pool_T'Class) return Natural is
+   begin
+      return This.Static_Data_Instances +
+        Natural (This.New_Objects.Length);
+   end Static_Size;
+
+   function New_Objects_Size (This : access Pool_T'Class) return Natural is
+      (This.New_Objects.Length);
+
+
    procedure Fixed (This : access Pool_T'Class; Fix : Boolean) is
    begin
       if This.Fixed = Fix then
@@ -117,6 +129,18 @@ package body Skill.Types.Pools is
       This.Do_For_Static_Instances (F);
       This.Sub_Pools.Foreach (Closure'Access);
    end Do_In_Type_Order;
+
+
+   procedure Do_For_Static_Instances
+     (This : access Pool_T'Class;
+      F    : not null access procedure (I : Annotation)) is
+      Iter : aliased Skill.Iterators.Static_Data.Iterator :=
+               Skill.Iterators.Static_Data.Make (This.To_Pool);
+   begin
+      while Iter.Has_Next loop
+         F(Iter.Next);
+      end loop;
+   end Do_For_Static_Instances;
 
    function Blocks
      (This : access Pool_T) return Skill.Internal.Parts.Blocks is

@@ -17,6 +17,7 @@ with Skill.Streams.Writer;
 with Skill.Types;
 with Skill.Types.Pools;
 with Skill.Types.Pools.Sub;
+with Skill.Books;
 
 -- instantiated pool packages
 -- GNAT Bug workaround; should be "new Base(Annotation...)" instead
@@ -56,15 +57,6 @@ package Skill.Types.Pools.Unknown_Base is
         .Field_Type) is null;
 
    overriding procedure Resize_Pool (This : access Pool_T) is null;
-
-   overriding function Static_Size (This : access Pool_T) return Natural;
-
-   overriding function New_Objects_Size (This : access Pool_T) return Natural;
-
-   -- applies F for each element in this
-   --        procedure Foreach
-   --          (This : access Pool_T;
-   --           F    : access procedure (I : Age));
 
    function Cast_Annotation (This : Annotation) return Annotation is (This);
    pragma Inline (Cast_Annotation);
@@ -124,12 +116,10 @@ package Skill.Types.Pools.Unknown_Base is
      (Skill_Object'Tag);
 private
 
-   package A1 is new Containers.Vectors (Natural, Annotation);
-   subtype Instance_Vector is A1.Vector;
+   package Book_P is new Skill.Books(Skill.Types.Skill_Object, Skill.Types.Annotation);
 
    type Pool_T is new Base_Pool_T with record
-      Static_Data : Instance_Vector;
-      New_Objects : Instance_Vector;
+      Book : aliased Book_P.Book;
    end record;
 
 end Skill.Types.Pools.Unknown_Base;

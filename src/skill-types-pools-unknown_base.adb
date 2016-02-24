@@ -78,8 +78,9 @@ package body Skill.Types.Pools.Unknown_Base is
            Cached_Size => 0,
            Data        => Skill.Types.Pools.Empty_Data,
            Owner       => null,
-           Static_Data => A1.Empty_Vector,
-           New_Objects => A1.Empty_Vector);
+           Book => <>,
+           New_Objects => New_Objects_P.Empty_Vector,
+           Static_Data_instances  => 0);
 
       This.Base := Convert (This);
       return Convert (This);
@@ -117,7 +118,7 @@ package body Skill.Types.Pools.Unknown_Base is
       This.Data_Fields_F.Foreach (Delete'Access);
       This.Data_Fields_F.Free;
       This.Blocks.Free;
-      This.Static_Data.Free;
+      This.Book.Free;
       This.New_Objects.Free;
       Delete (D);
    end Free;
@@ -132,14 +133,6 @@ package body Skill.Types.Pools.Unknown_Base is
    begin
       return Super (This).Add_Field (ID, T, Name);
    end Add_Field;
-
-   overriding function Static_Size (This : access Pool_T) return Natural is
-   begin
-      return This.Static_Data.Length + This.New_Objects.Length;
-   end Static_Size;
-
-   overriding function New_Objects_Size (This : access Pool_T) return Natural is
-     (This.New_Objects.Length);
 
    procedure Write_Box
      (This   : access Pool_T;

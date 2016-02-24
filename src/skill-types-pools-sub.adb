@@ -79,8 +79,9 @@ package body Skill.Types.Pools.Sub is
            Blocks       => Skill.Internal.Parts.Blocks_P.Empty_Vector,
            Fixed        => False,
            Cached_Size  => 0,
-           Static_Data  => A1.Empty_Vector,
-           New_Objects  => A1.Empty_Vector);
+           Book         => <>,
+           Static_Data_Instances => 0,
+           New_Objects  => New_Objects_P.Empty_Vector);
 
       return Convert (This);
    exception
@@ -106,7 +107,7 @@ package body Skill.Types.Pools.Sub is
       This.Data_Fields_F.Foreach (Delete'Access);
       This.Data_Fields_F.Free;
       This.Blocks.Free;
-      This.Static_Data.Free;
+      This.Book.Free;
       This.New_Objects.Free;
       Delete (D);
    end Free;
@@ -123,18 +124,42 @@ package body Skill.Types.Pools.Sub is
    end Add_Field;
 
    overriding procedure Resize_Pool (This : access Pool_T) is
+      ID   : Skill_ID_T := 1 + Skill_ID_T (This.Blocks.Last_Element.BPO);
+      Last : Skill_ID_T := ID - 1 + Natural (This.Blocks.Last_Element.Count);
+      Size : Natural;
+
+      Data : Skill.Types.Annotation_Array;
+
+      SD : Book_P.Page;
+      R  : P;
+
+
+      procedure Max_BPO (P : Pools.Sub_Pool) is
+         Tmp_Bpo : Skill_ID_T := Skill_ID_T(P.Blocks.Last_Element.BPO);
+      begin
+         if (ID - 2) < Tmp_Bpo and then Tmp_Bpo < Last then
+            Last := Tmp_Bpo;
+         end if;
+      end Max_BPO;
+
+      use Interfaces;
    begin
-      null;
+      Data := This.Base.Data;
+
+      This.Sub_Pools.Foreach (Max_BPO'Access);
+
+      Size := (Last - Id) + 1;
+
+      SD := This.Book.Make_Page(Size);
+
+      -- set skill IDs and insert into data
+      for I in SD'Range loop
+         R          := SD (I)'access;
+         R.Skill_ID := ID;
+         Data (ID)  := R.To_Annotation;
+         ID         := ID + 1;
+      end loop;
    end Resize_Pool;
-
-   overriding function Static_Size (This : access Pool_T) return Natural is
-   begin
-      return Natural (This.Static_Data.Length) +
-        Natural (This.New_Objects.Length);
-   end Static_Size;
-
-   overriding function New_Objects_Size (This : access Pool_T) return Natural is
-     (This.New_Objects.Length);
 
    function Offset_Box
      (This   : access Pool_T;

@@ -17,11 +17,12 @@ with Skill.Streams.Reader;
 with Skill.Streams.Writer;
 with Skill.Types.Pools;
 with Skill.Types;
+with Skill.Books;
 
 -- generic sub pool packages
 generic
    type T is new Skill_Object with private;
-   type P is access T;
+   type P is access all t;
 
    with function To_P (This : Annotation) return P;
 
@@ -63,14 +64,6 @@ package Skill.Types.Pools.Sub is
 
    overriding procedure Resize_Pool (This : access Pool_T);
 
-   overriding function Static_Size (This : access Pool_T) return Natural;
-
-   overriding function New_Objects_Size (This : access Pool_T) return Natural;
-
-   -- applies F for each element in this
-   --        procedure Foreach
-   --          (This : access Pool_T;
-   --           F    : access procedure (I : Age));
 
    function Make_Sub_Pool
      (This : access Pool_T;
@@ -116,12 +109,10 @@ package Skill.Types.Pools.Sub is
      (This.To_Pool.Super.Dynamic.Content_Tag);
 private
 
-   package A1 is new Containers.Vectors (Natural, P);
-   subtype Instance_Vector is A1.Vector;
+   package Book_P is new Skill.Books(T, P);
 
    type Pool_T is new Sub_Pool_T with record
-      Static_Data : Instance_Vector;
-      New_Objects : Instance_Vector;
+      Book : aliased Book_P.Book;
    end record;
 
 end Skill.Types.Pools.Sub;
