@@ -19,6 +19,8 @@ with Skill.String_Pools;
 with Skill.Types.Pools;
 with Skill.Tasks;
 
+with Skill.Iterators.Type_Order;
+
 -- documentation can be found in java common
 -- this is a combination of serialization functions, write and append
 package body Skill.Internal.File_Writers is
@@ -221,20 +223,17 @@ package body Skill.Internal.File_Writers is
          procedure Add (This : Skill.Types.Pools.Pool) is
 
             procedure Add_Field (F : Field_Declarations.Field_Declaration) is
-
-               procedure Add_String (I : Types.Annotation) is
-                  use type Types.Annotation;
-               begin
-                  Strings.Add
-                  (Field_Types.Builtin.String_Type_P.Unboxed
-                     (I.Dynamic.Reflective_Get (F)));
-               end Add_String;
-
+               Iter : aliased Skill.Iterators.Type_Order.Iterator;
             begin
                Strings.Add (F.Name);
                -- add string data
                if F.T.ID = 14 then
-                  This.Do_In_Type_Order (Add_String'Access);
+                  Iter.Init(This);
+                  while Iter.Has_Next loop
+                     Strings.Add
+                       (Field_Types.Builtin.String_Type_P.Unboxed
+                          (Iter.Next.Dynamic.Reflective_Get (F)));
+                  end loop;
                end if;
             end Add_Field;
          begin
@@ -638,18 +637,17 @@ package body Skill.Internal.File_Writers is
          procedure Add (This : Skill.Types.Pools.Pool) is
 
             procedure Add_Field (F : Field_Declarations.Field_Declaration) is
-
-               procedure Add_String (I : Types.Annotation) is
-               begin
-                  Strings.Add
-                  (Field_Types.Builtin.String_Type_P.Unboxed
-                     (I.Dynamic.Reflective_Get (F)));
-               end Add_String;
+               Iter : aliased Skill.Iterators.Type_Order.Iterator;
             begin
                Strings.Add (F.Name);
                -- add string data
                if F.T.ID = 14 then
-                  This.Do_In_Type_Order (Add_String'Access);
+                  Iter.Init(This);
+                  while Iter.Has_Next loop
+                     Strings.Add
+                       (Field_Types.Builtin.String_Type_P.Unboxed
+                          (Iter.Next.Dynamic.Reflective_Get (F)));
+                  end loop;
                end if;
             end Add_Field;
          begin
