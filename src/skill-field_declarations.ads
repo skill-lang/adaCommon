@@ -92,7 +92,7 @@ package Skill.Field_Declarations is
    -- offset calculation as preparation of writing data belonging to the
    -- owners last block
    procedure Offset (This : access Field_Declaration_T) is abstract;
-   procedure Offset (This : access Lazy_Field_T) is null;
+   procedure Offset (This : access Lazy_Field_T);
    procedure Offset (This : access Auto_Field_T) is null;
 
    -- write data into a map at the end of a write/append operation
@@ -104,7 +104,7 @@ package Skill.Field_Declarations is
       Output : Streams.Writer.Sub_Stream) is abstract;
    procedure Write
      (This   : access Lazy_Field_T;
-      Output : Streams.Writer.Sub_Stream) is null;
+      Output : Streams.Writer.Sub_Stream);
    procedure Write
      (This   : access Auto_Field_T;
       Output : Streams.Writer.Sub_Stream) is null;

@@ -151,6 +151,37 @@ package body Skill.Field_Declarations is
       This.Parts.Append(Ce);
    end;
 
+   procedure Offset (This : access Lazy_Field_T) is
+      use type Skill.Types.v64;
+      use type Skill.Types.Uv64;
+
+      Rang   : constant Skill.Internal.Parts.Block := This.Owner.Blocks.Last_Element;
+      Data   : constant Skill.Types.Annotation_Array := This.Owner.Base.Data;
+      Result : Skill.Types.v64              := 0;
+      Low    : constant Natural             := Natural (Rang.BPO);
+      High   : constant Natural             := Natural (Rang.BPO + Rang.Dynamic_Count);
+   begin
+      This.Ensure_Is_Loaded;
+      for I in Low + 1 .. High loop
+         Result := Result + This.T.Offset_Box(This.Data(Data(I)));
+      end loop;
+      This.Future_Offset := Result;
+   end;
+
+   procedure Write
+     (This   : access Lazy_Field_T;
+      Output : Streams.Writer.Sub_Stream)
+   is
+      Rang   : constant Skill.Internal.Parts.Block := This.Owner.Blocks.Last_Element;
+      Data   : constant Skill.Types.Annotation_Array := This.Owner.Base.Data;
+      Low    : constant Natural             := Natural (Rang.BPO);
+      High   : constant Natural             := Natural (Rang.BPO + Rang.Dynamic_Count);
+   begin
+      for I in Low + 1 .. High loop
+         This.T.Write_Box (Output, This.Data (Data (I)));
+      end loop;
+   end Write;
+
    procedure Free (This : access Lazy_Field_T) is
       type T is access all Lazy_Field_T;
       procedure Delete is new Ada.Unchecked_Deallocation (Lazy_Field_T, T);
