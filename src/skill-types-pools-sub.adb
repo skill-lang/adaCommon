@@ -54,7 +54,7 @@ package body Skill.Types.Pools.Sub is
    is
       function Convert is new Ada.Unchecked_Conversion
         (Source => Pool,
-         Target => Skill.Types.Pools.Base_Pool);
+         Target => Skill.Types.Pools.Sub_Pool);
       function Convert is new Ada.Unchecked_Conversion
         (Source => Pool,
          Target => Skill.Types.Pools.Pool);
@@ -81,6 +81,7 @@ package body Skill.Types.Pools.Sub is
            Static_Data_Instances => 0,
            New_Objects           => New_Objects_P.Empty_Vector);
 
+      This.Super.Sub_Pools.Append (Convert (This));
       return Convert (This);
    exception
       when E : others =>

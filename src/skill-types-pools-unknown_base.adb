@@ -138,8 +138,7 @@ package body Skill.Types.Pools.Unknown_Base is
 
    procedure Resize_Pool (This : access Pool_T) is
       ID   : Skill_ID_T := 1 + Skill_ID_T (This.Blocks.Last_Element.BPO);
-      Last : Skill_ID_T := ID - 1 + This.Blocks.Last_Element.Static_Count;
-      Size : Skill_ID_T := (Last - Id) + 1;
+      Size : Skill_ID_T := This.Blocks.Last_Element.Static_Count;
 
       Data : Skill.Types.Annotation_Array;
 
