@@ -6,6 +6,7 @@
 
 with Ada.Containers.Vectors;
 
+with Skill.Field_Restrictions;
 with Skill.Field_Types;
 limited with Skill.Field_Types.Builtin;
 limited with Skill.Field_Types.Builtin.String_Type_P;
@@ -123,20 +124,26 @@ package Skill.Types.Pools is
 
    -- internal use only
    function Add_Field
-     (This : access Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+     (This         : access Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration;
    function Add_Field
-     (This : access Base_Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+     (This         : access Base_Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration;
    function Add_Field
-     (This : access Sub_Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+     (This         : access Sub_Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration;
 
    function Known_Fields
      (This : access Pool_T'Class) return String_Access_Array_Access;

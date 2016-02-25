@@ -5,6 +5,7 @@
 --                                                                            --
 
 with Skill.Field_Types;
+with Skill.Field_Restrictions;
 with Skill.Internal.Parts;
 with Skill.Streams.Reader;
 with Skill.Streams.Writer;
@@ -13,6 +14,8 @@ with Skill.Containers.Vectors;
 limited with Skill.Types.Pools;
 with Skill.Types;
 with Ada.Containers.Hashed_Maps;
+with Ada.Unchecked_Conversion;
+with Ada.Containers.Vectors;
 
 package Skill.Field_Declarations is
 --     pragma Preelaborate;
@@ -34,13 +37,16 @@ package Skill.Field_Declarations is
       Index       : Natural;
       Owner       : Owner_T;
 
+      -- runtime restrictions
+      Restrictions : Field_Restrictions.Vector;
+
    -- used for offset calculation
    -- note: ada has no futures, thus we will store the value in the field and
    -- synchronize over a barrier
       Future_Offset : Types.v64;
    end record;
    -- can not be not null, because we need to store them in arrays :-/
-   type Field_Declaration is access Field_Declaration_T'Class;
+   type Field_Declaration is access all Field_Declaration_T'Class;
    function Hash (This : Field_Declaration) return Ada.Containers.Hash_Type;
 
    use type Internal.Parts.Chunk;
@@ -71,7 +77,7 @@ package Skill.Field_Declarations is
      (This : access Field_Declaration_T'Class) return Types.Pools.Pool;
 
    -- @return ∀ r € restrictinos, i € owner. r.check(i)
-   function Check (This : access Field_Declaration_T) return Boolean is abstract;
+   function Check (This : access Field_Declaration_T) return Boolean;
    function Check (This : access Lazy_Field_T) return Boolean;
    function Check (This : access Auto_Field_T) return Boolean is (True);
 
@@ -79,7 +85,8 @@ package Skill.Field_Declarations is
    procedure Read
      (This : access Field_Declaration_T;
       CE   : Chunk_Entry) is abstract;
-   procedure Read (This : access Lazy_Field_T; CE : Chunk_Entry) is null;
+
+   procedure Read (This : access Lazy_Field_T; CE : Chunk_Entry);
    procedure Read (This : access Auto_Field_T; CE : Chunk_Entry) is null;
 
    -- offset calculation as preparation of writing data belonging to the
@@ -122,17 +129,46 @@ package Skill.Field_Declarations is
      (Owner : Owner_T;
       ID    : Natural;
       T     : Field_Types.Field_Type;
-      Name  : Skill.Types.String_Access) return Lazy_Field;
+      Name  : Skill.Types.String_Access;
+      Restrictions : Field_Restrictions.Vector) return Lazy_Field;
+
+   procedure Ensure_Is_Loaded (This : access Lazy_Field_T);
 
    procedure Free (This : access Field_Declaration_T) is abstract;
    procedure Free (This : access Lazy_Field_T);
    procedure Free (This : access Auto_Field_T) is null;
 
 private
+   pragma Warnings (Off);
+   function Hash is new Ada.Unchecked_Conversion(Internal.Parts.Chunk,
+                                                 Ada.Containers.Hash_Type);
+   use type Streams.Reader.Sub_Stream;
+   package Part_P is new Ada.Containers.Vectors(Natural, Chunk_Entry);
+
+   function Hash is new Ada.Unchecked_Conversion(Types.Annotation,
+                                                 Ada.Containers.Hash_Type);
+   use type Types.Box;
+   use type Types.Annotation;
+   package Data_P is new Ada.Containers.Hashed_Maps(Types.Annotation, Types.Box,
+                                                   Hash, "=", "=");
 
    type Lazy_Field_T is new Field_Declaration_T with record
-      null;
+      -- data held as in storage pools
+      -- @note see paper notes for O(1) implementation
+      -- @note in contrast to all other implementations, we deliberately wast
+      -- time and space, because it is the only implementation that will make it
+      -- through the compiler without me jumping out of the window trying to
+      -- find an efficient workaround
+      Data : Data_P.Map; -- Sparse Array[T]()
+
+      -- pending parts that have to be loaded
+      Parts : Part_P.Vector;
    end record;
+
+   function Is_Loaded (This : access Lazy_Field_T'Class) return Boolean is
+     (This.Parts.Is_Empty);
+
+   procedure Load (This : access Lazy_Field_T'Class);
 
    type Auto_Field_T is new Field_Declaration_T with record
       null;

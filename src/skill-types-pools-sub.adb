@@ -114,11 +114,12 @@ package body Skill.Types.Pools.Sub is
      (This : access Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+      Name : String_Access;
+      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
    is
       type Super is access all Sub_Pool_T;
    begin
-      return Super (This).Add_Field (ID, T, Name);
+      return Super (This).Add_Field (ID, T, Name, Restrictions);
    end Add_Field;
 
    overriding procedure Resize_Pool (This : access Pool_T) is

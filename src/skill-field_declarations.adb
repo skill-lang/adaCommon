@@ -4,8 +4,10 @@
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
 
+with Skill.Errors;
 with Skill.Field_Types;
 with Skill.Internal.Parts;
+with Skill.Iterators.Type_Order;
 with Interfaces;
 with Skill.Types.Pools;
 with Ada.Unchecked_Conversion;
@@ -38,9 +40,48 @@ package body Skill.Field_Declarations is
       return Convert (This.Owner);
    end Owner;
 
-   function Check (This : access Lazy_Field_T) return Boolean is
+   function Check (This : access Field_Declaration_T) return Boolean is
+      Iter : aliased Skill.Iterators.Type_Order.Iterator;
+      RC : Skill.Field_Restrictions.Checkable;
    begin
-      -- TODO
+      if This.Restrictions.Is_Empty then
+         return True;
+      end if;
+      for R of This.Restrictions loop
+         if R.all in Skill.Field_Restrictions.Checkable_T'Class then
+            RC := Skill.Field_Restrictions.Checkable(R);
+            Iter.Init (This.Owner.To_Pool);
+            while Iter.Has_Next loop
+               if not RC.Check (Iter.Next.Reflective_Get
+                  (Skill.Field_Declarations.Field_Declaration (This))) then
+                  return false;
+               end if;
+            end loop;
+         end if;
+      end loop;
+      return True;
+   end Check;
+
+
+   function Check (This : access Lazy_Field_T) return Boolean is
+      Iter : aliased Skill.Iterators.Type_Order.Iterator;
+      RC : Skill.Field_Restrictions.Checkable;
+   begin
+      if This.Restrictions.Is_Empty then
+         return True;
+      end if;
+      This.Ensure_Is_Loaded;
+      for R of This.Restrictions loop
+         if R.all in Skill.Field_Restrictions.Checkable_T'Class then
+            RC := Skill.Field_Restrictions.Checkable(R);
+            Iter.Init (This.Owner.To_Pool);
+            while Iter.Has_Next loop
+               if not RC.Check (This.Data.Element(Iter.Next)) then
+                  return false;
+               end if;
+            end loop;
+         end if;
+      end loop;
       return True;
    end Check;
 
@@ -82,7 +123,8 @@ package body Skill.Field_Declarations is
      (Owner : Owner_T;
       ID    : Natural;
       T     : Field_Types.Field_Type;
-      Name  : Skill.Types.String_Access) return Lazy_Field
+      Name  : Skill.Types.String_Access;
+      Restrictions : Field_Restrictions.Vector) return Lazy_Field
    is
    begin
       return new Lazy_Field_T'
@@ -91,8 +133,23 @@ package body Skill.Field_Declarations is
            Name          => Name,
            Index         => ID,
            Owner         => Owner,
-           Future_Offset => 0);
+           Future_Offset => 0,
+           Restrictions => Restrictions,
+           Data => Data_P.Empty_Map,
+          Parts => Part_P.Empty_Vector);
    end Make_Lazy_Field;
+
+   procedure Ensure_Is_Loaded (This : access Lazy_Field_T) is
+   begin
+      if not This.Is_Loaded then
+         This.Load;
+      end if;
+   end Ensure_Is_Loaded;
+
+   procedure Read (This : access Lazy_Field_T; CE : Chunk_Entry) is
+   begin
+      This.Parts.Append(Ce);
+   end;
 
    procedure Free (This : access Lazy_Field_T) is
       type T is access all Lazy_Field_T;
@@ -103,5 +160,33 @@ package body Skill.Field_Declarations is
       This.Data_Chunks.Free;
       Delete (D);
    end Free;
+
+
+   procedure Load (This : access Lazy_Field_T'Class) is
+      D : Types.Annotation_Array := This.Owner.Base.Data;
+      B : Internal.Parts.Block;
+   begin
+      for Ce of This.Parts loop
+         if Ce.C.all in Skill.Internal.Parts.Simple_Chunk then
+            for I in Skill.Internal.Parts.Simple_Chunk_X(Ce.C).Bpo + 1
+              .. Skill.Internal.Parts.Simple_Chunk_X(Ce.C).BPO + Ce.C.Count loop
+               This.Data.Include(D(I), This.T.Read_Box(Ce.Input));
+            end loop;
+         else
+            --case bci : BulkChunk ⇒
+            for I in 0 .. Skill.Internal.Parts.Bulk_Chunk_X(Ce.C).Block_Count - 1 loop
+               B := This.Owner.Blocks.Element(I);
+               for I in B.Bpo + 1 .. B.Bpo + B.Dynamic_Count loop
+                  This.Data.Include(D(I), This.T.Read_Box(Ce.Input));
+               end loop;
+            end loop;
+         end if;
+      end loop;
+      This.Parts.Clear;
+   exception
+      when E : others =>
+         raise Skill.Errors.Skill_Error
+         with "failed to parse lazy field";
+   end;
 
 end Skill.Field_Declarations;

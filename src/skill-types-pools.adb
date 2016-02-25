@@ -168,7 +168,8 @@ package body Skill.Types.Pools is
      (This : access Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+      Name : String_Access;
+      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
 
    is
       function Convert is new Ada.Unchecked_Conversion
@@ -183,13 +184,9 @@ package body Skill.Types.Pools is
         Convert
           (Skill.Field_Declarations.Make_Lazy_Field
              (Convert (P (This)),
-              ID,
-              T,
-              Name));
+              ID, T, Name, Restrictions));
    begin
-      -- TODO restrictions
-      --          for (FieldRestriction<?> r : restrictions)
-      --              f.addRestriction(r);
+      F.Restrictions := Restrictions;
       This.Data_Fields.Append (F);
 
       return F;
@@ -199,26 +196,28 @@ package body Skill.Types.Pools is
      (This : access Base_Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+      Name : String_Access;
+      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
    is
 
       type P is access all Pool_T;
       function Convert is new Ada.Unchecked_Conversion (P, Pool);
    begin
-      return Convert (P (This)).Add_Field (ID, T, Name);
+      return Convert (P (This)).Add_Field (ID, T, Name, Restrictions);
    end Add_Field;
 
    function Add_Field
      (This : access Sub_Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration
+      Name : String_Access;
+      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
    is
 
       type P is access all Pool_T;
       function Convert is new Ada.Unchecked_Conversion (P, Pool);
    begin
-      return Convert (P (This)).Add_Field (ID, T, Name);
+      return Convert (P (This)).Add_Field (ID, T, Name, Restrictions);
    end Add_Field;
 
    function Pool_Offset (This : access Pool_T'Class) return Integer is

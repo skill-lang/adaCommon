@@ -23,9 +23,10 @@ with Skill.Types.Pools;
 with Skill.Internal.Parts;
 with Skill.Hashes;
 with Skill.Equals;
+with Skill.Field_Declarations;
+with Skill.Field_Restrictions;
 with Skill.Field_Types;
 with Skill.Field_Types.Builtin;
-with Skill.Field_Declarations;
 
 -- documentation can be found in java common
 package body Skill.Internal.File_Parsers is
@@ -387,17 +388,21 @@ package body Skill.Internal.File_Parsers is
                         Field_Name : Types.String_Access := Strings.Get
                           (Input.V64);
                         T          : Field_Types.Field_Type;
+                        Restrictions : Field_Restrictions.Vector;
 
-                        procedure Field_Restriction is
+                        function Field_Restriction return Field_Restrictions.Vector
+                        Is
                            Count : Types.v64 := Input.V64;
                            Id    : Types.V64;
+                           Rval : Field_Restrictions.Vector :=
+                                    Field_Restrictions.Vector_P.Empty_Vector;
                         begin
                            for I in 1 .. Count loop
                               Id := Input.V64;
                               case Id is
                                  when 0 =>
                                     -- nonnull
-                                    null;
+                                    Rval.Append (Field_Restrictions.Nonnull);
 
                                  when 1 =>
                                     -- default
@@ -410,11 +415,12 @@ package body Skill.Internal.File_Parsers is
 
                                  when 5 =>
                                     -- coding
-                                    ID := Input.V64;
+                                    Rval.Append (new Field_Restrictions.Coding_T'(
+                                                Name => Strings.Get(Input.V64)));
 
                                  when 7 =>
-                                    -- CLP
-                                    null;
+                                    Rval.Append
+                                      (Field_Restrictions.Constant_Length_Pointer);
 
                                  when 9 =>
                                     -- one of
@@ -437,7 +443,7 @@ package body Skill.Internal.File_Parsers is
                               end case;
                            end loop;
 
-                           -- TODO results!!
+                           return Rval;
                         end Field_Restriction;
                      begin
                         if null = Field_Name then
@@ -448,13 +454,13 @@ package body Skill.Internal.File_Parsers is
                         end if;
 
                         T := Parse_Field_Type;
-                        Field_Restriction;
+                        Restrictions := Field_Restriction;
                         End_Offset := Input.V64;
 
                         declare
                            -- TODO restrictions
                            F : Field_Declarations.Field_Declaration :=
-                                 E.Pool.Add_Field (ID, T, Field_Name);
+                                 E.Pool.Add_Field (ID, T, Field_Name, Restrictions);
                         begin
                            F.Add_Chunk
                              (new Internal.Parts.Bulk_Chunk'

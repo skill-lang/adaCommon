@@ -47,7 +47,8 @@ package Skill.Types.Pools.Unknown_Base is
      (This : access Pool_T;
       ID   : Natural;
       T    : Field_Types.Field_Type;
-      Name : String_Access) return Skill.Field_Declarations.Field_Declaration;
+      Name : String_Access;
+      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration;
 
    procedure Add_Known_Field
      (This            : access Pool_T;
