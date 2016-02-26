@@ -317,7 +317,7 @@ package body Skill.String_Pools is
                Offsets.I32 (Off);
             end Put;
          begin
-            This.Id_Map.Foreach (Put'Access);
+            Todo.Foreach (Put'Access);
             Output.End_Block_Map;
          end;
       end if;
