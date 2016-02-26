@@ -83,7 +83,7 @@ package body Skill.Files is
 
          when Destroyed =>
             raise Skill.Errors.Skill_Error
-              with "state gets destroyed after first flush. I could fix this if you gave me 1m$.";
+              with "you cannot flush a destroyed state";
       end case;
 
       This.Mode := Destroyed;
