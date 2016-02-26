@@ -153,9 +153,16 @@ package body Skill.Types.Pools.Sub is
 
    function Offset_Box
      (This   : access Pool_T;
-      Target : Types.Box) return Types.v64 is
-     (Field_Types.Builtin.Offset_Single_V64
-        (Types.v64 (Unboxed (Target).Skill_ID)));
+      Target : Types.Box) return Types.v64
+   is
+   begin
+      if null = Unboxed (Target) then
+         return 1;
+      else
+      return Field_Types.Builtin.Offset_Single_V64
+           (Types.v64 (Unboxed (Target).Skill_ID));
+      end if;
+   end;
 
    procedure Write_Box
      (This   : access Pool_T;
