@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     file partitioning info                              --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Containers.Vectors;
 

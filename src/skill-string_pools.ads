@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     string pool management                              --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Containers.Hashed_Sets;
 with Interfaces;

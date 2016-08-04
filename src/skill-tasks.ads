@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     tasks package                                       --
 -- |___/_|\_\_|_|____|    by: Dennis Przytarski                               --
 --                                                                            --
+pragma Ada_2012;
 
 --  usage:
 --  X : Run (Some_Procedure'Access);

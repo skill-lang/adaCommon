@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     iterator over types                                 --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 with Skill.Internal.Parts;
 
 package body Skill.Iterators.Dynamic_New_Instances is

@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     synchronization in skill                            --
 -- |___/_|\_\_|_|____|    by: Dennis Przytarski, Timm Felden                  --
 --                                                                            --
+pragma Ada_2012;
 
 package Skill.Synchronization is
 

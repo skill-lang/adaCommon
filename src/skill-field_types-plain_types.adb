@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     implementation of builtin field types               --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 with Ada.Containers;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;

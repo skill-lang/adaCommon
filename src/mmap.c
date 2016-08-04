@@ -18,7 +18,7 @@ typedef struct {
    unsigned char const *pointer;
 } mmap_read_record;
 
-mmap_read_record error(char const *message)
+mmap_read_record skill_error(char const *message)
 {
   fprintf(stderr, "mmap.c: %s\n errno was: %s\n", message, strerror(errno));
   mmap_read_record const rval = { NULL, 0, NULL };
@@ -30,12 +30,12 @@ mmap_read_record mmap_read(char const *filename)
   FILE *stream = fopen(filename, "r");
   if(NULL == stream){
     fprintf(stderr, "could not open file at \"%s\"\n", filename);
-    return error("Execution of function fopen failed.");
+    return skill_error("Execution of function fopen failed.");
   }
 
   struct stat fileStat;
   if(-1 == fstat(fileno(stream), &fileStat))
-    return error("Execution of function fstat failed.");
+    return skill_error("Execution of function fstat failed.");
 
   size_t const length = fileStat.st_size;
 
@@ -47,10 +47,10 @@ mmap_read_record mmap_read(char const *filename)
   void *mapped = mmap(NULL, length, PROT_READ, MAP_SHARED, fileno(stream), 0);
 
   if(MAP_FAILED == mapped)
-    return error("Execution of function mmap failed.");
+    return skill_error("Execution of function mmap failed.");
 
   if (-1 == posix_madvise(mapped, length, MADV_WILLNEED))
-    return error("Execution of function madvise failed.");
+    return skill_error("Execution of function madvise failed.");
 
   mmap_read_record const rval = { stream, length, mapped };
   return rval;

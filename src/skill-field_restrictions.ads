@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     runtime field restriction handling                  --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Containers.Vectors;
 with Ada.Unchecked_Conversion;

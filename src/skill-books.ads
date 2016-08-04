@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     memory manager for ada ported from c++ skill        --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Skill.Containers.Vectors;
 

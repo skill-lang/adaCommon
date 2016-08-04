@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     stream to skill tokens                              --
 -- |___/_|\_\_|_|____|    by: Timm Felden, Dennis Przytarski                  --
 --                                                                            --
+pragma Ada_2012;
 
 with Interfaces.C;
 with Interfaces.C.Pointers;

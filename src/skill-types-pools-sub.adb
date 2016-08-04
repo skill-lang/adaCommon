@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     unknown base pools                                  --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;

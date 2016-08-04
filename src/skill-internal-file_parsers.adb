@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     file parser implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;

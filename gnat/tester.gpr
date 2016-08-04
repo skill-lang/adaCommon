@@ -27,7 +27,7 @@ Project Tester is
             for Default_Switches ("Ada") use ("-j0", "-gnat2012");
             for Executable ("tester.adb") use "debug";
          when "release" =>
-            for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2012");
+            for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2005");
             for Executable ("tester.adb") use "release";
       end case;
    end Builder;

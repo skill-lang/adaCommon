@@ -29,7 +29,7 @@ library Project Skill_Common is
          when "debug" =>
             for Default_Switches ("Ada") use ("-g", "-j0", "-gnat2012");
          when "release" =>
-            for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2012");
+            for Default_Switches ("Ada") use ("-j0", "-gnatn", "-gnatN", "-gnatp", "-gnat2005");
       end case;
    end Builder;
 

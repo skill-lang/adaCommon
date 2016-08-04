@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     file writer implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Skill.Files;
 with Skill.Streams.Writer;

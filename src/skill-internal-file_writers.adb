@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     file writer implementation                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 with Ada.Text_IO;
 with Ada.Unchecked_Conversion;
 

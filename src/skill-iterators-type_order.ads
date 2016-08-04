@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     iterator over all instances                         --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 with Skill.Types;
 with Skill.Types.Pools;

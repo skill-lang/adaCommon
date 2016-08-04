@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     iterator over types                                 --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 package body Skill.Iterators.Type_Hierarchy_Iterator is
 

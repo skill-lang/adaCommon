@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     top level iterator package                          --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 package Skill.Iterators is
    pragma Pure;

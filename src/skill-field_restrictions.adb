@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     runtime field restriction handling                  --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 package body Skill.Field_Restrictions is
 

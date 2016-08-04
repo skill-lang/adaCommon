@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     skill containers collection                         --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 limited with Skill.Types;
 

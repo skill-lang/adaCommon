@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     Iterators for SKilL API                             --
 -- |___/_|\_\_|_|____|    by: Timm Felden                                     --
 --                                                                            --
+pragma Ada_2012;
 
 generic
    type T is private;

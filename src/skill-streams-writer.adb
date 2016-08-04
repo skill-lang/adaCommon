@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     stream to skill tokens                              --
 -- |___/_|\_\_|_|____|    by: Timm Felden, Dennis Przytarski                  --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Conversion;

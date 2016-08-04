@@ -3,6 +3,7 @@
 -- \__ \ ' <| | | |__     skills vector container implementation              --
 -- |___/_|\_\_|_|____|    by: Dennis Przytarski, Timm Felden                  --
 --                                                                            --
+pragma Ada_2012;
 
 with Ada.Unchecked_Deallocation;
 
