@@ -27,8 +27,19 @@ package Skill.Containers.Arrays is
    type Array_T is new Boxed_Array_T with record
       This : Vec.Vector;
    end record;
-
    type Ref is access Array_T;
+
+   type Iterator_T is new Array_Iterator_T with record
+      This : Vec.Vector;
+      Cursor : Natural;
+   end record;
+
+   function Has_Next (This : access Iterator_T) return Boolean is
+     (This.This.Check_Index (This.Cursor));
+
+   function Next (This : access Iterator_T) return Skill.Types.Box;
+
+   procedure Free (This : access Iterator_T);
 
    procedure Append (This : access Array_T; V : Box);
    procedure Add (This : access Array_T; V : Box);
@@ -44,6 +55,10 @@ package Skill.Containers.Arrays is
    function Length
      (This : access Array_T) return Natural is
      (Vec.Length (This.This));
+
+   overriding
+   function Iterator (This : access Array_T) return Array_Iterator is
+      (new Iterator_T'(This => This.This, Cursor => 0));
 
    -- create a new container
    function Make return Ref;

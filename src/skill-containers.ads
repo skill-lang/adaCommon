@@ -10,6 +10,15 @@ limited with Skill.Types;
 -- this packe solves most of ada container's shortcomings
 package Skill.Containers is
 
+   -- boxed array access
+   type Array_Iterator_T is abstract tagged null record;
+   type Array_Iterator is access all Array_Iterator_T'Class;
+
+   function Has_Next (This : access Array_Iterator_T) return Boolean is abstract;
+   function Next
+     (This : access Array_Iterator_T) return Skill.Types.Box is abstract;
+   procedure Free (This : access Array_Iterator_T) is abstract;
+
    -- dispatching arrays
    type Boxed_Array_T is abstract tagged null record;
    type Boxed_Array is access all Boxed_Array_T'Class;
@@ -29,10 +38,13 @@ package Skill.Containers is
       I    : Natural;
       V    : Skill.Types.Box) is abstract;
 
-   function Length (This : access Boxed_Array_T) return Natural is abstract;
    procedure Ensure_Size
      (This : access Boxed_Array_T;
       I    : Natural) is abstract;
+
+   function Length (This : access Boxed_Array_T) return Natural is abstract;
+   function Iterator
+     (This : access Boxed_Array_T) return Array_Iterator is abstract;
 
    -- boxed set access
    type Set_Iterator_T is abstract tagged null record;

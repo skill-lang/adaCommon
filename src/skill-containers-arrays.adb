@@ -4,8 +4,24 @@
 -- |___/_|\_\_|_|____|    by: Dennis Przytarski, Timm Felden                  --
 --                                                                            --
 pragma Ada_2012;
+with Ada.Unchecked_Deallocation;
 
 package body Skill.Containers.Arrays is
+
+   function Next (This : access Iterator_T) return Skill.Types.Box is
+      Result : Skill.Types.Box := Cast (This.This.Element (This.Cursor));
+   begin
+      This.Cursor := This.Cursor + 1;
+      return Result;
+   end Next;
+
+   procedure Free (This : access Iterator_T) is
+      type T is access all Iterator_T;
+      X : T := T (This);
+      procedure Delete is new Ada.Unchecked_Deallocation (Iterator_T, T);
+   begin
+      Delete (X);
+   end Free;
 
    procedure Append (This : access Array_T; V : Box) is
    begin
