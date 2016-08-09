@@ -54,7 +54,7 @@ package body Skill.Field_Declarations is
             Iter.Init (This.Owner.To_Pool);
             while Iter.Has_Next loop
                if not RC.Check
-                 (Iter.Next.Reflective_Get
+                 (Iter.Next.Dynamic.Reflective_Get
                   (Skill.Field_Declarations.Field_Declaration (This)))
                then
                   return False;
