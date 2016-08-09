@@ -86,7 +86,7 @@ package Skill.Field_Types.Builtin is
       function Unboxed is new Ada.Unchecked_Conversion(Types.Box, Types.Annotation);
 
       overriding
-      function Read_Box(This : access Field_Type_T; Input : Streams.Reader.Sub_Stream) return Types.Box;
+      function Read_Box(This : access Field_Type_T; Input : Streams.Reader.Stream) return Types.Box;
 
       overriding
       function Offset_Box(This : access Field_Type_T; Target : Types.Box) return Types.V64;
@@ -176,7 +176,7 @@ package Skill.Field_Types.Builtin is
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+         Input : Streams.Reader.Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;
@@ -218,7 +218,7 @@ package Skill.Field_Types.Builtin is
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+         Input : Streams.Reader.Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;
@@ -259,7 +259,7 @@ package Skill.Field_Types.Builtin is
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+         Input : Streams.Reader.Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;
@@ -303,7 +303,7 @@ package Skill.Field_Types.Builtin is
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+         Input : Streams.Reader.Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;
@@ -349,7 +349,7 @@ package Skill.Field_Types.Builtin is
 
       function Read_Box
         (This : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box;
+         Input : Streams.Reader.Stream) return Types.Box;
 
       function Offset_Box
         (This : access Field_Type_T;

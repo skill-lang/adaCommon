@@ -206,7 +206,7 @@ package body Skill.Field_Declarations is
               Skill.Internal.Parts.Simple_Chunk_X (Ce.C).BPO + 1 ..
                   Skill.Internal.Parts.Simple_Chunk_X (Ce.C).BPO + Ce.C.Count
             loop
-               This.Data.Include (D (I), This.T.Read_Box (Ce.Input));
+               This.Data.Include (D (I), This.T.Read_Box (Ce.Input.To));
             end loop;
          else
             --case bci : BulkChunk ⇒
@@ -215,7 +215,7 @@ package body Skill.Field_Declarations is
             loop
                B := This.Owner.Blocks.Element (I);
                for I in B.BPO + 1 .. B.BPO + B.Dynamic_Count loop
-                  This.Data.Include (D (I), This.T.Read_Box (Ce.Input));
+                  This.Data.Include (D (I), This.T.Read_Box (Ce.Input.To));
                end loop;
             end loop;
          end if;

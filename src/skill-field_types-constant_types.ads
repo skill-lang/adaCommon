@@ -37,7 +37,7 @@ package Skill.Field_Types.Constant_Types is
       overriding
    function Read_Box
      (This : access Field_Type;
-      Input : Streams.Reader.Sub_Stream) return Types.Box;
+      Input : Streams.Reader.Stream) return Types.Box;
 
    overriding
    function Offset_Box

@@ -84,7 +84,7 @@ package Skill.Types.Pools.Unknown_Base is
 
    function Read_Box
      (This  : access Pool_T;
-      Input : Skill.Streams.Reader.Sub_Stream) return Types.Box is
+      Input : Skill.Streams.Reader.Stream) return Types.Box is
      (Boxed (This.Get (Skill_ID_T (Input.V64))));
 
    function Offset_Box

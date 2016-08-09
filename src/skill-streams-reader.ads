@@ -16,11 +16,16 @@ with Ada.Exceptions;
 package Skill.Streams.Reader is
 
    type Abstract_Stream is tagged private;
+   type Stream is access all Abstract_Stream'Class;
 
    type Input_Stream_T is new Abstract_Stream with private;
    type Input_Stream is not null access Skill.Streams.Reader.Input_Stream_T;
    type Sub_Stream_T is new Abstract_Stream with private;
    type Sub_Stream is access Sub_Stream_T;
+
+   -- type cast
+   function To (This : access Abstract_Stream'Class) return Stream is
+      (Stream(This));
 
    -- note an empty stream will be created if path is null
    function Open (Path : Skill.Types.String_Access) return Input_Stream;

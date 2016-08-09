@@ -397,6 +397,9 @@ package body Skill.Internal.File_Parsers is
                            Id    : Types.V64;
                            Rval : Field_Restrictions.Vector :=
                                     Field_Restrictions.Vector_P.Empty_Vector;
+
+                           B : Types.Box;
+                           L : Types.V64;
                         begin
                            for I in 1 .. Count loop
                               Id := Input.V64;
@@ -407,12 +410,19 @@ package body Skill.Internal.File_Parsers is
 
                                  when 1 =>
                                     -- default
+                                    if 5 = T.ID or else T.Id >= 32 then
+                                       -- via type ID
+                                       L := Input.V64;
+                                    else
+                                       -- via value
+                                       B := T.Read_Box (Input.To);
+                                    end if;
                                     null;
 
                                  when 3 =>
                                     -- range
-                                    ID := Input.V64;
-                                    ID := Input.V64;
+                                    B := T.Read_Box (Input.To);
+                                    B := T.Read_Box (Input.To);
 
                                  when 5 =>
                                     -- coding
@@ -425,7 +435,10 @@ package body Skill.Internal.File_Parsers is
 
                                  when 9 =>
                                     -- one of
-                                    null;
+                                    for I in 1 .. Input.V64 loop
+                                       -- type IDs
+                                       L := Input.V64;
+                                    end loop;
 
                                  when others =>
                                     if Id <= 9 or else 1 = (Id mod 2) then

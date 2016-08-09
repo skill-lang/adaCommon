@@ -19,7 +19,7 @@ package Skill.Field_Types is
 
    function Read_Box
      (This : access Field_Type_Base;
-      Input : Streams.Reader.Sub_Stream) return Types.Box is abstract;
+      Input : Streams.Reader.Stream) return Types.Box is abstract;
 
    function Offset_Box
      (This : access Field_Type_Base;

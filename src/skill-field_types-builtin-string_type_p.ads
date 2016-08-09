@@ -48,7 +48,7 @@ package Skill.Field_Types.Builtin.String_Type_P is
 
    function Read_Box
      (This : access Field_Type_T;
-      Input : Streams.Reader.Sub_Stream) return Types.Box is
+      Input : Streams.Reader.Stream) return Types.Box is
       (Boxed (This.Strings.Get (Input.V64)));
 
    function Offset_Box

@@ -79,7 +79,7 @@ package body Skill.Field_Types.Builtin is
 
       overriding function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
          T   : Types.v64 := Input.V64;
          Idx : Types.v64 := Input.V64;
@@ -165,7 +165,7 @@ package body Skill.Field_Types.Builtin is
 
       function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
 
          Count : Types.v64 := This.Length;
@@ -213,7 +213,7 @@ package body Skill.Field_Types.Builtin is
 
       function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
          Count : Types.v64 := Input.V64;
 
@@ -270,7 +270,7 @@ package body Skill.Field_Types.Builtin is
 
       function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
          Count : Types.v64 := Input.V64;
 
@@ -329,7 +329,7 @@ package body Skill.Field_Types.Builtin is
 
       function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
 
          Count : Types.v64 := Input.V64;
@@ -396,7 +396,7 @@ package body Skill.Field_Types.Builtin is
 
       function Read_Box
         (This  : access Field_Type_T;
-         Input : Streams.Reader.Sub_Stream) return Types.Box
+         Input : Streams.Reader.Stream) return Types.Box
       is
 
          Count : Types.v64 := Input.V64;

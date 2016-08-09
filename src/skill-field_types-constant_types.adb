@@ -20,7 +20,7 @@ package body Skill.Field_Types.Constant_Types is
 
    function Read_Box
      (This : access Field_Type;
-      Input : Streams.Reader.Sub_Stream) return Types.Box is
+      Input : Streams.Reader.Stream) return Types.Box is
 
       function Boxed is new Ada.Unchecked_Conversion(Types.Annotation, Types.Box);
    begin

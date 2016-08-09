@@ -47,7 +47,7 @@ package Skill.Field_Types.Plain_Types is
    overriding
    function Read_Box
      (This : access Field_Type;
-         Input : Streams.Reader.Sub_Stream) return Types.Box is
+         Input : Streams.Reader.Stream) return Types.Box is
      (Boxed(Read_Single(Input)));
 
    overriding
