@@ -39,6 +39,9 @@ package Skill.Containers.Vectors is
    -- apppends all elements stored in argument vector
    procedure Append_All (This : access Vector_T'Class; Other : Vector);
 
+   -- prepends all elements stored in argument vector
+   procedure Prepend_All (This : access Vector_T'Class; Other : Vector);
+
    -- remove the last element
    function Pop (This : access Vector_T'Class) return Element_Type;
 

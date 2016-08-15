@@ -39,6 +39,8 @@ package Skill.Containers.Arrays is
 
    function Next (This : access Iterator_T) return Skill.Types.Box;
 
+   procedure Free (This : access Array_T);
+
    procedure Free (This : access Iterator_T);
 
    procedure Append (This : access Array_T; V : Box);
@@ -47,6 +49,12 @@ package Skill.Containers.Arrays is
      (This : access Array_T;
       I    : Natural) return Box is
      (Cast (This.This.Element (I)));
+
+   -- append all elements of that to this
+   procedure Append_All(This : access Array_T; That : Ref);
+
+   -- prepend all elements of that to this
+   procedure Prepend_All(This : access Array_T; That : Ref);
 
    procedure Update (This : access Array_T; I : Natural; V : Box);
 

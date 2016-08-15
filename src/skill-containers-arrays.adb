@@ -15,6 +15,14 @@ package body Skill.Containers.Arrays is
       return Result;
    end Next;
 
+   procedure Free (This : access Array_T) is
+      type T is access all Array_T;
+      X : T := T (This);
+      procedure Delete is new Ada.Unchecked_Deallocation (Array_T, T);
+   begin
+      Delete (X);
+   end Free;
+
    procedure Free (This : access Iterator_T) is
       type T is access all Iterator_T;
       X : T := T (This);
@@ -32,6 +40,16 @@ package body Skill.Containers.Arrays is
    begin
       This.This.Append (Cast (V));
    end Add;
+
+   procedure Append_All(This : access Array_T; That : Ref) is
+   begin
+      This.This.Append_All (That.This);
+   end Append_All;
+
+   procedure Prepend_All(This : access Array_T; That : Ref) is
+   begin
+      This.This.Prepend_All (That.This);
+   end Prepend_All;
 
    procedure Update (This : access Array_T; I : Natural; V : Box) is
    begin

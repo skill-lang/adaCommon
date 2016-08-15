@@ -49,7 +49,7 @@ package body Skill.Containers.Vectors is
    is
    begin
 --        if not (Index_Type (This.Next_Index) < This.Data'Last) then
-         This.Ensure_Index (Index_Type (This.Next_Index));
+      This.Ensure_Index (Index_Type (This.Next_Index));
 --        end if;
       This.Append_Unsafe (New_Element);
    end Append;
@@ -75,6 +75,34 @@ package body Skill.Containers.Vectors is
          This.Append_Unsafe (Other.Data (I));
       end loop;
    end Append_All;
+
+   procedure Prepend_All (This : access Vector_T'Class; Other : Vector) is
+      I            : Index_Type;
+      Other_Length : Index_Type;
+   begin
+      if Other.Is_Empty then
+         return;
+      end if;
+
+      Other_Length := Index_Type (Other.Length);
+      I            := Index_Base (This.Next_Index) + Index_Base (Other_Length);
+      This.Ensure_Index (I);
+      This.Next_Index := I;
+
+      -- move elements from the back, so we can do it in one iteration
+      loop
+         I := I - 1;
+
+         if I - Other_Length >= Index_Type'First then
+            This.Data (I) := This.Data (I - Other_Length);
+         else
+            This.Data (I) := Other.Data (I);
+         end if;
+
+         exit when I = Index_Type'First;
+      end loop;
+
+   end Prepend_All;
 
    function Pop (This : access Vector_T'Class) return Element_Type is
    begin
@@ -107,9 +135,10 @@ package body Skill.Containers.Vectors is
       end if;
    end Last_Element;
 
-   -- returns the first element in the vector or raises constraint error if empty
-   function First_Element (This : access Vector_T'Class) return Element_Type is
-     (This.Data(Index_Type'First));
+-- returns the first element in the vector or raises constraint error if empty
+   function First_Element
+     (This : access Vector_T'Class) return Element_Type is
+     (This.Data (Index_Type'First));
 
    procedure Ensure_Index
      (This      : access Vector_T'Class;
