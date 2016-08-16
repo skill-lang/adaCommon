@@ -137,11 +137,11 @@ package body Skill.Containers.Vectors is
 
       -- move elements from the back, so we can do it in one iteration
       loop
+         exit when I - Index_Type (Count) = Index_Type'First;
+
          I := I - 1;
 
          This.Data (I) := This.Data (I - Index_Type (Count));
-
-         exit when I - Index_Type (Count) = Index_Type'First;
       end loop;
    end Prepend_Undefined;
 
