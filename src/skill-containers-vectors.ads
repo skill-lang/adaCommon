@@ -29,7 +29,9 @@ package Skill.Containers.Vectors is
       F    : not null access procedure (I : Element_Type));
 
    -- appends element to the vector
-   procedure Append (This : not null access Vector_T'Class; New_Element : Element_Type);
+   procedure Append
+     (This        : not null access Vector_T'Class;
+      New_Element : Element_Type);
 
 -- appends element to the vector and assumes that the vector has a spare slot
    procedure Append_Unsafe
@@ -42,6 +44,16 @@ package Skill.Containers.Vectors is
    -- prepends all elements stored in argument vector
    procedure Prepend_All (This : access Vector_T'Class; Other : Vector);
 
+   -- prepends a number of undefined elements to this vector
+   procedure Append_Undefined
+     (This  : access Vector_T'Class;
+      Count : Natural);
+
+   -- prepends a number of undefined elements to this vector
+   procedure Prepend_Undefined
+     (This  : access Vector_T'Class;
+      Count : Natural);
+
    -- remove the last element
    function Pop (This : access Vector_T'Class) return Element_Type;
 
@@ -51,14 +63,16 @@ package Skill.Containers.Vectors is
       Index : Index_Type) return Element_Type with
       Pre => Check_Index (This, Index);
 
-   -- returns the last element in the vector or raises constraint error if empty
+-- returns the last element in the vector or raises constraint error if empty
    function Last_Element (This : access Vector_T'Class) return Element_Type;
 
-   -- returns the first element in the vector or raises constraint error if empty
+-- returns the first element in the vector or raises constraint error if empty
    function First_Element (This : access Vector_T'Class) return Element_Type;
 
    -- ensures that an index can be allocated
-   procedure Ensure_Index (This : access Vector_T'Class; New_Index : Index_Type);
+   procedure Ensure_Index
+     (This      : access Vector_T'Class;
+      New_Index : Index_Type);
 
    -- allocates an index, filling previous elements with random garbage!
    procedure Ensure_Allocation

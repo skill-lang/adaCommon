@@ -104,6 +104,47 @@ package body Skill.Containers.Vectors is
 
    end Prepend_All;
 
+   procedure Append_Undefined
+     (This  : access Vector_T'Class;
+      Count : Natural)
+   is
+      I : Index_Type;
+   begin
+      if 0 = Count then
+         return;
+      end if;
+
+      I := Index_Base (This.Next_Index) + Index_Base (Count);
+      This.Ensure_Index (I);
+      This.Next_Index := I;
+
+      -- no move required
+   end Append_Undefined;
+
+   procedure Prepend_Undefined
+     (This  : access Vector_T'Class;
+      Count : Natural)
+   is
+      I : Index_Type;
+   begin
+      if 0 = Count then
+         return;
+      end if;
+
+      I := Index_Base (This.Next_Index) + Index_Base (Count);
+      This.Ensure_Index (I);
+      This.Next_Index := I;
+
+      -- move elements from the back, so we can do it in one iteration
+      loop
+         I := I - 1;
+
+         This.Data (I) := This.Data (I - Index_Type (Count));
+
+         exit when I - Index_Type (Count) = Index_Type'First;
+      end loop;
+   end Prepend_Undefined;
+
    function Pop (This : access Vector_T'Class) return Element_Type is
    begin
       This.Next_Index := This.Next_Index - 1;
