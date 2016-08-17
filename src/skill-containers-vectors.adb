@@ -136,9 +136,7 @@ package body Skill.Containers.Vectors is
       This.Next_Index := I;
 
       -- move elements from the back, so we can do it in one iteration
-      loop
-         exit when I - Index_Type (Count) = Index_Type'First;
-
+      while I - Index_Type (Count) > Index_Type'First loop
          I := I - 1;
 
          This.Data (I) := This.Data (I - Index_Type (Count));
