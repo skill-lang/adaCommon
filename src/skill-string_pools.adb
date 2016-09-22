@@ -39,7 +39,6 @@ package body Skill.String_Pools is
 
    exception
       when E : others =>
-         Skill.Errors.Print_Stacktrace (E);
          raise Skill.Errors.Skill_Error;
    end Create;
 

@@ -277,7 +277,6 @@ package body Skill.Internal.File_Parsers is
             end;
          exception
             when E : Constraint_Error =>
-               Skill.Errors.Print_Stacktrace(E);
                raise Errors.Skill_Error
                with Input.Parse_Exception
                  (Block_Counter, E, "unexpected corruption of parse state");

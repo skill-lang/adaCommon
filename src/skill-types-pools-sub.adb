@@ -86,8 +86,6 @@ package body Skill.Types.Pools.Sub is
       return Convert (This);
    exception
       when E : others =>
-         Skill.Errors.Print_Stacktrace (E);
-         Skill.Errors.Print_Stacktrace;
          raise Skill.Errors.Skill_Error
            with "Generic sub pool allocation failed";
    end Make;
