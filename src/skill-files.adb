@@ -39,6 +39,16 @@ package body Skill.Files is
       return This.Strings;
    end Strings;
 
+   procedure Delete
+     (This   : access File_T'Class;
+      Target : access Types.Skill_Object'Class)
+   is
+   begin
+      if null /= Target and then not Target.Is_Deleted then
+         This.Types_By_Name.Element (Target.Skill_Name).Delete (Target);
+      end if;
+   end Delete;
+
    procedure Change_Path (This : access File_T'Class; New_Path : String) is
    begin
       pragma Assert (This.Mode = Write);
@@ -182,7 +192,7 @@ package body Skill.Files is
 
       for P of This.Types_By_Name loop
          if null = P.Super then
-            To_Base_Pool(P).Establish_Next;
+            To_Base_Pool (P).Establish_Next;
          end if;
       end loop;
 

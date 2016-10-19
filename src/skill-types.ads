@@ -71,6 +71,13 @@ package Skill.Types is
    pragma Inline (Dynamic);
    pragma Pure_Function (Dynamic);
 
+   -- return true, iff the argument object will be deleted on the next flush
+   -- operation
+   -- @note: references to the object carried by other managed skill objects
+   --        will be deleted automatically
+   function Is_Deleted(This : access Skill_Object'Class) return Boolean is
+      (0 = This.Skill_ID);
+
    function Tag
      (This : access Skill_Object'Class) return Ada.Tags.Tag is
      (This'Tag);

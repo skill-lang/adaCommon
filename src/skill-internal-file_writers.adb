@@ -67,7 +67,7 @@ package body Skill.Internal.File_Writers is
       begin
          while Pool /= null loop
             Lbpo_Map (Pool.Pool_Offset) := Result;
-            Result                      := Result + Pool.Static_Size;
+            Result := Result + Pool.Static_Size_With_Deleted;
             Pool                        := Pool.Next;
          end loop;
       end Make_LBPO_Map;
@@ -229,11 +229,11 @@ package body Skill.Internal.File_Writers is
                Strings.Add (F.Name);
                -- add string data
                if F.T.ID = 14 then
-                  Iter.Init(This);
+                  Iter.Init (This);
                   while Iter.Has_Next loop
                      Strings.Add
-                       (Field_Types.Builtin.String_Type_P.Unboxed
-                          (Iter.Next.Dynamic.Reflective_Get (F)));
+                     (Field_Types.Builtin.String_Type_P.Unboxed
+                        (Iter.Next.Dynamic.Reflective_Get (F)));
                   end loop;
                end if;
             end Add_Field;
@@ -643,11 +643,11 @@ package body Skill.Internal.File_Writers is
                Strings.Add (F.Name);
                -- add string data
                if F.T.ID = 14 then
-                  Iter.Init(This);
+                  Iter.Init (This);
                   while Iter.Has_Next loop
                      Strings.Add
-                       (Field_Types.Builtin.String_Type_P.Unboxed
-                          (Iter.Next.Dynamic.Reflective_Get (F)));
+                     (Field_Types.Builtin.String_Type_P.Unboxed
+                        (Iter.Next.Dynamic.Reflective_Get (F)));
                   end loop;
                end if;
             end Add_Field;

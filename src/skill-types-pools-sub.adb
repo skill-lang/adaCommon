@@ -76,11 +76,10 @@ package body Skill.Types.Pools.Sub is
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
            Known_Fields          => No_Known_Fields,
            Blocks                => Skill.Internal.Parts.Blocks_P.Empty_Vector,
-           Fixed                 => False,
            Cached_Size           => 0,
-           Book                  => <>,
            Static_Data_Instances => 0,
-           New_Objects           => New_Objects_P.Empty_Vector);
+           New_Objects           => New_Objects_P.Empty_Vector,
+           others                => <>);
 
       This.Super.Sub_Pools.Append (Convert (This));
       return Convert (This);
@@ -111,11 +110,12 @@ package body Skill.Types.Pools.Sub is
    end Free;
 
    function Add_Field
-     (This : access Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access;
-      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
+     (This         : access Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration
    is
       type Super is access all Sub_Pool_T;
    begin
@@ -158,10 +158,10 @@ package body Skill.Types.Pools.Sub is
       if null = Unboxed (Target) then
          return 1;
       else
-      return Field_Types.Builtin.Offset_Single_V64
-           (Types.v64 (Unboxed (Target).Skill_ID));
+         return Field_Types.Builtin.Offset_Single_V64
+             (Types.v64 (Unboxed (Target).Skill_ID));
       end if;
-   end;
+   end Offset_Box;
 
    procedure Write_Box
      (This   : access Pool_T;

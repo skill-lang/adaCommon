@@ -109,6 +109,11 @@ package Skill.Types.Pools is
    -- @return size excluding subtypes
    function Static_Size (This : access Pool_T'Class) return Natural;
 
+   -- the number of instances of exactly this type, excluding sub-types
+   -- @return size excluding subtypes taking deleted objects into account
+   function Static_Size_With_Deleted
+     (This : access Pool_T'Class) return Natural;
+
    -- the number of new instances of exactly this type, excluding sub-types
    -- @return new_objects.size
    function New_Objects_Size (This : access Pool_T'Class) return Natural;
@@ -235,6 +240,13 @@ package Skill.Types.Pools is
      (This  : access Base_Pool_T'Class;
       Owner : access Skill.Files.File_T'Class);
 
+   -- internal use only
+   -- @note: invoking this method manually may likely damage your state;
+   --        use the delete procedure of skill.files instead.
+   procedure Delete
+     (This   : access Pool_T'Class;
+      Target : access Skill_Object'Class);
+
 private
 
    package New_Objects_P is new Skill.Containers.Vectors (Natural, Annotation);
@@ -279,6 +291,9 @@ private
       -- operations.
       Fixed       : Boolean := False;
       Cached_Size : Natural;
+
+      -- number of deleted objects in this pool (excluding subpools)
+      Deleted_Count : Natural := 0;
 
       -- number of static instances of this inside base.data
       Static_Data_Instances : Natural;

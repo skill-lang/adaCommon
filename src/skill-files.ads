@@ -44,8 +44,14 @@ package Skill.Files is
    end record;
    type File is not null access File_T'Class;
 
+   -- access to strings stored in the file
    function Strings
      (This : access File_T'Class) return Skill.String_Pools.Pool;
+
+   -- delete an object from the file
+   procedure Delete
+     (This   : access File_T'Class;
+      Target : access Types.Skill_Object'Class);
 
    -- change the output path
    -- @note can currently only be used in write mode

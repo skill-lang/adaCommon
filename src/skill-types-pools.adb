@@ -98,6 +98,15 @@ package body Skill.Types.Pools is
       return This.Static_Data_Instances + Natural (This.New_Objects.Length);
    end Static_Size;
 
+   function Static_Size_With_Deleted
+     (This : access Pool_T'Class) return Natural
+   is
+   begin
+      return This.Static_Data_Instances +
+        Natural (This.New_Objects.Length) -
+        This.Deleted_Count;
+   end Static_Size_With_Deleted;
+
    function New_Objects_Size
      (This : access Pool_T'Class) return Natural is
      (This.New_Objects.Length);
@@ -113,7 +122,8 @@ package body Skill.Types.Pools is
       end if;
 
       if Fix then
-         This.Cached_Size := This.Size;
+         -- take deletions into account
+         This.Cached_Size := This.Size - This.Deleted_Count;
       end if;
       This.Fixed := Fix;
    end Fixed;
@@ -126,7 +136,7 @@ package body Skill.Types.Pools is
    begin
       Iter.Init (This.To_Pool);
       while Iter.Has_Next loop
-         F(Iter.Next);
+         F (Iter.Next);
       end loop;
    end Do_In_Type_Order;
 
@@ -142,9 +152,9 @@ package body Skill.Types.Pools is
       end loop;
    end Do_For_Static_Instances;
 
-
    function First_Dynamic_New_Instance
-     (This : access Pool_T'Class) return Annotation is
+     (This : access Pool_T'Class) return Annotation
+   is
       P : Pool := This.To_Pool;
    begin
       while P /= null loop
@@ -166,11 +176,12 @@ package body Skill.Types.Pools is
 
    -- internal use only
    function Add_Field
-     (This : access Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access;
-      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
+     (This         : access Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration
 
    is
       function Convert is new Ada.Unchecked_Conversion
@@ -185,7 +196,10 @@ package body Skill.Types.Pools is
         Convert
           (Skill.Field_Declarations.Make_Lazy_Field
              (Convert (P (This)),
-              ID, T, Name, Restrictions));
+              ID,
+              T,
+              Name,
+              Restrictions));
    begin
       F.Restrictions := Restrictions;
       This.Data_Fields.Append (F);
@@ -194,11 +208,12 @@ package body Skill.Types.Pools is
    end Add_Field;
 
    function Add_Field
-     (This : access Base_Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access;
-      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
+     (This         : access Base_Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration
    is
 
       type P is access all Pool_T;
@@ -208,11 +223,12 @@ package body Skill.Types.Pools is
    end Add_Field;
 
    function Add_Field
-     (This : access Sub_Pool_T;
-      ID   : Natural;
-      T    : Field_Types.Field_Type;
-      Name : String_Access;
-      Restrictions : Field_Restrictions.Vector) return Skill.Field_Declarations.Field_Declaration
+     (This         : access Sub_Pool_T;
+      ID           : Natural;
+      T            : Field_Types.Field_Type;
+      Name         : String_Access;
+      Restrictions : Field_Restrictions.Vector)
+      return Skill.Field_Declarations.Field_Declaration
    is
 
       type P is access all Pool_T;
@@ -250,9 +266,11 @@ package body Skill.Types.Pools is
 
       procedure Update (I : Annotation) is
       begin
-         D (P)      := I;
-         I.Skill_ID := P;
-         P          := P + 1;
+         if 0 /= I.Skill_ID then
+            D (P)      := I;
+            I.Skill_ID := P;
+            P          := P + 1;
+         end if;
       end Update;
    begin
       This.Do_In_Type_Order (Update'Access);
@@ -482,6 +500,13 @@ package body Skill.Types.Pools is
       This.Owner := Convert (P (Owner));
    end Set_Owner;
 
-   -- sub pool properties
+   procedure Delete
+     (This   : access Pool_T'Class;
+      Target : access Skill_Object'Class)
+   is
+   begin
+      Target.Skill_ID    := 0;
+      This.Deleted_Count := This.Deleted_Count + 1;
+   end Delete;
 
 end Skill.Types.Pools;

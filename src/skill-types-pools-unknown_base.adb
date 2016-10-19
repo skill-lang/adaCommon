@@ -75,13 +75,12 @@ package body Skill.Types.Pools.Unknown_Base is
              Skill.Field_Declarations.Field_Vector_P.Empty_Vector,
            Known_Fields => No_Known_Fields,
            Blocks      => Skill.Internal.Parts.Blocks_P.Empty_Vector,
-           Fixed       => False,
            Cached_Size => 0,
            Data        => Skill.Types.Pools.Empty_Data,
            Owner       => null,
-           Book => <>,
            New_Objects => New_Objects_P.Empty_Vector,
-           Static_Data_instances  => 0);
+           Static_Data_instances  => 0,
+          others => <>);
 
       This.Base := Convert (This);
       return Convert (This);
