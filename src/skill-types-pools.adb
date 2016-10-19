@@ -116,16 +116,26 @@ package body Skill.Types.Pools is
      (This.New_Objects.Element (Idx));
 
    procedure Fixed (This : access Pool_T'Class; Fix : Boolean) is
+      procedure Set (P : Sub_Pool) is
+      begin
+         Fixed (P, True);
+         This.Cached_Size := This.Cached_Size + P.Cached_Size;
+      end Set;
+
    begin
       if This.Fixed = Fix then
          return;
       end if;
+      This.Fixed := Fix;
 
       if Fix then
-         -- take deletions into account
-         This.Cached_Size := This.Size - This.Deleted_Count;
+         This.Cached_Size := This.Static_Size_With_Deleted;
+
+         This.Sub_Pools.Foreach (Set'Access);
+
+      elsif This.Super /= null then
+         Fixed (This.Super, False);
       end if;
-      This.Fixed := Fix;
    end Fixed;
 
    procedure Do_In_Type_Order
@@ -283,15 +293,29 @@ package body Skill.Types.Pools is
      (This     : access Pool_T'Class;
       Lbpo_Map : Skill.Internal.Lbpo_Map_T)
    is
+
+      procedure Reset (D : Field_Declarations.Field_Declaration) is
+         use type Interfaces.Integer_64;
+      begin
+         D.Data_Chunks.Clear;
+         D.Add_Chunk
+         (new Internal.Parts.Bulk_Chunk'(-1, -1, This.Cached_Size, 1));
+      end Reset;
    begin
       This.Static_Data_Instances :=
-        This.Static_Data_Instances + This.New_Objects.Length;
+        This.Static_Data_Instances +
+        This.New_Objects.Length -
+        This.Deleted_Count;
       This.New_Objects.Clear;
+      This.Deleted_Count := 0;
 
       This.Blocks.Clear;
       This.Blocks.Append
       (Skill.Internal.Parts.Block'
          (Lbpo_Map (This.Pool_Offset), This.Static_Data_Instances, This.Size));
+
+      -- reset Data chunks
+      This.Data_Fields_F.Foreach (Reset'Access);
 
       for I in 0 .. This.Sub_Pools.Length - 1 loop
          This.Sub_Pools.Element (I).Dynamic.Update_After_Compress (Lbpo_Map);

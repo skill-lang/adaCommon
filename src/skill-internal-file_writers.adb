@@ -260,8 +260,8 @@ package body Skill.Internal.File_Writers is
               (Types.Pools.Pool,
                Types.Pools.Base_Pool);
          begin
-            This.Fixed (True);
             if null = This.Super then
+               This.Fixed (True);
                Make_LBPO_Map (This, Lbpo_Map, 0);
                Cast (This).Compress (Lbpo_Map);
             end if;
@@ -688,8 +688,8 @@ package body Skill.Internal.File_Writers is
                Types.Pools.Base_Pool);
             R : Integer;
          begin
-            This.Fixed (True);
             if This.Dynamic.all in Types.Pools.Base_Pool_T'Class then
+               This.Fixed (True);
                R := Make_LBPO_Map (This, Lbpo_Map, 0);
                Cast (This).Prepare_Append (Chunk_Map);
             end if;
