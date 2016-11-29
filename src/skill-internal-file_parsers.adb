@@ -245,6 +245,8 @@ package body Skill.Internal.File_Parsers is
                -- bpo
                if 0 /= Block.Dynamic_Count and then null /= Definition.Super then
                   Block.Bpo := Definition.Base.Data'Length + Types.Skill_ID_T(Input.V64);
+               elsif null /= Definition.Super and then Seen_Types.Contains (Definition.Super.Skill_Name) then
+                  Block.Bpo := Definition.Super.Blocks.Last_Element.Bpo;
                else
                   Block.Bpo := Definition.Base.Data'Length;
                end if;
