@@ -31,6 +31,10 @@ package Skill.Equals is
      (A = B);
 
    function Equals
+     (A, B : Interfaces.Integer_32) return Boolean is
+     (A = B);
+
+   function Equals
      (A, B : Interfaces.Integer_64) return Boolean is
      (A = B);
 

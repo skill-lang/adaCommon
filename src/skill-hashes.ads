@@ -26,6 +26,10 @@ package Skill.Hashes is
      (Element : Skill.Types.Pools.Pool) return Ada.Containers.Hash_Type is
      (Ada.Containers.Hash_Type(Element.Id));
 
+   function Hash
+     (Element : Interfaces.Integer_32) return Ada.Containers.Hash_Type is
+     (Ada.Containers.Hash_Type(Element));
+
    function Hash is new Ada.Unchecked_Conversion(Interfaces.Integer_64, Ada.Containers.Hash_Type);
 
 end Skill.Hashes;
