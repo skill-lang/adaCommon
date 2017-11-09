@@ -27,6 +27,14 @@ package Skill.Hashes is
      (Ada.Containers.Hash_Type(Element.Id));
 
    function Hash
+     (Element : Interfaces.Integer_8) return Ada.Containers.Hash_Type is
+     (Ada.Containers.Hash_Type(Element));
+
+   function Hash
+     (Element : Interfaces.Integer_16) return Ada.Containers.Hash_Type is
+     (Ada.Containers.Hash_Type(Element));
+
+   function Hash
      (Element : Interfaces.Integer_32) return Ada.Containers.Hash_Type is
      (Ada.Containers.Hash_Type(Element));
 
